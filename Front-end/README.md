@@ -1,2 +1,2 @@
 # Front-end
-HTML+CSS | RedeSulanca
+RedeSulanca | HTML+CSS 
