@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build and generated framework files
+**/.react-router/
+**/build/
+**/dist/
+coverage/
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local backups, logs and caches
+*.bak
+*.bak-*
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# Editor / OS files
+.vscode/
+.idea/
