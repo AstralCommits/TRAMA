@@ -1,14 +1,23 @@
-name: Docker MySQL
+name: Banco de Dados (Docker MySQL)
 
 on:
   push:
+    paths:
+      - "Banco-de-Dados/**"
+      - ".github/workflows/banco-de-dados.yml"
   pull_request:
+    paths:
+      - "Banco-de-Dados/**"
+      - ".github/workflows/banco-de-dados.yml"
   workflow_dispatch:
 
 jobs:
   docker-compose:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Banco-de-Dados
 
     steps:
       - name: Baixar o repositorio
