@@ -18,7 +18,7 @@ body:
     id: contexto
     attributes:
       label: Contexto e fundamentação
-      description: Requisito, regra de negócio ou história de usuário relacionada (ex.: RF04, RNF03, US07).
+      description: "Requisito, regra de negócio ou história de usuário relacionada (ex.: RF04, RNF03, US07)."
     validations:
       required: true
   - type: textarea
