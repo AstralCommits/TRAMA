@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.react-router/
+target/
+*.class
+.env
+.env.local
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+Banco-de-Dados/backups/*
+!Banco-de-Dados/backups/.gitkeep
