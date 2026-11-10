@@ -72,7 +72,7 @@ export function saveConsent(choices: CookieChoices): void {
       JSON.stringify(consent)
     );
   } catch {
-    // O armazenamento pode estar indisponível no navegador.
+
   }
 }
 

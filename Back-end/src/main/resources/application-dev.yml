@@ -13,4 +13,3 @@ trama:
   jwt:
     secret: ${TRAMA_JWT_SECRET}
 
-# Aplique as migrações necessárias ao schema da equipe antes de iniciar este perfil.

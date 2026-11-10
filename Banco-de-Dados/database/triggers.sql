@@ -1,8 +1,8 @@
 USE confeccoes;
- 
+
 DROP TRIGGER IF EXISTS trg_historico_lancamento_update;
 DROP TRIGGER IF EXISTS trg_historico_lancamento_delete;
- 
+
 DELIMITER $$
 CREATE TRIGGER trg_historico_lancamento_update
 AFTER UPDATE ON lancamento_mensal
@@ -18,7 +18,7 @@ BEGIN
      NEW.quantidade, NEW.faturamento, NEW.lanc_status, @id_usuario);
 END $$
 DELIMITER ;
- 
+
 DELIMITER $$
 CREATE TRIGGER trg_historico_lancamento_delete
 AFTER DELETE ON lancamento_mensal
@@ -32,8 +32,7 @@ BEGIN
      OLD.quantidade, OLD.faturamento, OLD.lanc_status, @id_usuario);
 END $$
 DELIMITER ;
- 
--- Teste: chama as procedures e confere o log gerado pelos triggers
+
 CALL inserir_lancamento('2026-03-15', 360, 25200.00, 4, 4, 'ENTREVISTA');
 SET @id_novo = LAST_INSERT_ID();
 SELECT * FROM lancamento_mensal WHERE id_lancamento = @id_novo;

@@ -1,11 +1,10 @@
-
 USE confeccoes;
- 
+
 DROP PROCEDURE IF EXISTS inserir_lancamento;
 DROP PROCEDURE IF EXISTS atualizar_lancamento;
 DROP PROCEDURE IF EXISTS cancelar_lancamento;
 DROP PROCEDURE IF EXISTS excluir_lancamento;
- 
+
 DELIMITER $$
 CREATE PROCEDURE inserir_lancamento(
     IN p_mes_referencia DATE,
@@ -24,7 +23,7 @@ BEGIN
      'MANUAL', p_fonte_dado, 'ATIVO', p_id_confeccao, p_id_categoria, NULL);
 END $$
 DELIMITER ;
- 
+
 DELIMITER $$
 CREATE PROCEDURE atualizar_lancamento(
     IN p_id_lancamento INT,
@@ -38,8 +37,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Lancamento cancelado nao pode ser atualizado.';
     END IF;
- 
-    -- O trigger le @id_usuario para registrar quem alterou
+
     SET @id_usuario = p_id_usuario;
     UPDATE lancamento_mensal
     SET quantidade = p_quantidade,
@@ -48,7 +46,7 @@ BEGIN
     SET @id_usuario = NULL;
 END $$
 DELIMITER ;
- 
+
 DELIMITER $$
 CREATE PROCEDURE cancelar_lancamento(
     IN p_id_lancamento INT,
@@ -62,7 +60,7 @@ BEGIN
     SET @id_usuario = NULL;
 END $$
 DELIMITER ;
- 
+
 DELIMITER $$
 CREATE PROCEDURE excluir_lancamento(
     IN p_id_lancamento INT,

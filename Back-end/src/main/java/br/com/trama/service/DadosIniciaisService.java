@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/** Seeds the small reference lists required to start using the API. */
 @Configuration
 @Profile({"local", "test"})
 public class DadosIniciaisService {
@@ -42,7 +41,6 @@ public class DadosIniciaisService {
                 }
             }
 
-            // Conta local opcional: só é criada quando as credenciais são fornecidas por variáveis de ambiente.
             if (adminEmail != null && !adminEmail.isBlank()
                     && adminPassword != null && !adminPassword.isBlank()
                     && usuarioRepository.findByEmailIgnoreCase(adminEmail).isEmpty()) {

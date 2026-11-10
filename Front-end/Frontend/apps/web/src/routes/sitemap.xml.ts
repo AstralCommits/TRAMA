@@ -36,12 +36,6 @@ function serializeSitemap(origin: string, entries: SitemapEntry[]): string {
 	return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
-/**
- * Public dynamic URLs (blog posts, PDPs, articles).
- * Return `{ path, lastmod }` in the same change that adds a collection.
- * Return `[]` only while the site has no public records; clear those URLs
- * again in the same change that removes the collection.
- */
 async function getDynamicEntries(): Promise<SitemapEntry[]> {
 	return [];
 }

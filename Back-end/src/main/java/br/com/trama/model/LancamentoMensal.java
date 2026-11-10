@@ -53,11 +53,9 @@ public class LancamentoMensal {
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
 
-    // Mantido como FK escalar para compatibilidade com a tabela importacao existente.
     @Column(name = "id_importacao")
     private Long idImportacao;
 
-    // Procedência da informação (diferente de origem MANUAL/IMPORTACAO do registro).
     @Enumerated(EnumType.STRING)
     @Column(name = "fonte_dado", nullable = false, length = 20)
     private OrigemDado origemDado;

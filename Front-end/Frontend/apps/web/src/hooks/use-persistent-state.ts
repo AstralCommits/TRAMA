@@ -1,6 +1,5 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
-/** Keeps one account's workspace data in this browser and avoids overwriting it before hydration. */
 export function usePersistentState<T>(
   key: string,
   initialValue: T,
@@ -24,7 +23,7 @@ export function usePersistentState<T>(
     try {
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch {
-      // The application remains usable for the current session if storage is unavailable/full.
+
     }
   }, [key, loaded, value]);
 

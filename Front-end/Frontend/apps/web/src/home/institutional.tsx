@@ -71,8 +71,7 @@ export function Institutional({ enter }: { enter: (mode: string) => void }) {
       </header>
 
       <main className="site-main">
-        {/* A primeira dobra retoma a composição original do TRAMA: título central,
-            apresentação curta e os três caminhos de entrada. */}
+
         <section id="inicio" className="hero">
           <div className="eyebrow"><span /> FEITA NO AGRESTE. PENSADA PARA VOCÊ.</div>
           <h1>Quem tece o futuro<br />precisa de <em>uma boa trama.</em></h1>

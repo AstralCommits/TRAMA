@@ -8,7 +8,6 @@ from pathlib import Path
 PASTA = Path(__file__).resolve().parent
 BANCO = PASTA / "extensao.db"
 
-# inserts.sql e escrito para o MySQL; a unica linha incompativel com o SQLite e o USE
 inserts = "\n".join(
     linha for linha in (PASTA / "inserts.sql").read_text(encoding="utf-8").splitlines()
     if not linha.strip().upper().startswith("USE ")

@@ -10,4 +10,3 @@ spring:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     show-sql: false
 
-# Perfil de compatibilidade local; migrações MySQL não são aplicadas automaticamente.

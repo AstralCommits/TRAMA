@@ -24,7 +24,6 @@ export interface CategoriaIndicador {
   variacaoPercentual?: number;
 }
 
-/** Contrato esperado da resposta de GET /api/indicadores. */
 export interface IndicadoresResponse {
   faturamentoTotal: number;
   pecasVendidas: number;

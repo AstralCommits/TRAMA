@@ -1,7 +1,3 @@
--- Alinhamento com a issue BD #17.
--- Execute somente em um banco que AINDA usa o perfil CONFECCAO e não possui
--- a constraint chk_cenario_impacto. Não execute se o PR de banco já aplicou estas mudanças.
-
 ALTER TABLE usuario DROP CHECK chk_usuario_perfil;
 ALTER TABLE usuario DROP CHECK chk_usuario_perfil_confeccao;
 

@@ -10,12 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Consulta indicadores agregados de vendas.
- *
- * Exemplo:
- * GET /api/indicadores?inicio=2026-01&fim=2026-03&cidade=Recife
- */
 @RestController
 @RequestMapping("/api/indicadores")
 public class IndicadorController {

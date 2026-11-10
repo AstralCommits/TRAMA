@@ -2,9 +2,9 @@ import { type KeyboardEvent, useCallback, useEffect, useState } from 'react';
 
 type CarouselOptions = {
 	count: number;
-	/** Advance every N ms. Paused while hovered, focused, off-screen tab or under reduced motion. */
+
 	autoplayMs?: number;
-	/** Wrap from the last slide to the first; false stops at both ends. */
+
 	loop?: boolean;
 };
 
@@ -20,19 +20,6 @@ const wrapIndex = (index: number, count: number, loop: boolean) => {
 	return Math.min(Math.max(index, 0), count - 1);
 };
 
-/**
- * Index state for a slider, testimonial rotator or hero slideshow whose markup
- * and transitions the site designs itself. For a swipeable track, the template
- * also ships `embla-carousel-react`.
- *
- *   const carousel = useCarousel({ count: slides.length, autoplayMs: 6000 });
- *   <section {...carousel.regionProps} aria-label="Testimonials">
- *     {slides.map((slide, i) => <article key={slide.id} hidden={i !== carousel.index}>…</article>)}
- *     <button type="button" onClick={carousel.prev} aria-label="Previous">…</button>
- *   </section>
- *
- * The region pauses autoplay on hover and focus and moves with the arrow keys.
- */
 export function useCarousel({ count, autoplayMs, loop = true }: CarouselOptions) {
 	const [index, setIndex] = useState(0);
 	const [isPaused, setIsPaused] = useState(false);

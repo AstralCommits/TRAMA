@@ -6,8 +6,6 @@
 @media(min-width:1500px){.hero{padding-top:95px}.stitch-tag{right:10%}}@media(max-width:1150px){.site-nav nav{gap:12px}.stitch-tag{display:none}.site-nav{padding:18px 3%}.sidebar{width:220px}.dashboard-body{padding:25px}.metrics{grid-template-columns:repeat(2,1fr)}.site-nav nav a{font-size:11px}}@media(max-width:850px){.mobile-toggle{display:inline-flex;padding:9px;background:transparent;color:var(--ink);border:1px solid #c8b89c;min-height:44px}.site-nav nav{display:none;position:absolute;top:100%;left:0;right:0;background:var(--paper);padding:24px;box-shadow:0 8px 15px #3b2d2315}.site-nav nav.open{display:flex;flex-direction:column;align-items:stretch}.site-nav nav a{padding:12px;font-size:15px}.regional-banner{height:85px}.hero{min-height:620px;padding-top:60px}.hero h1{letter-spacing:-1px}.hero-bottom{gap:14px;font-size:8px;letter-spacing:.7px}.hero p{font-size:16px}.story{gap:30px;padding:60px 7%}.offers{gap:25px}.platform,.method{padding:60px 7%}.sidebar{display:none}.sidebar.open{display:flex;position:fixed;left:0;top:70px;bottom:0;z-index:20;overflow:auto;width:270px;box-shadow:5px 0 15px #3b2d2330}.workspace-header{padding:15px 18px}.workspace-header>span{font-size:11px}.chart-grid{grid-template-columns:1fr}.date-label{display:none}.site-footer{flex-wrap:wrap}.section-toolbar{align-items:stretch;flex-direction:column}}@media(max-width:540px){h2{font-size:31px}.story,.offers{grid-template-columns:1fr}.hero-actions{flex-direction:column;max-width:280px;margin-left:auto;margin-right:auto}.hero-bottom{margin-top:40px;flex-wrap:wrap}.hero{min-height:660px}.hero h1{font-size:37px}.dashboard-body{padding:22px 15px}.page-heading h1{font-size:25px}.workspace-header>div{gap:7px;font-size:11px}.workspace-header>span{font-size:10px}.workspace-header .badge{display:none}.metrics{gap:10px}.metrics article{padding:18px 12px}.metrics strong{font-size:23px}.filters label{min-width:120px}.updated{width:100%}.panel{padding:18px}.ai-panel form{grid-template-columns:1fr}.cookie-banner{left:10px;right:10px;bottom:10px;padding:17px;max-width:none}.cookie-banner .actions{gap:6px}.cookie-banner button{padding:10px;font-size:11px}.modal{padding:24px}.dashboard-foot{flex-direction:column}.section-toolbar>div:not(.filters){flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 
-
-/* Integração do painel atualizado com a área de gestão já existente. */
 .sidebar{height:100dvh;position:sticky;top:0;overflow:hidden}
 .sidebar nav{overflow-y:auto;min-height:0;padding-right:3px;scrollbar-width:thin;scrollbar-color:#c6b38f transparent}
 .sidebar nav>div{min-width:0}
@@ -64,7 +62,6 @@
 @media(max-width:850px){.sidebar{height:auto;position:static}.sidebar.open{height:calc(100dvh - 70px)}.trama-filter-grid{grid-template-columns:1fr 1fr}.trama-filter-heading{align-items:flex-start;flex-wrap:wrap}.trama-filter-heading>span{width:100%;max-width:none;margin-left:27px;text-align:left}}
 @media(max-width:560px){.trama-filter-panel{padding:15px}.trama-filter-grid,.trend-summary-cards{grid-template-columns:1fr}.trama-kpis{grid-template-columns:1fr}.trama-month-fields{grid-template-columns:1fr 90px}.trama-filter-grid .trama-compare-toggle{padding-bottom:0}.auth-modal{padding:20px}.auth-switch{margin:10px 0}.auth-modal .actions button{flex:1}.trend-rules p{align-items:flex-start}}
 
-/* Identidade visual atualizada a partir da logo e da faixa regional enviadas. */
 .regional-banner{
   height:92px;
   background-position:center 51%;
@@ -158,7 +155,6 @@
 .site-footer-enhanced>span{font-size:12px;color:#7b6b54}
 .footer-top{font-size:12px;color:var(--rust);font-weight:700}
 
-/* Menu da conta e edição do perfil na área de gestão. */
 .workspace-logo{display:flex;align-items:center;justify-content:center;width:100%;height:126px;margin:0 auto 17px;padding:4px 10px;overflow:hidden}
 .workspace-logo img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
 .workspace-header{min-height:82px;padding:14px clamp(18px,3vw,38px);position:sticky;top:0;z-index:15;box-shadow:0 3px 12px #35281a08}
@@ -277,7 +273,6 @@
   .profile-large-avatar{width:56px;height:56px;flex-basis:56px;font-size:15px}
 }
 
-/* Identidade final TRAMA: primeira dobra fiel à composição institucional original. */
 .regional-banner {
   height: 86px;
   background-position: center 52%;
@@ -504,7 +499,6 @@
 .footer-logo { display: block; width: 128px; height: 86px; overflow: hidden; }
 .footer-logo img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: normal; }
 
-/* Área de gestão: navegação mais clara, marca sem fundo e módulos preservados. */
 .workspace { min-height: 100dvh; background: #f7f3e9; }
 .sidebar {
   width: 274px;
