@@ -24,6 +24,18 @@ Este repositório junta os repositórios da organização, com o histórico de c
 | [`Banco-de-Dados/`](Banco-de-Dados) | [AstralCommits/Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados) | Scripts MySQL, versão SQLite, Docker e CI |
 | [`Novas-Funcionalidades/`](Novas-Funcionalidades) | [AstralCommits/TRAMA-novas-funcionalidades](https://github.com/AstralCommits/TRAMA-novas-funcionalidades) | Novas telas do front-end ainda separadas da SPA principal |
 
+## Documentação
+
+A documentação do projeto segue as normas ISO/IEC/IEEE adotadas na disciplina e fica em [`docs/`](docs/README.md):
+
+- [Requisitos (29148)](docs/requisitos/especificacao-requisitos-29148.md)
+- [Arquitetura (42010)](docs/arquitetura/descricao-arquitetura-42010.md)
+- [Instalação e uso (26514)](docs/usuario/guia-instalacao-uso-26514.md)
+- [Testes (29119)](docs/testes/plano-testes-29119.md)
+- [Ciclo de vida (12207)](docs/processo/ciclo-de-vida-12207.md)
+- [Segurança (27001)](docs/seguranca/seguranca-informacao-27001.md)
+- [Auditoria de 09/11](docs/auditoria/2026-11-09-auditoria.md) · [Cronograma até 23/11](docs/cronograma/cronograma-2026-11.md)
+
 ## Branches
 
 A `main` tem a branch `develop` de cada repositório, que é a branch de integração do GitFlow da equipe. Todas as outras branches foram trazidas com o nome do repositório na frente:
