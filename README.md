@@ -35,7 +35,7 @@ A `main` tem a branch `develop` de cada repositório, que é a branch de integra
 | Banco de Dados | `banco-de-dados/main`, `banco-de-dados/develop`, `banco-de-dados/feature/alinhamento-srs`, `banco-de-dados/feature/auditoria-historico`, `banco-de-dados/feature/compatibiliza-origem-dado`, `banco-de-dados/feature/db-01-db-03-pedidos-produtos`, `banco-de-dados/feature/docker-mysql`, `banco-de-dados/feature/indices-rnf01`, `banco-de-dados/feature/perfil-empresario`, `banco-de-dados/feature/sqlite-local` |
 | Novas funcionalidades | `novas-funcionalidades/main`, `novas-funcionalidades/develop` |
 
-As tags do Banco de Dados ficaram como `banco-de-dados-v0.1.0` a `banco-de-dados-v0.3.1`. Novas funcionalidades entram na `main` por Pull Request.
+As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados/tags). Novas funcionalidades entram na `main` por Pull Request.
 
 ## Como rodar o projeto completo
 
