@@ -1,0 +1,37 @@
+name: Problema
+description: Algo que não funciona como deveria
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: frente
+    attributes:
+      label: Frente
+      options:
+        - Banco de Dados
+        - Back-end
+        - Front-end
+        - Documentação
+    validations:
+      required: true
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que aconteceu
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      value: |
+        1. 
+        2. 
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que era esperado
+    validations:
+      required: true

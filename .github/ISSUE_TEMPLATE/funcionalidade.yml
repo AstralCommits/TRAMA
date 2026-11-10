@@ -1,0 +1,41 @@
+name: Funcionalidade
+description: Nova funcionalidade ou tarefa de uma das frentes
+title: "[FRENTE-00] "
+labels: ["type:feature"]
+body:
+  - type: dropdown
+    id: frente
+    attributes:
+      label: Frente
+      options:
+        - Banco de Dados
+        - Back-end
+        - Front-end
+        - Documentação
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto e fundamentação
+      description: "Requisito, regra de negócio ou história de usuário relacionada (ex.: RF04, RNF03, US07)."
+    validations:
+      required: true
+  - type: textarea
+    id: tarefas
+    attributes:
+      label: Tarefas
+      value: |
+        - [ ] 
+    validations:
+      required: true
+  - type: textarea
+    id: aceitacao
+    attributes:
+      label: Critérios de aceitação
+      value: |
+        - **Dado** 
+        - **Quando** 
+        - **Então** 
+    validations:
+      required: true
