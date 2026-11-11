@@ -9,6 +9,7 @@ import { DashboardIndicators, TrendAnalysis } from '@/components/dashboard/dashb
 import { usePersistentState } from '@/hooks/use-persistent-state';
 import type { TramaUser } from '@/lib/auth.client';
 import { ProfileDialog } from '@/home/profile-dialog';
+import { NewFeatures } from '@/home/new-features';
 
 const moduleIcons: Record<string, LucideIcon> = {
   'Visão Geral': Home,
@@ -29,6 +30,10 @@ const moduleIcons: Record<string, LucideIcon> = {
   'Agenda e Notificações': CalendarDays,
   'Equipe e Permissões': ShieldCheck,
   'Configurações': Settings2,
+  'Simulador de Impacto da Concorrência': SlidersHorizontal,
+  'Gerenciamento de Categorias': ClipboardList,
+  'Gerenciamento de Confecções': Factory,
+  'Lançamento de Vendas': Receipt,
 };
 
 const sectionLabels: Record<number, string> = {
@@ -99,6 +104,10 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
     'Comparação de Produtos': 'Compare o desempenho comercial de cada produto.',
     'Simulador de Cenários Comparativos': 'Explore hipóteses de mercado e compare resultados possíveis.',
     'Cadastros': 'Organize as informações básicas utilizadas pelos módulos da plataforma.',
+    'Simulador de Impacto da Concorrência': 'Visualize como uma possível perda de mercado afetaria seu faturamento.',
+    'Gerenciamento de Categorias': 'Cadastre e organize as categorias utilizadas nos lançamentos.',
+    'Gerenciamento de Confecções': 'Gerencie confecções e suas cidades de atuação.',
+    'Lançamento de Vendas': 'Registre vendas mensais por categoria e confecção.',
   };
 
   return <div className="workspace">
@@ -108,7 +117,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
       </button>
       <span className="workspace-label">{user.company.toLocaleUpperCase('pt-BR')}</span>
       <nav aria-label="Módulos da plataforma">
-        {modules.map((item, index) => {
+        {modules.filter((item) => !['Gerenciamento de Categorias','Gerenciamento de Confecções','Lançamento de Vendas'].includes(item) || (user.role || 'Administrador') === 'Administrador').map((item, index) => {
           const Icon = moduleIcons[item] || LayoutDashboard;
           return <div className="workspace-nav-item" key={item}>
             {sectionLabels[index] && <span className="workspace-label">{sectionLabels[index]}</span>}
@@ -188,6 +197,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
           ) : null}
 
           {mode === 'Dados de Vendas' && <Sales sales={sales} save={save} remove={removeSale} />}
+          {['Simulador de Impacto da Concorrência','Gerenciamento de Categorias','Gerenciamento de Confecções','Lançamento de Vendas'].includes(mode) && <NewFeatures mode={mode} sales={sales} setSales={setSales} storageKey={storageBase} isAdmin={(user.role || 'Administrador') === 'Administrador'} />}
           {mode === 'Estoque' && <Inventory storageKey={`${storageBase}:inventory`} demoMode={user.isDemo} />}
 
           {['Cenário da Concorrência', 'Simulador de Cenários Comparativos', 'Produção', 'Vendas e Pedidos', 'Financeiro', 'Clientes e Fornecedores', 'Relatórios e Indicadores', 'Agenda e Notificações', 'Equipe e Permissões', 'Configurações', 'Cadastros'].includes(mode) && (
