@@ -65,7 +65,6 @@ BEGIN
            SUM(acao = 'UPDATE' AND status_novo = status_antigo) AS correcoes,
            SUM(acao = 'UPDATE' AND status_novo = 'CANCELADO' AND status_antigo = 'ATIVO') AS cancelamentos,
            SUM(acao = 'DELETE') AS exclusoes,
-
            SUM(CASE WHEN acao = 'DELETE' OR (status_antigo = 'ATIVO' AND status_novo = 'CANCELADO')
                     THEN -faturamento_antigo
                     ELSE diferenca_faturamento END) AS impacto_faturamento,
@@ -94,7 +93,6 @@ BEGIN
            SUM(acao = 'UPDATE' AND status_novo = status_antigo) AS correcoes,
            SUM(acao = 'UPDATE' AND status_novo = 'CANCELADO' AND status_antigo = 'ATIVO') AS cancelamentos,
            SUM(acao = 'DELETE') AS exclusoes,
-
            SUM(CASE WHEN acao = 'DELETE' OR (status_antigo = 'ATIVO' AND status_novo = 'CANCELADO')
                     THEN -faturamento_antigo
                     ELSE diferenca_faturamento END) AS impacto_faturamento

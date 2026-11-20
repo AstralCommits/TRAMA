@@ -268,9 +268,9 @@ erDiagram
 |---|---|---|
 | **Cidade** | id_cidade | nome (Toritama, Caruaru ou Santa Cruz do Capibaribe), uf (PE) |
 | **Confecção** | id_confeccao | nome, cnpj (opcional), porte (micro, pequena, média), tipo (confecção, facção) |
-| **Usuário** | id_usuario | nome, email, senha_hash, perfil (ADMIN, CONFECCAO) |
+| **Usuário** | id_usuario | nome, email, senha_hash, perfil (ADMIN, EMPRESARIO) |
 | **Categoria** | id_categoria | nome (até 50 caracteres) |
-| **Lançamento mensal** | id_lancamento | mes_referencia, quantidade, faturamento, origem (MANUAL, IMPORTACAO), fonte_dado (ENTREVISTA, QUESTIONARIO, FONTE_SECUNDARIA), status (ATIVO, CANCELADO) |
+| **Lançamento mensal** | id_lancamento | mes_referencia, quantidade, faturamento, origem (MANUAL, IMPORTACAO), origem_dado (ENTREVISTA, QUESTIONARIO, FONTE_SECUNDARIA), nome_fonte, status (ATIVO, CANCELADO) |
 | **Importação** | id_importacao | nome_arquivo, data_importacao, qtd_linhas, status (CONCLUIDA, ERRO) |
 | **Cenário de concorrência** | id_cenario | nome, percentual_impacto, descricao (opcional) |
 | **Entrevista** | id_entrevista | data, resumo, achou_algo_novo (sim, não) |
@@ -318,7 +318,7 @@ erDiagram
         varchar nome
         varchar email UK
         varchar senha_hash
-        varchar perfil "ADMIN | CONFECCAO"
+        varchar perfil "ADMIN | EMPRESARIO"
         int     id_confeccao FK "NULL se ADMIN"
     }
     categoria {
@@ -339,7 +339,8 @@ erDiagram
         int     quantidade
         decimal faturamento
         varchar origem "MANUAL | IMPORTACAO"
-        varchar fonte_dado "ENTREVISTA | QUESTIONARIO | FONTE_SECUNDARIA"
+        varchar origem_dado "ENTREVISTA | QUESTIONARIO | FONTE_SECUNDARIA"
+        varchar nome_fonte "nome da fonte (RF04)"
         varchar lanc_status "ATIVO | CANCELADO"
         int     id_confeccao FK
         int     id_categoria FK
@@ -432,7 +433,7 @@ Cada participação (0,1) do modelo existe por causa de uma regra do [minimundo]
 
 | Relacionamento | Por que é (0,1) | Regra | Garantia no banco |
 |---|---|---|---|
-| Confecção → Usuário | O ADMIN não pertence a nenhuma confecção | RN02 | `id_confeccao` aceita NULL; perfil validado pelo sistema |
+| Confecção → Usuário | O ADMIN não pertence a nenhuma confecção | RN02 | `id_confeccao` aceita NULL; `CHECK chk_usuario_perfil_confeccao` garante a combinação |
 | Importação → Lançamento mensal | O lançamento pode ser digitado à mão (origem MANUAL) | — | `id_importacao` aceita NULL; `origem` guarda MANUAL ou IMPORTACAO |
 | Categoria → Cenário de concorrência | Um cenário sem categoria vale para todas | RN06 | FK aceita NULL |
 | Cenário de concorrência → Relatório | Só o relatório do tipo CENARIO usa cenário | RN07 | `id_cenario` aceita NULL; tipo validado pelo sistema |
@@ -449,7 +450,7 @@ Em um relacionamento 1:N, a FK fica no lado N. Se a cardinalidade desse lado é 
 | Tabela (lado N) | FK | Referencia | Obrigatória? |
 |---|---|---|---|
 | confeccao | id_cidade | cidade | Sim |
-| usuario | id_confeccao | confeccao | Não (só para perfil CONFECCAO) |
+| usuario | id_confeccao | confeccao | Não (só para perfil EMPRESARIO) |
 | lancamento_mensal | id_confeccao | confeccao | Sim |
 | lancamento_mensal | id_categoria | categoria | Sim |
 | lancamento_mensal | id_importacao | importacao | Não (só para origem IMPORTACAO) |
@@ -471,18 +472,22 @@ A numeração segue o [minimundo](Banco-de-Dados/docs/minimundo.md).
 | # | Regra | Implementação |
 |---|---|---|
 | RN01 | Cada confecção fica em uma única cidade; CNPJ opcional, mas sem repetição | `id_cidade NOT NULL`; `cnpj` aceita NULL e é `UNIQUE` |
-| RN02 | ADMIN não tem confecção; CONFECCAO tem exatamente uma | `id_confeccao` opcional; combinação validada pelo sistema |
+| RN02 | ADMIN não tem confecção; EMPRESARIO tem exatamente uma | `CHECK chk_usuario_perfil_confeccao` |
 | RN03 | Um lançamento por confecção, categoria e mês | `UNIQUE (id_confeccao, id_categoria, mes_referencia)` |
 | RN04 | Lançamento cancelado fica fora dos indicadores e relatórios | Procedure `cancelar_lancamento` muda o status sem apagar; as consultas filtram `lanc_status = 'ATIVO'` |
 | RN05 | Linha inválida na planilha: nada da importação é gravado | Transação em `transacoes.sql` |
-| RN06 | Impacto entre 0 e 100; cenário sem categoria vale para todas | `id_categoria` opcional; faixa 0–100 validada pelo sistema |
+| RN06 | Impacto entre 0 e 100; cenário sem categoria vale para todas | `id_categoria` opcional; `CHECK chk_cenario_impacto` (0 a 100) |
 | RN07 | Relatório CENARIO exige cenário; o REGIONAL compara as cidades do polo | `id_cidade` com FK para `cidade`; cenário obrigatório validado pelo sistema |
 | RN08 | Tendência: ALTA se a variação for **≥ +5%**, QUEDA se for **≤ −5%**, ESTAVEL entre os dois (limites inclusivos) | Calculada ao gerar o relatório; `limiar_tendencia` guarda os 5% usados |
 | RN09 | Entrevista registra a categoria que o empresário *acha* que mais vende | `id_categoria_percebida` aceita NULL |
 | RN10 | Todo relatório tem pelo menos um item | Transação em `transacoes.sql` faz `ROLLBACK` se nenhum item for gerado |
 | RN12 | O sistema atende só Toritama, Caruaru e Santa Cruz do Capibaribe, em PE (RF02) | `CHECK chk_cidade_agreste` e `UNIQUE` no nome da cidade |
-| RN13 | Todo lançamento informa a fonte do dado: entrevista, questionário ou fonte secundária (RF04) | `fonte_dado NOT NULL` com `CHECK chk_lanc_fonte` |
+| RN13 | Todo lançamento informa a fonte do dado: entrevista, questionário ou fonte secundária (RF04) | `origem_dado NOT NULL` com `CHECK chk_lanc_fonte` e `nome_fonte NOT NULL` |
 | RN11 | Toda alteração ou exclusão de lançamento fica no histórico | Triggers `trg_historico_lancamento_update` e `trg_historico_lancamento_delete`; relatórios em `auditoria.sql` |
+| RN14 | Pedido corporativo é feito em lote: cada item tem no mínimo 5 peças (RNF03) | `CHECK chk_item_pedido_lote (quantidade >= 5)` |
+| RN15 | Empresa, produto ou artesão com pedidos ou produtos vinculados não pode ser excluído | `FOREIGN KEY ... ON DELETE RESTRICT` em `pedido_corporativo`, `item_pedido_corporativo` e `produto` |
+| RN16 | Empresa cliente só entra com CNPJ válido e sem repetição | `CHECK chk_empresa_cnpj_formato`, `UNIQUE (cnpj)`, função `cnpj_valido` e triggers `trg_empresa_cnpj_insert`/`update` |
+| RN17 | Pedido entregue ou cancelado não recebe nem altera itens; produto inativo não entra em pedido | Triggers `trg_item_pedido_insert` e `trg_item_pedido_update` |
 
 ### Procedures
 
@@ -564,6 +569,97 @@ O `teste_desempenho.sql` gera 10.000 lançamentos dentro de uma transação, rod
 
 As agregações do `consultas.sql` (por cidade, categoria e mês) também usam índice (`type = ref`), sem *full table scan*. Com esse volume tudo fica muito abaixo dos 3 segundos; os índices tiram o *full table scan* e mantêm a margem quando o número de vendas crescer.
 
+### Pedidos corporativos e catálogo de artesãos (DB-01 e DB-03)
+
+Cinco tabelas novas atendem as encomendas B2B (BACK-01, FRONT-02 e FRONT-04) e a vitrine de artesanato (FRONT-01 e FRONT-03):
+
+```mermaid
+erDiagram
+    artesao            ||--o{ produto                 : cria
+    empresa_cliente    ||--o{ pedido_corporativo      : encomenda
+    usuario            |o--o{ pedido_corporativo      : registra
+    pedido_corporativo ||--|{ item_pedido_corporativo : possui
+    produto            ||--o{ item_pedido_corporativo : "é pedido em"
+
+    artesao {
+        int      id_artesao PK
+        varchar  nome_artistico UK
+        varchar  nome_civil "opcional"
+        varchar  municipio
+        char     uf "PE"
+        smallint ano_nascimento "opcional"
+        smallint ano_falecimento "opcional"
+        varchar  tecnica_principal
+        varchar  reconhecimento
+        varchar  biografia
+    }
+    produto {
+        int     id_produto PK
+        varchar nome
+        varchar descricao
+        varchar tecnica
+        varchar material
+        varchar municipio_origem
+        decimal preco_unitario "> 0"
+        varchar foto_url
+        varchar prod_status "ATIVO | INATIVO"
+        int     id_artesao FK
+    }
+    empresa_cliente {
+        int      id_empresa PK
+        varchar  razao_social
+        varchar  nome_fantasia
+        char     cnpj UK "14 dígitos válidos"
+        varchar  email
+        varchar  telefone
+        varchar  municipio
+        char     uf
+        datetime data_cadastro
+    }
+    pedido_corporativo {
+        int      id_pedido PK
+        datetime data_pedido
+        date     prazo_entrega ">= data_pedido"
+        varchar  ped_status "ORCAMENTO | CONFIRMADO | EM_PRODUCAO | ENTREGUE | CANCELADO"
+        varchar  observacao
+        int      id_empresa FK
+        int      id_usuario FK
+    }
+    item_pedido_corporativo {
+        int     id_item_pedido PK
+        int     quantidade ">= 5"
+        decimal preco_unitario "preço no momento do pedido"
+        int     id_pedido FK
+        int     id_produto FK
+    }
+```
+
+| Chave estrangeira | ON DELETE | Motivo |
+|---|---|---|
+| `produto.id_artesao` → `artesao` | RESTRICT | Não some o autor de um produto do catálogo |
+| `pedido_corporativo.id_empresa` → `empresa_cliente` | RESTRICT | Empresa com pedido não pode ser apagada |
+| `pedido_corporativo.id_usuario` → `usuario` | RESTRICT | Preserva quem registrou o pedido |
+| `item_pedido_corporativo.id_pedido` → `pedido_corporativo` | CASCADE | O item só existe dentro do pedido (composição) |
+| `item_pedido_corporativo.id_produto` → `produto` | RESTRICT | Produto já vendido sai do catálogo com `prod_status = 'INATIVO'`, sem apagar |
+
+O preço fica gravado no item para que um reajuste no catálogo não mude pedidos antigos. A view `vw_pedido_corporativo` soma itens, peças e valor de cada pedido.
+
+#### Carga inicial
+
+`05_seed_produtos_pe.sql` cadastra 10 mestres artesãos de Caruaru (Alto do Moura), Olinda, Cabo de Santo Agostinho e Recife e 30 produtos (3 por artesão), além de 4 empresas e 3 pedidos de demonstração.
+
+- Os dados biográficos foram conferidos em publicações da UFPE, da Fundarpe e da imprensa pernambucana. Quando uma informação não foi confirmada (ano de nascimento, nome civil), o campo ficou vazio.
+- Preços, descrições das peças e o caminho das fotos (`/img/produtos/...`) são **de demonstração**: o front-end precisa colocar as imagens nesses caminhos. Peças de mestres já falecidos aparecem como reprodução de ateliê.
+- As empresas são fictícias, com CNPJs que passam no cálculo dos dígitos verificadores.
+
+#### Testes
+
+`teste_constraints_pedidos.sql` tenta 18 operações (válidas e inválidas) dentro de transações desfeitas e mostra o resultado de cada uma. Todas devem dar `OK`, entre elas o critério de aceitação do DB-01: um item com 4 peças é rejeitado pela constraint `chk_item_pedido_lote`.
+
+```bash
+docker compose exec -T mysql mysql -uroot -proot confeccoes < database/teste_constraints_pedidos.sql
+```
+
 ### Arquivos
 
 | Arquivo | Conteúdo |
@@ -573,6 +669,9 @@ As agregações do `consultas.sql` (por cidade, categoria e mês) também usam �
 | [banco_completo.sql](Banco-de-Dados/database/banco_completo.sql) | Todos os arquivos abaixo em um único script, na ordem certa; recria o banco do zero |
 | [schema.sql](Banco-de-Dados/database/schema.sql) | Criação do banco, das 10 tabelas, da tabela de auditoria `historico_lancamento` e dos índices do RNF01 |
 | [inserts.sql](Banco-de-Dados/database/inserts.sql) | Dados de exemplo para todas as tabelas |
+| [04_constraints_pedidos_lote.sql](Banco-de-Dados/database/04_constraints_pedidos_lote.sql) | Tabelas de artesãos, produtos, empresas e pedidos corporativos, com constraints, função de CNPJ, triggers, índices e view (DB-01) |
+| [05_seed_produtos_pe.sql](Banco-de-Dados/database/05_seed_produtos_pe.sql) | Carga de 10 mestres artesãos, 30 produtos e pedidos de demonstração (DB-03) |
+| [teste_constraints_pedidos.sql](Banco-de-Dados/database/teste_constraints_pedidos.sql) | Testes das constraints dos pedidos corporativos; não fica no `banco_completo.sql` e não altera os dados |
 | [procedures.sql](Banco-de-Dados/database/procedures.sql) | Procedures para inserir, atualizar, cancelar e excluir lançamentos |
 | [triggers.sql](Banco-de-Dados/database/triggers.sql) | Triggers que gravam no histórico os UPDATE e DELETE de lançamentos, com testes |
 | [auditoria.sql](Banco-de-Dados/database/auditoria.sql) | View e procedures de relatório do histórico de lançamentos |
@@ -581,7 +680,7 @@ As agregações do `consultas.sql` (por cidade, categoria e mês) também usam �
 | [consultas.sql](Banco-de-Dados/database/consultas.sql) | Consultas com `INNER JOIN`, `LEFT JOIN`, `GROUP BY`, `COUNT`, `AVG`, `MAX` e `MIN` |
 | [teste_desempenho.sql](Banco-de-Dados/database/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não fica no `banco_completo.sql` e não altera os dados |
 | [schema_sqlite.sql](Banco-de-Dados/database/schema_sqlite.sql) | Versão SQLite3 do `schema.sql`, com os triggers e a view |
-| [gerar_sqlite.py](Banco-de-Dados/database/gerar_sqlite.py) | Gera o `extensao.db` a partir do `schema_sqlite.sql` e do `inserts.sql` |
+| [gerar_sqlite.py](Banco-de-Dados/database/gerar_sqlite.py) | Gera o `extensao.db` a partir do `schema_sqlite.sql`, do `inserts.sql` e do `05_seed_produtos_pe.sql` |
 | [extensao.db](Banco-de-Dados/database/extensao.db) | Banco SQLite pronto, com os dados de exemplo |
 
 ### Como executar
@@ -630,7 +729,7 @@ Pelo **MySQL Workbench** ou DBeaver, crie uma conexão com os dados da tabela ac
 
 O `banco_completo.sql` só roda quando o volume de dados está vazio. Depois de mudar algum script SQL, use `docker compose down -v` e `docker compose up -d` para recarregar.
 
-A cada push e Pull Request, o GitHub Actions ([`.github/workflows/docker.yml`](Banco-de-Dados/.github/workflows/docker.yml)) roda `docker compose up -d`, espera o banco ficar `healthy` e confere que as 11 tabelas existem com dados, além das 2 views, das 7 procedures e dos 2 triggers. O resultado aparece na aba **Actions** do repositório e como ✅ ou ❌ no commit e no Pull Request. Assim, uma mudança nos scripts que quebre a carga inicial é descoberta antes de chegar à `develop`.
+A cada push e Pull Request, o GitHub Actions ([`.github/workflows/banco-de-dados.yml`](.github/workflows/banco-de-dados.yml)) roda `docker compose up -d`, espera o banco ficar `healthy` e confere que as 16 tabelas existem com dados, além das views, das 8 rotinas e dos 6 triggers, roda os testes dos pedidos corporativos e confere a carga de 30 produtos e 10 artesãos. O resultado aparece na aba **Actions** do repositório e como ✅ ou ❌ no commit e no Pull Request. Assim, uma mudança nos scripts que quebre a carga inicial é descoberta antes de chegar à `develop`.
 
 #### Com MySQL instalado
 
@@ -662,6 +761,62 @@ mysql -u root -p < database/teste_desempenho.sql
 Para recomeçar do zero, apague o banco antes com `DROP DATABASE confeccoes;`.
 
 Pelo **MySQL Workbench**: abra cada arquivo em *File → Open SQL Script* e execute (⚡), na mesma ordem.
+
+### Backup e restauração
+
+O backup usa o `mysqldump` e guarda as tabelas, os dados, as views, as procedures e os triggers. Os arquivos ficam na pasta `backups/`, que está no `.gitignore` para não irem para o GitHub.
+
+#### Com Docker
+
+Os comandos rodam o `mysqldump` **dentro** do container e depois copiam o arquivo. Assim o backup sai em UTF-8 em qualquer terminal (o `>` do PowerShell gravaria o arquivo em outra codificação e quebraria os acentos).
+
+Fazer o backup:
+
+```bash
+docker compose exec mysql sh -c "mysqldump -uroot -proot --databases confeccoes --add-drop-database --routines --triggers --set-gtid-purged=OFF > /tmp/backup.sql"
+docker compose cp mysql:/tmp/backup.sql backups/backup_confeccoes.sql
+```
+
+Restaurar um backup (apaga o banco atual e recria igual ao backup):
+
+```bash
+docker compose cp backups/backup_confeccoes.sql mysql:/tmp/backup.sql
+docker compose exec mysql sh -c "mysql -uroot -proot < /tmp/backup.sql"
+```
+
+#### Com MySQL instalado
+
+No **Git Bash**, na pasta do repositório:
+
+```bash
+mysqldump -u root -p --databases confeccoes --add-drop-database --routines --triggers --set-gtid-purged=OFF --result-file=backups/backup_confeccoes.sql
+mysql -u root -p < backups/backup_confeccoes.sql
+```
+
+O primeiro comando faz o backup e o segundo restaura. O `--result-file` grava o arquivo direto em UTF-8, sem depender do terminal.
+
+#### Voltar ao estado inicial
+
+Para descartar tudo e voltar aos dados de exemplo do repositório:
+
+| Ambiente | Comando |
+|---|---|
+| Docker | `docker compose down -v` e depois `docker compose up -d` |
+| MySQL instalado | `mysql -u root -p < database/banco_completo.sql` |
+| SQLite | `python database/gerar_sqlite.py` |
+
+#### Conferir a integridade depois de restaurar
+
+```sql
+USE confeccoes;
+SELECT COUNT(*) FROM lancamento_mensal;
+SELECT COUNT(*) FROM historico_lancamento;
+SHOW PROCEDURE STATUS WHERE Db = 'confeccoes';
+SHOW TRIGGERS FROM confeccoes;
+CHECK TABLE cidade, confeccao, usuario, categoria, lancamento_mensal;
+```
+
+As contagens devem bater com as do banco de onde o backup saiu, e o `CHECK TABLE` deve mostrar `OK` em todas as linhas.
 ### Banco local em SQLite (`extensao.db`)
 
 Para quem precisa de um banco local sem instalar MySQL nem Docker, o repositório traz uma versão SQLite3 do mesmo modelo: as 11 tabelas, todas as chaves primárias e estrangeiras, os `UNIQUE`, os `CHECK`, os dois triggers do histórico de lançamento e as views `vw_lancamentos` e `vw_historico_lancamento`, com os mesmos dados de exemplo do `inserts.sql`.
@@ -694,6 +849,7 @@ sed '/^USE /d' database/inserts.sql | sqlite3 database/extensao.db
 | `DATE`, `DATETIME` | `TEXT` em ISO 8601 (`AAAA-MM-DD` e `AAAA-MM-DD HH:MM:SS`), validado por `CHECK` |
 | `DAY(mes_referencia) = 1` | `strftime('%d', mes_referencia) = '01'` |
 | Procedures (`procedures.sql`, `auditoria.sql`) | Não existem no SQLite: inserir, atualizar, cancelar e excluir lançamentos e os relatórios de auditoria ficam com o back-end (a view `vw_historico_lancamento` existe) |
+| Função `cnpj_valido` e triggers de CNPJ | O SQLite confere só o formato (14 dígitos); o cálculo dos dígitos verificadores fica com o back-end |
 | `@id_usuario` no histórico | O SQLite não tem variáveis de sessão: os triggers gravam `id_usuario` vazio e o back-end preenche logo depois da alteração, na mesma transação: `UPDATE historico_lancamento SET id_usuario = ? WHERE id_historico = (SELECT MAX(id_historico) FROM historico_lancamento WHERE id_lancamento = ?)` (`last_insert_rowid()` não serve, porque não enxerga os inserts feitos pelos triggers) |
 
 `NUMERIC` guarda os valores como número de ponto flutuante quando têm casas decimais, então somas de faturamento podem ter diferenças de centavos em casas muito distantes. Para desenvolvimento local isso não atrapalha; o MySQL continua sendo o banco oficial.
