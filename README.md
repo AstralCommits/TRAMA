@@ -9,6 +9,7 @@ Painel de inteligência de dados para confecções do Polo Têxtil do Agreste (P
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Branches](#branches)
 - [Como rodar o projeto completo](#como-rodar-o-projeto-completo)
+- [Como contribuir](#como-contribuir)
 - [Back-end](#back-end)
 - [Front-end](#front-end)
 - [Banco de Dados](#banco-de-dados)
@@ -44,6 +45,10 @@ As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Ban
 3. **Front-end:** dentro de `Front-end/Frontend/`, `npm install` e `npm run dev --prefix apps/web`, com `VITE_API_URL=http://localhost:8080` no `apps/web/.env`.
 
 Os detalhes de cada parte estão nas seções abaixo.
+
+## Como contribuir
+
+A `main` é protegida: toda mudança entra por Pull Request com a aprovação de pelo menos uma pessoa da equipe. O [guia de contribuição](CONTRIBUTING.md) explica o fluxo de branches, o padrão de commits (`DB-01:`, `BACK-02:`, `FRONT-04:`) e o que conferir na revisão. Ao abrir uma issue ou um Pull Request, use os modelos do repositório.
 
 ## Back-end
 
