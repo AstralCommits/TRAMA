@@ -2,11 +2,16 @@ name: Back-end CI
 
 on:
   pull_request:
-    branches:
-      - develop
+    paths:
+      - "Back-end/**"
+      - ".github/workflows/back-end.yml"
   push:
     branches:
-      - develop
+      - main
+    paths:
+      - "Back-end/**"
+      - ".github/workflows/back-end.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,6 +20,9 @@ jobs:
   build-and-test:
     name: Build e testes (Java 21)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Back-end
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
@@ -26,6 +34,7 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+          cache-dependency-path: Back-end/pom.xml
       - name: Validar com Maven
         run: mvn --batch-mode --no-transfer-progress clean verify
       - name: Publicar relatório JaCoCo
@@ -33,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: target/site/jacoco/
+          path: Back-end/target/site/jacoco/
           if-no-files-found: ignore
           retention-days: 14
       - name: Enviar análise ao SonarQube institucional

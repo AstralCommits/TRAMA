@@ -100,7 +100,6 @@ class JwtAndImportacaoIntegrationTest {
         org.assertj.core.api.Assertions.assertThat(importacaoRepository.count()).isGreaterThan(0);
     }
 
-
     @Test
     void csvImportWithDuplicateRowsRollsBackSalesAndRecordsError() throws Exception {
         String email = "import-erro-" + UUID.randomUUID() + "@trama.test";

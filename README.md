@@ -96,11 +96,18 @@ No Linux/macOS:
 ./mvnw spring-boot:run
 ```
 
-### Próxima etapa
+### Etapa 2: documentação, testes e qualidade
 
-Esta branch corresponde à primeira etapa de desenvolvimento do backend. Após sua revisão e integração à `develop`, será iniciada a segunda etapa, contemplando a documentação da API com OpenAPI/Swagger, testes automatizados adicionais, análise de cobertura com JaCoCo, integração com SonarQube e configuração de CI com GitHub Actions.
+Entregue no PR #18 do repositório de origem (DOC-01, TEST-01, DEVOPS-01 e DEVOPS-02):
 
-Essas entregas serão realizadas em uma nova branch, baseada na `develop` atualizada, mantendo a continuidade do desenvolvimento e a organização do histórico do projeto.
+- **Documentação da API:** SpringDoc OpenAPI 2.6.0 (`config/OpenApiConfig.java`), com os controllers anotados. Com a API rodando, a documentação fica em `http://localhost:8080/swagger-ui.html`.
+- **Testes de integração:** `CenarioIntegrationTest` e `JwtAndImportacaoIntegrationTest`, em `src/test/java/br/com/trama`. Rodam com o perfil `test` (`src/test/resources/application-test.yml`), que usa H2 em memória no modo MySQL.
+- **Cobertura:** `mvn verify` gera o relatório do JaCoCo em `target/site/jacoco/`.
+- **CI:** o workflow [`.github/workflows/back-end.yml`](.github/workflows/back-end.yml) compila e testa o Back-end com Java 21 em todo Pull Request que altera `Back-end/`. Quando `SONAR_TOKEN` e `SONAR_HOST_URL` estão configurados no repositório, ele também envia a análise ao SonarQube.
+
+```bash
+mvn clean verify
+```
 
 ### Banco de dados e migrações do back-end
 
