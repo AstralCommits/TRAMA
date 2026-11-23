@@ -691,3 +691,36 @@
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; }
 }
+
+/* RF03 — catálogo regional de artesanato pernambucano */
+.artisan-catalog{padding:84px 7%;background:#f6f1e7;border-top:1px solid #d8cbb6}
+.artisan-catalog-heading{max-width:760px;margin:0 auto 38px;text-align:center}
+.artisan-catalog-heading .eyebrow{justify-content:center}
+.artisan-catalog-heading h2{margin:22px 0 12px}
+.artisan-catalog-heading p{margin:0}
+.artisan-catalog-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1280px;margin:0 auto;align-items:start}
+.artisan-filter-panel{padding:22px;background:#fffbf4;border:1px solid #ded2bd;border-radius:4px}
+.artisan-filter-title{display:flex;align-items:center;gap:10px;color:var(--rust);border-bottom:1px solid #e6dccb;padding-bottom:14px;margin-bottom:18px}
+.artisan-filter-title h3{font-size:18px;margin:0;color:var(--ink)}
+.artisan-filter-panel fieldset{border:0;padding:0;margin:0 0 22px;min-width:0}
+.artisan-filter-panel legend{font-family:'Bitter',Georgia,serif;font-size:15px;font-weight:700;margin-bottom:12px;color:var(--ink)}
+.artisan-filter-option{display:flex;flex-direction:row;align-items:center;gap:9px;margin:10px 0;font-size:13px;font-weight:500;color:#6d5e50;cursor:pointer}
+.artisan-filter-option input{width:16px;height:16px;min-height:16px;flex:0 0 16px;margin:0;accent-color:var(--rust)}
+.artisan-clear-button{width:100%;background:transparent;color:var(--rust);border:1px solid #cdb99a;padding:10px 12px;font-size:12px}
+.artisan-clear-button:hover{background:#eee5d4;color:var(--ink)}
+.artisan-results{min-width:0}
+.artisan-results-summary{display:flex;align-items:center;gap:7px;margin-bottom:18px;padding:14px 17px;background:#eee5d4;border:1px solid #ded2bd;color:#6d5e50;font-size:13px}
+.artisan-results-summary strong{font-family:'Bitter',Georgia,serif;font-size:23px;color:var(--rust)}
+.artisan-results-summary button{margin-left:auto;background:transparent;color:var(--rust);border:0;padding:7px;font-size:12px}
+.artisan-product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.artisan-product-card{min-height:205px;padding:22px;background:#fffbf4;border:1px solid #ded2bd;border-top:3px solid var(--rust);display:flex;flex-direction:column}
+.artisan-product-technique{font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--rust);font-weight:700}
+.artisan-product-card h3{font-size:18px;margin:15px 0 7px}
+.artisan-product-card p{font-size:13px;margin:0 0 18px}
+.artisan-product-location{display:flex;align-items:center;gap:6px;margin-top:auto;color:#78684f;font-size:12px}
+.artisan-empty-state{text-align:center;padding:55px 22px;background:#fffbf4;border:1px dashed #cdbc9f}
+.artisan-empty-state h3{font-size:21px;margin-bottom:8px}
+.artisan-empty-state p{font-size:13px}
+.artisan-empty-state button{font-size:12px}
+@media(max-width:1000px){.artisan-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.artisan-catalog{padding:60px 6%}.artisan-catalog-layout{grid-template-columns:1fr;gap:18px}.artisan-filter-panel{padding:18px}.artisan-product-grid{grid-template-columns:1fr}.artisan-results-summary{flex-wrap:wrap}}
