@@ -9,10 +9,6 @@ export type SupporterRegistrationResult =
   | { submitted: true }
   | { submitted: false; reason: 'endpoint-not-configured' };
 
-/**
- * O endpoint deve ser definido pelo backend responsável pelo cadastro US02.
- * Não se presume uma rota REST que ainda não foi acordada entre as equipes.
- */
 export async function registerSupporterCompany(
   payload: SupporterCompanyPayload,
 ): Promise<SupporterRegistrationResult> {
@@ -35,7 +31,6 @@ export type BrasilApiCompany = {
   descricao_situacao_cadastral?: string;
 };
 
-/** Consulta opcional à BrasilAPI. A validação matemática continua local e obrigatória. */
 export async function lookupCompanyByCnpj(cnpj: string): Promise<BrasilApiCompany> {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 10_000);

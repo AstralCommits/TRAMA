@@ -16,11 +16,6 @@ export type CraftDetails = {
   images: CraftGalleryImage[];
 };
 
-/**
- * Referências exclusivamente visuais para demonstrar a galeria.
- * As fotografias pertencem às páginas de origem indicadas em cada crédito;
- * devem ser substituídas pelas imagens autorizadas do artesão antes da produção.
- */
 export const demoCraft: CraftDetails = {
   id: 'referencias-croche',
   title: 'Bolsas artesanais em crochê',
