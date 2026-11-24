@@ -43,6 +43,9 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 - **Incompatível (alinhamento ao SRS):** o perfil de usuário `CONFECCAO` passa a se chamar `EMPRESARIO` (RF09), no `schema.sql`, no `schema_sqlite.sql`, nos dados de exemplo e na documentação. O tipo de confecção (`CONFECCAO` ou `FACCAO`) não muda.
 - `cenario_concorrencia.percentual_impacto` ganha o `CHECK chk_cenario_impacto`, que aceita só valores de 0 a 100 (RF07, RN06).
 
+### Corrigido
+- As senhas dos usuários de exemplo passam a ser BCrypt, o formato que a API confere; antes, o login respondia 401. Bancos já criados usam `database/migracoes/V0_5_1__senhas_bcrypt.sql`.
+
 ## [0.3.1] - 2026-10-27
 
 ### Alterado

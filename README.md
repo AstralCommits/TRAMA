@@ -817,6 +817,12 @@ CHECK TABLE cidade, confeccao, usuario, categoria, lancamento_mensal;
 ```
 
 As contagens devem bater com as do banco de onde o backup saiu, e o `CHECK TABLE` deve mostrar `OK` em todas as linhas.
+### Usuários de demonstração
+
+Os usuários dos dados de exemplo entram na API com a senha `TramaDemo2026`, guardada em BCrypt com um sal por usuário. O e-mail de cada um está no `inserts.sql`: o `admin@confeccoes.com` é ADMIN e os demais são EMPRESARIO.
+
+**Só para desenvolvimento e demonstração.** A senha é pública: não use estes usuários em um banco exposto na internet. Para atualizar um banco já criado, sem apagar dados, rode `database/migracoes/V0_5_1__senhas_bcrypt.sql`, que só muda as senhas antigas de exemplo.
+
 ### Banco local em SQLite (`extensao.db`)
 
 Para quem precisa de um banco local sem instalar MySQL nem Docker, o repositório traz uma versão SQLite3 do mesmo modelo: as 11 tabelas, todas as chaves primárias e estrangeiras, os `UNIQUE`, os `CHECK`, os dois triggers do histórico de lançamento e as views `vw_lancamentos` e `vw_historico_lancamento`, com os mesmos dados de exemplo do `inserts.sql`.
