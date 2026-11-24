@@ -9,7 +9,7 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 ## [Não lançado]
 
 ### Corrigido
-- Acentos gravados errado quando o container do MySQL carrega os scripts (`Fonte não informada` virava `Fonte nÃ£o informada`): `banco_completo.sql` e `seed_demonstracao_projetaí.sql` passam a começar com `SET NAMES utf8mb4`.
+- Acentos gravados errado quando o container do MySQL carrega os scripts (`Fonte não informada` virava `Fonte nÃ£o informada`): `banco_completo.sql`, `schema.sql`, `seed_demonstracao_projetaí.sql` e a migração `V0_4_0__origem_dado_nome_fonte.sql` passam a começar com `SET NAMES utf8mb4`.
 - O `docker-compose.yml` da raiz do TRAMA carrega também a massa de dados de demonstração.
 
 ### Removido
