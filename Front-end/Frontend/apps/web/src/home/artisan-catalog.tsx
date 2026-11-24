@@ -8,7 +8,6 @@ type ArtisanPiece = { id: number; name: string; technique: Technique; municipali
 const techniques: Technique[] = ['Renda Renascença', 'Cerâmica/Barro', 'Bordado de Passira', 'Fuxico', 'Tecelagem Manual'];
 const municipalities: Municipality[] = ['Caruaru', 'Toritama', 'Santa Cruz do Capibaribe', 'Olinda', 'Recife', 'Pesqueira', 'Passira'];
 
-// Dados demonstrativos locais; podem ser substituídos por dados reais da API.
 const artisanPieces: ArtisanPiece[] = [
   { id: 1, name: 'Caminho de mesa em renascença', technique: 'Renda Renascença', municipality: 'Pesqueira', description: 'Peça artesanal com trabalho delicado em renda.' },
   { id: 2, name: 'Blusa em renda renascença', technique: 'Renda Renascença', municipality: 'Caruaru', description: 'Criação têxtil com acabamento manual.' },

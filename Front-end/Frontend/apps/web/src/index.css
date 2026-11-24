@@ -686,7 +686,6 @@
   *, *::before, *::after { transition: none !important; }
 }
 
-/* RF03 — catálogo regional de artesanato pernambucano */
 .artisan-catalog{padding:84px 7%;background:#f6f1e7;border-top:1px solid #d8cbb6}
 .artisan-catalog-heading{max-width:760px;margin:0 auto 38px;text-align:center}
 .artisan-catalog-heading .eyebrow{justify-content:center}
