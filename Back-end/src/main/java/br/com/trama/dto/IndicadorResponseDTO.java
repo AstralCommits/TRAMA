@@ -1,6 +1,7 @@
 package br.com.trama.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record IndicadorResponseDTO(
         String inicio,
@@ -10,5 +11,14 @@ public record IndicadorResponseDTO(
         BigDecimal faturamentoMedio,
         long quantidadeLancamentos,
         Long categoriaId,
-        String cidade
+        String cidade,
+        long pecasVendidas,
+        BigDecimal ticketMedio,
+        String inicioAnterior,
+        String fimAnterior,
+        BigDecimal faturamentoTotalAnterior,
+        long pecasVendidasAnterior,
+        BigDecimal variacaoPercentual,
+        List<CategoriaIndicadorDTO> categorias,
+        CategoriaLiderDTO categoriaLider
 ) {}
