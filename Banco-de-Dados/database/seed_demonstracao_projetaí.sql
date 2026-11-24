@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 USE confeccoes;
 
 DROP PROCEDURE IF EXISTS carregar_demonstracao_projetai;

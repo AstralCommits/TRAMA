@@ -8,6 +8,10 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 
 ## [Não lançado]
 
+### Corrigido
+- Acentos gravados errado quando o container do MySQL carrega os scripts (`Fonte não informada` virava `Fonte nÃ£o informada`): `banco_completo.sql` e `seed_demonstracao_projetaí.sql` passam a começar com `SET NAMES utf8mb4`.
+- O `docker-compose.yml` da raiz do TRAMA carrega também a massa de dados de demonstração.
+
 ### Removido
 - **DB-01 e DB-03:** tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`, a função `cnpj_valido`, os triggers e a view `vw_pedido_corporativo`, os scripts `04_constraints_pedidos_lote.sql`, `05_seed_produtos_pe.sql` e `teste_constraints_pedidos.sql` e as partes correspondentes no SQLite e no CI. Pedidos corporativos e catálogo de artesanato ficam fora do escopo do TRAMA, que é um painel de inteligência de dados para as confecções do Polo Têxtil do Agreste, e não um marketplace.
 
