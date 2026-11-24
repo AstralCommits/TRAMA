@@ -9,11 +9,6 @@ import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Filtro de sanitização aplicado a todas as Strings recebidas no corpo JSON das requisições.
- * Remove caracteres de controle invisíveis antes da validação dos DTOs; a recusa de HTML e
- * scripts fica a cargo do {@code @Pattern(regexp = TextoSeguro.SEM_HTML)} em cada DTO.
- */
 @Configuration
 public class SanitizacaoJsonConfig {
 
