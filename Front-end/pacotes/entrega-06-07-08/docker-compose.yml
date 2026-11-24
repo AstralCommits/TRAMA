@@ -1,0 +1,25 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: trama-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev_only}
+      MYSQL_DATABASE: confeccoes
+      MYSQL_USER: trama
+      MYSQL_PASSWORD: ${DB_PASSWORD:-trama_dev_password}
+      TZ: America/Recife
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - trama_mysql_data:/var/lib/mysql
+      - ./Backend/database/schema_reference.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./Backend/database/migrations/V0_3_2__origem_dado_lancamento.sql:/docker-entrypoint-initdb.d/02-migration.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  trama_mysql_data:

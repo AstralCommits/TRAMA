@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+node_modules/
+**/node_modules/
+**/build/
+**/dist/
+**/.react-router/
+**/target/
+*.log
+.DS_Store
+Thumbs.db
+Backend/data/*.db
+Backend/data/*.sqlite

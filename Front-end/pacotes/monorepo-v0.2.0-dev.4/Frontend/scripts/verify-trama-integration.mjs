@@ -1,0 +1,124 @@
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const root = process.cwd();
+const read = (file) => readFileSync(resolve(root, file), 'utf8');
+const readOptional = (file) => existsSync(resolve(root, file)) ? read(file) : '';
+const hasBackEnd = existsSync(resolve(root, '../Back-end/src/main/java'));
+const hasDatabase = existsSync(resolve(root, '../Banco-de-Dados/database'));
+const integratedWorkspace = hasBackEnd && hasDatabase;
+const checks = [];
+function check(label, condition, detail = '', skip = false) {
+  checks.push({ label, status: skip ? 'SKIP' : Boolean(condition) ? 'PASS' : 'FAIL', detail });
+}
+
+const api = read('apps/web/src/services/api.ts');
+const auth = read('apps/web/src/lib/auth.client.ts');
+const sales = read('apps/web/src/services/vendasService.ts');
+const monthlySales = read('apps/web/src/home/monthly-sales.tsx');
+const indicatorTypes = read('apps/web/src/types/indicadores.ts');
+const indicatorService = read('apps/web/src/services/indicadoresService.ts');
+const scenarios = read('apps/web/src/services/cenariosService.ts');
+const report = read('apps/web/src/home/monthly-reports.tsx');
+const workspace = read('apps/web/src/home/workspace.tsx');
+const backendAuth = readOptional('../Back-end/src/main/java/br/com/trama/controller/AuthController.java');
+const security = readOptional('../Back-end/src/main/java/br/com/trama/config/SecurityConfig.java');
+const indicatorController = readOptional('../Back-end/src/main/java/br/com/trama/controller/IndicadorController.java');
+const importTransaction = readOptional('../Back-end/src/main/java/br/com/trama/service/ImportacaoTransactionService.java');
+const schema = readOptional('../Banco-de-Dados/database/schema.sql');
+const completeSql = readOptional('../Banco-de-Dados/database/banco_completo.sql');
+const categoryUi = read('apps/web/src/home/category-management.tsx');
+const profileUi = read('apps/web/src/home/profile-dialog.tsx');
+const scenarioUi = read('apps/web/src/home/monthly-scenarios.tsx');
+const teamUi = read('apps/web/src/home/team-management.tsx');
+const dashboardUi = read('apps/web/src/components/dashboard/dashboard-indicators.tsx');
+const dialogHook = read('apps/web/src/hooks/use-dialog-accessibility.ts');
+const globalCss = read('apps/web/src/index.css');
+const scenarioController = readOptional('../Back-end/src/main/java/br/com/trama/controller/CenarioController.java');
+const teamController = readOptional('../Back-end/src/main/java/br/com/trama/controller/EquipeController.java');
+const teamSecurity = readOptional('../Back-end/src/main/java/br/com/trama/config/SecurityConfig.java');
+const inviteModel = readOptional('../Back-end/src/main/java/br/com/trama/model/ConviteEquipe.java');
+const teamService = readOptional('../Back-end/src/main/java/br/com/trama/service/EquipeService.java');
+const indicatorBackendService = readOptional('../Back-end/src/main/java/br/com/trama/service/IndicadorService.java');
+const exceptionHandler = readOptional('../Back-end/src/main/java/br/com/trama/error/ApiExceptionHandler.java');
+const vendaBackendService = readOptional('../Back-end/src/main/java/br/com/trama/service/VendaService.java');
+const indicatorIntegrationTests = readOptional('../Back-end/src/test/java/br/com/trama/JwtAndImportacaoIntegrationTest.java');
+const confectionController = readOptional('../Back-end/src/main/java/br/com/trama/controller/ConfeccaoController.java');
+const savedFilterController = readOptional('../Back-end/src/main/java/br/com/trama/controller/FiltroSalvoController.java');
+const employeeRole = readOptional('../Back-end/src/main/java/br/com/trama/model/enums/PerfilUsuario.java');
+const migration = readOptional('../Back-end/database/migrations/V0_6_0__fonte_dado_lancamento.sql');
+const initialData = readOptional('../Back-end/src/main/java/br/com/trama/service/DadosIniciaisService.java');
+const applicationConfig = readOptional('../Back-end/src/main/resources/application.yml');
+const saleBackendService = readOptional('../Back-end/src/main/java/br/com/trama/service/VendaService.java');
+const importBackendTransaction = readOptional('../Back-end/src/main/java/br/com/trama/service/ImportacaoTransactionService.java');
+const monthlySaleRepository = readOptional('../Back-end/src/main/java/br/com/trama/repository/LancamentoMensalRepository.java');
+const bcryptPolicy = readOptional('../Back-end/src/main/java/br/com/trama/security/SenhaBcryptPolicy.java');
+const authBackendService = readOptional('../Back-end/src/main/java/br/com/trama/service/AuthService.java');
+const demoEntry = read('apps/web/src/home/demo-entry.tsx');
+const dataDemo = read('apps/web/src/data/demo.ts');
+const categoryComparison = read('apps/web/src/home/category-comparison.tsx');
+const demoOperations = read('apps/web/src/home/operations.tsx');
+const institutional = read('apps/web/src/home/institutional.tsx');
+const homeRoute = read('apps/web/src/routes/home.tsx');
+
+check('Cliente HTTP anexa JWT nas chamadas protegidas', /Authorization\s*=\s*`Bearer \$\{token\}`/.test(api));
+check('Expiração 401 limpa token e notifica a sessão', /status === 401/.test(api) && /trama:auth-expired/.test(api));
+check('Login, cadastro e restauração usam endpoints do servidor', ['/api/auth/login', '/api/auth/register', '/api/auth/me'].every((path) => auth.includes(path)));
+check('Venda mensal usa CRUD real do Back-end e payload manual não finge importação', ['/api/vendas', 'api.post', 'api.put', 'api.delete'].every((text) => sales.includes(text)) && /export type MonthlySalePayload[\s\S]*?origem: 'MANUAL'/.test(sales));
+check('CSV usa multipart com o campo esperado', /form\.append\('arquivo'/.test(sales) && /mesAno;quantidade;faturamento;idConfeccao;idCategoria;origemDado;nomeFonte/.test(monthlySales));
+check('Origem do lançamento é distinta da procedência', /origem: 'MANUAL'/.test(monthlySales) && /origemDado: sourceType/.test(monthlySales));
+check('Indicadores enviam inicio e fim e permitem filtro por categoria', /inicio: string/.test(indicatorTypes) && /fim: string/.test(indicatorTypes) && /categoriaId\?: number/.test(indicatorTypes) && /categoriaId: Number\(period\.category\)/.test(read('apps/web/src/components/dashboard/dashboard-indicators.tsx')) && /params/.test(indicatorService));
+check('Cenários possuem listagem, cadastro, edição, exclusão e simulação', ['/api/cenarios', '/api/cenarios/simular', 'api.put', 'api.delete'].every((text) => scenarios.includes(text)) && /@PutMapping/.test(scenarioController) && /@DeleteMapping/.test(scenarioController), '', !hasBackEnd);
+check('Relatórios exportam dados mensais e oferecem impressão', /window\.print\(\)/.test(report) && /origemDado/.test(report) && /createObjectURL/.test(report));
+check('Workspace apresenta somente módulos do TRAMA e conecta as telas de contas reais à API', /MonthlySales/.test(workspace) && /MonthlyScenarios/.test(workspace) && /MonthlyReports/.test(workspace) && /CategoryComparison/.test(workspace) && !/Inventory/.test(workspace) && !/MÓDULO NÃO INTEGRADO/.test(workspace));
+check('Back-end expõe login, cadastro e sessão atual', ['/login', '/register', '/me'].every((path) => backendAuth.includes(path)), '', !hasBackEnd);
+check('Cadastro é público e os demais endpoints exigem autenticação', /\/api\/auth\/register/.test(security) && /anyRequest\(\)\.authenticated\(\)/.test(security), '', !hasBackEnd);
+check('Indicadores usam os parâmetros do contrato mensal', /@RequestParam String inicio/.test(indicatorController) && /@RequestParam String fim/.test(indicatorController), '', !hasBackEnd);
+check('Importação valida vínculo de empresário e funcionário', /usuario\.getConfeccao\(\) == null/.test(importTransaction) && /FUNCIONARIO/.test(importTransaction), '', !hasBackEnd);
+check('Schema MySQL tem fonte_dado e nome_fonte', /fonte_dado VARCHAR\(20\) NOT NULL/.test(schema) && /nome_fonte VARCHAR\(200\) NOT NULL/.test(schema), '', !hasDatabase);
+check('Schema completo mantém os novos campos e tipos válidos', /fonte_dado/.test(completeSql) && /nome_fonte/.test(completeSql) && /DEMONSTRACAO/.test(completeSql), '', !hasDatabase);
+check('Migração complementar adiciona fonte_dado com backfill e constraint', /ADD COLUMN fonte_dado/.test(migration) && /UPDATE lancamento_mensal/.test(migration) && /chk_lanc_fonte_dado/.test(migration), '', !hasBackEnd);
+
+
+check('FE-13: administração possui CRUD de categorias e confecções', ['api.post', 'api.put', 'api.delete', '/api/categorias', '/api/confeccoes'].every((text) => categoryUi.includes(text)));
+check('FE-14: responsável pode atualizar a própria confecção pela API', /\/api\/confeccoes\/minha/.test(profileUi) && /@PutMapping\("\/minha"\)/.test(confectionController), '', !hasBackEnd);
+check('FE-17: CSV tem pré-visualização e bloqueia envio com erros', /inspectCsv/.test(monthlySales) && /csvPreview.errors.length/.test(monthlySales));
+check('FE-18: interface permite editar e excluir cenários', /updateScenario/.test(scenarios) && /deleteScenario/.test(scenarios) && /Editar/.test(scenarioUi) && /Excluir/.test(scenarioUi));
+check('FE-22: diálogos principais tratam Escape, foco inicial e contenção de Tab', /event.key === 'Escape'/.test(dialogHook) && /event.key !== 'Tab'/.test(dialogHook) && /useDialogAccessibility/.test(monthlySales) && /useDialogAccessibility/.test(profileUi));
+check('FE-21: erros HTTP comuns têm mensagens específicas e não repetem operações', [400, 401, 403, 404, 409, 413, 429].every((status) => api.includes(`case ${status}:`)) && /status >= 500/.test(api) && /ECONNABORTED/.test(api) && !/axios-retry|retryCondition|retryDelay/.test(api));
+check('FE-22: hook filtra controles indisponíveis, permite bloquear Escape e restaura foco', /closeOnEscape\?: boolean/.test(dialogHook) && /closest\('\[inert\]'\)/.test(dialogHook) && /previous\?\.isConnected/.test(dialogHook) && /focusOutsideDialog/.test(dialogHook));
+check('FE-22: diálogos modais implementados usam hook de foco', ['apps/web/src/home/demo-entry.tsx', 'apps/web/src/home/profile-dialog.tsx', 'apps/web/src/home/monthly-sales.tsx', 'apps/web/src/home/sales.tsx'].every((file) => { const source = read(file); return source.includes('aria-modal="true"') && source.includes('useDialogAccessibility'); }));
+check('FE-22: foco de teclado recebe contorno visível, inclusive em alto contraste', /:focus-visible/.test(globalCss) && /forced-colors:active/.test(globalCss));
+check('FE-28: filtros salvos são privados e persistidos no servidor para contas reais', /api.post\('\/api\/filtros-salvos'/.test(dashboardUi) && /localStorage/.test(dashboardUi) && /@PostMapping/.test(savedFilterController), '', !hasBackEnd);
+check('FE-29: equipe possui membros, convites de uso único e auditoria', /convites/.test(teamUi) && /auditoria/.test(teamUi) && /convites\/aceitar/.test(teamController) && /findByTokenHashForUpdate/.test(teamService) && /tokenHash/.test(inviteModel) && /api\/equipe\/convites\/aceitar/.test(teamSecurity), '', !hasBackEnd);
+check('Funcionário é perfil explícito e tem escopo de confecção', /FUNCIONARIO/.test(employeeRole) && /FUNCIONARIO/.test(importTransaction) && /FUNCIONARIO/.test(readOptional('../Back-end/src/main/java/br/com/trama/service/VendaService.java')), '', !hasBackEnd);
+check('SQL e migrações contemplam equipe, auditoria, filtros e convites', /FUNCIONARIO/.test(schema) && /CREATE TABLE auditoria_equipe/.test(schema) && /CREATE TABLE filtro_salvo/.test(schema) && /CREATE TABLE convite_equipe/.test(schema) && /CREATE TABLE auditoria_equipe/.test(readOptional('../Back-end/database/migrations/V0_9_0__auditoria_equipe.sql')) && /CREATE TABLE convite_equipe/.test(readOptional('../Back-end/database/migrations/V0_10_0__convites_equipe.sql')), '', !integratedWorkspace);
+
+check('Convite de equipe retém o ID da confecção validada antes de criar o token', /Long idConfeccao = exigirEmpresario\(principal\)/.test(teamService) && /idConfeccao\.equals\(responsavel\.getConfeccao\(\)\.getIdConfeccao\(\)\)/.test(teamService), '', !hasBackEnd);
+check('Comparação de indicadores calcula intervalo anterior com o mesmo número de meses', /ChronoUnit\.MONTHS\.between\(mesInicio, mesFim\) \+ 1/.test(indicatorBackendService) && /indicatorComparisonUsesAnEqualLengthPreviousWindow/.test(indicatorIntegrationTests), '', !hasBackEnd);
+check('Acesso negado em serviços retorna HTTP 403 em vez de erro interno', /AccessDeniedException\.class/.test(exceptionHandler) && /response\(HttpStatus\.FORBIDDEN/.test(exceptionHandler), '', !hasBackEnd);
+check('Venda e importação bloqueiam acesso a outra confecção com 403', /AccessDeniedException/.test(vendaBackendService) && /AccessDeniedException/.test(importTransaction) && /isForbidden\(\)/.test(indicatorIntegrationTests), '', !hasBackEnd);
+check('Contrato de indicadores não anuncia parâmetro sem implementação', !/incluirVariacao/.test(indicatorController), '', !hasBackEnd);
+check('Dados de referência são garantidos nos perfis local, test e dev', /@Profile\(\{\"local\", \"test\", \"dev\"\}\)/.test(initialData) && /findByNomeIgnoreCaseAndUf/.test(initialData) && /findByNomeIgnoreCase/.test(initialData), '', !hasBackEnd);
+check('Categorias de referência seguem o vocabulário atual do TRAMA', ['Jeans', 'Moda Feminina', 'Moda Masculina', 'Moda Infantil', 'Moda Praia', 'Moletom'].every((name) => initialData.includes(name)) && /\(6, 'Jeans'\)/.test(completeSql) && /\(7, 'Moletom'\)/.test(completeSql), '', !integratedWorkspace);
+check('Administrador só é provisionado com credenciais explícitas e hash BCrypt', /trama\.admin-bootstrap\.email/.test(initialData) && /trama\.admin-bootstrap\.password/.test(initialData) && /passwordEncoder\.encode\(adminPassword\)/.test(initialData) && /TRAMA_ADMIN_EMAIL/.test(applicationConfig) && /TRAMA_ADMIN_PASSWORD/.test(applicationConfig), '', !hasBackEnd);
+check('Venda cancelada pode ser recriada sem violar a chave única mensal', /findByConfeccao_IdConfeccaoAndCategoria_IdCategoriaAndMesReferencia/.test(monthlySaleRepository) && /venda\.setStatus\(StatusLancamento\.ATIVO\)/.test(saleBackendService) && /recreatingCancelledMonthlySaleReactivatesItsHistoricalRecord/.test(indicatorIntegrationTests), '', !hasBackEnd);
+check('CSV reativa registro cancelado e mantém vínculo com nova importação', /findByConfeccao_IdConfeccaoAndCategoria_IdCategoriaAndMesReferencia/.test(importBackendTransaction) && /importingCsvReactivatesCancelledMonthlySale/.test(indicatorIntegrationTests), '', !hasBackEnd);
+check('Edição manual remove vínculo antigo de importação e endpoint rejeita origem IMPORTACAO', /venda\.setIdImportacao\(null\)/.test(saleBackendService) && /validarOrigemManual/.test(saleBackendService) && /manuallyEditingImportedSaleClearsItsImportForeignKey/.test(indicatorIntegrationTests), '', !hasBackEnd);
+check('Senhas respeitam o limite BCrypt de 72 bytes UTF-8 no cadastro, login, convite e bootstrap', /getBytes\(StandardCharsets\.UTF_8\)\.length <= LIMITE_BYTES/.test(bcryptPolicy) && /SenhaBcryptPolicy\.validar/.test(authBackendService) && /SenhaBcryptPolicy\.validar/.test(teamService) && /SenhaBcryptPolicy\.cabeNoLimite/.test(initialData) && /registrationRejectsPasswordThatExceedsBcryptUtf8ByteLimit/.test(indicatorIntegrationTests), '', !hasBackEnd);
+check('A demonstração descreve apenas funcionalidades reais de inteligência de vendas', /lançamentos mensais de vendas/.test(demoEntry) && /cenários hipotéticos/.test(demoEntry) && !/estoque, produção, financeiro/.test(demoEntry));
+check('Navegação principal contém apenas os módulos do objetivo TRAMA e mostra administração por perfil', ['Visão Geral', 'Dados de Vendas', 'Tendências', 'Comparação de Categorias', 'Cenário da Concorrência', 'Relatórios'].every((name) => dataDemo.includes(`'${name}'`)) && /user\.role === 'Administrador' \? \['Cadastros'\]/.test(workspace) && /user\.role === 'Empresário' \? \['Equipe e Permissões'\]/.test(workspace) && !/Estoque|Produção|Vendas e Pedidos|Financeiro/.test(dataDemo));
+check('Comparação usa totais mensais por categoria e API real sem inventar venda por produto', /getIndicadores\(/.test(categoryComparison) && /remoteData\.categorias/.test(categoryComparison) && /totalsFor\(sales, category/.test(categoryComparison) && /não calcula desempenho de produtos individuais/.test(categoryComparison));
+check('Cenário demonstrativo aplica queda ao faturamento histórico da confecção', /const historicalRevenue = total\(scenarioSales\)/.test(demoOperations) && /historicalRevenue \* Number\(impact\) \/ 100/.test(demoOperations) && /historicalRevenue - decrease/.test(demoOperations) && !/participação hipotética|Mercado hipotético/.test(demoOperations));
+check('Relatório demonstrativo filtra período/categoria e exporta CSV com dados de origem', /sale\.mesAno >= start && sale\.mesAno <= end/.test(demoOperations) && /reportCategory/.test(demoOperations) && /Exportar CSV/.test(demoOperations) && /row\.sourceName/.test(demoOperations));
+check('Página institucional e metadados não prometem estoque, produção ou ERP', /lançamentos mensais/.test(institutional) && !/Reúna estoque, produção, pedidos/.test(institutional) && /Organize lançamentos mensais de vendas/.test(homeRoute));
+check('Header panorâmico original é exibido inteiro em largura total, com navegação abaixo', /<img className="regional-banner" src=\{banner\}/.test(institutional) && /\.regional-banner \{ display: block; width: 100%; height: auto;/.test(globalCss));
+
+const failed = checks.filter((item) => item.status === 'FAIL');
+const passed = checks.filter((item) => item.status === 'PASS');
+const skipped = checks.filter((item) => item.status === 'SKIP');
+for (const item of checks) {
+  process.stdout.write(`${item.status} ${item.label}${item.detail ? ` — ${item.detail}` : ''}\n`);
+}
+process.stdout.write(`\nResultado: ${passed.length} aprovados, ${skipped.length} ignorados (repositórios irmãos ausentes), ${failed.length} falhas.\n`);
+if (failed.length) process.exitCode = 1;

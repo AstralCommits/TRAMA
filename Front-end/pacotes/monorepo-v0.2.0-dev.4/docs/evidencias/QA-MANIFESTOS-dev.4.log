@@ -1,0 +1,8 @@
+package.json JSON OK
+Frontend/package-lock.json JSON OK
+Frontend/package.json JSON OK
+Frontend/apps/web/components.json JSON OK
+Frontend/apps/web/tsconfig.json JSON OK
+Frontend/apps/web/.depcheckrc.json JSON OK
+Frontend/apps/web/package.json JSON OK
+Back-end/pom.xml XML OK

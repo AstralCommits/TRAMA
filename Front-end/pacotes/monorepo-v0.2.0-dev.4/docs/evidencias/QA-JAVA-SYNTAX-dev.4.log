@@ -1,0 +1,4 @@
+Java runtime available in preparation environment: OpenJDK 21.0.12.1.
+Full Java compilation and Maven/JUnit test suite were NOT executed.
+The Maven Wrapper could not download Maven 3.9.9 in the earlier attempt because DNS/network access to archive.apache.org was unavailable.
+This file is a limitation record, not a successful Java compile/test report.

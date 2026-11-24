@@ -12,6 +12,7 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 - **DB-01 e DB-03:** tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`, a função `cnpj_valido`, os triggers e a view `vw_pedido_corporativo`, os scripts `04_constraints_pedidos_lote.sql`, `05_seed_produtos_pe.sql` e `teste_constraints_pedidos.sql` e as partes correspondentes no SQLite e no CI. Pedidos corporativos e catálogo de artesanato ficam fora do escopo do TRAMA, que é um painel de inteligência de dados para as confecções do Polo Têxtil do Agreste, e não um marketplace.
 
 ### Adicionado
+- **DEMO-DB-01:** massa de dados fictícia do polo têxtil para o ProjetAÍ (`seed_demonstracao_projetaí.sql`), view `vw_serie_polo_regional` com a série mensal por município e `teste_demonstracao_projetai.sql` com 12 casos.
 - **DB-01 (#9):** `04_constraints_pedidos_lote.sql` com as tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`. `CHECK (quantidade >= 5)` nos itens dos pedidos em lote, chaves estrangeiras `ON DELETE RESTRICT` entre empresas, pedidos, produtos e artesãos, validação de CNPJ (formato, unicidade e dígitos verificadores com a função `cnpj_valido`), bloqueio de itens em pedidos entregues ou cancelados, índices e a view `vw_pedido_corporativo`.
 - **DB-03 (#11):** `05_seed_produtos_pe.sql` com 10 mestres artesãos de Caruaru, Olinda, Cabo de Santo Agostinho e Recife, 30 produtos com descrição, técnica, material e foto, e pedidos de demonstração.
 - `teste_constraints_pedidos.sql` com 18 casos de teste das novas regras.
@@ -45,6 +46,9 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 - Tendência com limiar inclusivo de 5%: ALTA a partir de +5% e QUEDA a partir de −5% (RF06); dados de exemplo corrigidos para seguir a regra.
 - **Incompatível (alinhamento ao SRS):** o perfil de usuário `CONFECCAO` passa a se chamar `EMPRESARIO` (RF09), no `schema.sql`, no `schema_sqlite.sql`, nos dados de exemplo e na documentação. O tipo de confecção (`CONFECCAO` ou `FACCAO`) não muda.
 - `cenario_concorrencia.percentual_impacto` ganha o `CHECK chk_cenario_impacto`, que aceita só valores de 0 a 100 (RF07, RN06).
+
+### Corrigido
+- As senhas dos usuários de exemplo passam a ser BCrypt, o formato que a API confere; antes, o login respondia 401. Bancos já criados usam `database/migracoes/V0_5_1__senhas_bcrypt.sql`.
 
 ## [0.3.1] - 2026-10-27
 
