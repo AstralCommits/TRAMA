@@ -187,6 +187,33 @@ class JwtAndImportacaoIntegrationTest {
                 .andExpect(jsonPath("$.faturamentoTotal").value(500.00));
     }
 
+    @Test
+    void empresarioRecebe403AoCadastrarCategoria() throws Exception {
+        String email = "empresario-403-" + UUID.randomUUID() + "@trama.test";
+        String senha = "SenhaTeste@123";
+        Usuario empresario = new Usuario();
+        empresario.setNome("Empresário sem permissão");
+        empresario.setEmail(email);
+        empresario.setSenhaHash(passwordEncoder.encode(senha));
+        empresario.setPerfil(PerfilUsuario.EMPRESARIO);
+        empresario.setConfeccao(criarConfeccao("RF09"));
+        usuarioRepository.saveAndFlush(empresario);
+        String token = token(email, senha);
+
+        mockMvc.perform(post("/api/categorias").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("nome", "Bloqueada-" + UUID.randomUUID()))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").value("O usuário autenticado não possui permissão para esta operação."));
+    }
+
+    @Test
+    void requisicaoSemTokenRecebe401() throws Exception {
+        mockMvc.perform(get("/api/vendas"))
+                .andExpect(status().isUnauthorized());
+    }
+
     private Confeccao criarConfeccao(String prefixo) {
         Cidade cidade = cidadeRepository.findByNomeIgnoreCaseAndUf("Caruaru", "PE").orElseThrow();
         Confeccao confeccao = new Confeccao();

@@ -10,6 +10,7 @@ import br.com.trama.model.enums.StatusImportacao;
 import br.com.trama.repository.ImportacaoRepository;
 import br.com.trama.repository.UsuarioRepository;
 import br.com.trama.security.UsuarioPrincipal;
+import br.com.trama.validation.TextoSeguro;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -114,6 +115,9 @@ public class ImportacaoService {
                     if (fonte.isBlank() || fonte.length() > 200) {
                         throw new IllegalArgumentException("Nome da fonte é obrigatório e deve ter até 200 caracteres.");
                     }
+                    if (!TextoSeguro.ehSeguro(fonte)) {
+                        throw new IllegalArgumentException(TextoSeguro.MENSAGEM);
+                    }
                     linhas.add(new ImportacaoCsvLinha(mes, quantidade, faturamento, idConfeccao,
                             idCategoria, origem, fonte));
                 } catch (IllegalArgumentException | DateTimeParseException ex) {
@@ -155,7 +159,7 @@ public class ImportacaoService {
 
     private String nomeSeguro(String nome) {
         if (nome == null || nome.isBlank()) return "arquivo-invalido.csv";
-        String limpo = nome.replace('\\', '/');
+        String limpo = TextoSeguro.limparNomeArquivo(nome).replace('\\', '/');
         limpo = limpo.substring(limpo.lastIndexOf('/') + 1);
         return limpo.length() > 150 ? limpo.substring(limpo.length() - 150) : limpo;
     }
