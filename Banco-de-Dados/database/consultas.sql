@@ -72,3 +72,66 @@ FROM item_relatorio ir
 INNER JOIN categoria cat ON ir.id_categoria = cat.id_categoria
 LEFT JOIN cidade ci      ON ir.id_cidade = ci.id_cidade
 ORDER BY ir.tendencia, ir.variacao_percentual DESC;
+
+-- DB-04: vendas por polo regional
+SELECT * FROM vw_vendas_polo_regional
+ORDER BY faturamento_total DESC;
+
+SELECT SUM(faturamento_total) AS faturamento_polos,
+       SUM(volume_itens)      AS itens_polos,
+       SUM(qtd_lancamentos)   AS lancamentos_polos
+FROM vw_vendas_polo_regional;
+
+SHOW INDEX FROM confeccao;
+SHOW INDEX FROM lancamento_mensal;
+
+EXPLAIN SELECT * FROM vw_vendas_polo_regional;
+
+EXPLAIN ANALYZE SELECT * FROM vw_vendas_polo_regional;
+
+-- DB-04: teste de desempenho da view vw_vendas_polo_regional
+DROP PROCEDURE IF EXISTS teste_desempenho_polo_regional;
+
+DELIMITER $$
+CREATE PROCEDURE teste_desempenho_polo_regional()
+BEGIN
+    DECLARE v_idx INT;
+    DECLARE v_cidades INT;
+    DECLARE v_linhas INT;
+    DECLARE v_fat_view DECIMAL(14,2);
+    DECLARE v_lanc_view INT;
+    DECLARE v_fat_base DECIMAL(14,2);
+    DECLARE v_lanc_base INT;
+    DECLARE v_inicio DATETIME(6);
+    DECLARE v_micro BIGINT;
+
+    SELECT COUNT(*) INTO v_idx
+    FROM information_schema.statistics
+    WHERE table_schema = 'confeccoes'
+      AND ((table_name = 'confeccao'          AND index_name = 'idx_confeccao_cidade')
+        OR (table_name = 'lancamento_mensal'  AND index_name = 'idx_lancamento_mes_categoria'))
+      AND seq_in_index = 1;
+
+    SELECT COUNT(*) INTO v_cidades FROM cidade;
+
+    SET v_inicio = NOW(6);
+    SELECT COUNT(*), SUM(faturamento_total), SUM(qtd_lancamentos)
+      INTO v_linhas, v_fat_view, v_lanc_view
+    FROM vw_vendas_polo_regional;
+    SET v_micro = TIMESTAMPDIFF(MICROSECOND, v_inicio, NOW(6));
+
+    SELECT SUM(faturamento), COUNT(*) INTO v_fat_base, v_lanc_base
+    FROM lancamento_mensal WHERE lanc_status = 'ATIVO';
+
+    SELECT
+        IF(v_idx = 2, 'OK', 'FALHA')                         AS indices_presentes,
+        IF(v_linhas = v_cidades, 'OK', 'FALHA')              AS um_registro_por_municipio,
+        IF(v_fat_view = v_fat_base, 'OK', 'FALHA')           AS faturamento_confere,
+        IF(v_lanc_view = v_lanc_base, 'OK', 'FALHA')         AS lancamentos_conferem,
+        IF(v_micro < 100000, 'OK', 'FALHA')                  AS resposta_abaixo_de_100ms,
+        v_micro                                              AS tempo_microsegundos;
+END $$
+DELIMITER ;
+
+CALL teste_desempenho_polo_regional();
+DROP PROCEDURE teste_desempenho_polo_regional;

@@ -163,6 +163,7 @@ CREATE INDEX idx_historico_lancamento ON historico_lancamento (id_lancamento, da
 CREATE INDEX idx_historico_data ON historico_lancamento (data_alteracao, origem);
 CREATE INDEX idx_cenario_usuario_nome ON cenario_concorrencia (id_usuario, nome);
 CREATE INDEX idx_relatorio_usuario_data ON relatorio (id_usuario, data_geracao);
+CREATE INDEX idx_confeccao_cidade ON confeccao (id_cidade);
 
 CREATE OR REPLACE VIEW vw_lancamentos AS
 SELECT l.id_lancamento,
@@ -184,3 +185,34 @@ INNER JOIN confeccao c   ON l.id_confeccao = c.id_confeccao
 INNER JOIN categoria cat ON l.id_categoria = cat.id_categoria
 INNER JOIN cidade ci     ON c.id_cidade = ci.id_cidade
 WHERE l.lanc_status = 'ATIVO';
+
+-- DB-04: analitica de faturamento e vendas por polo regional.
+-- municipio_id e o alias de cidade.id_cidade; o indice equivalente e confeccao(id_cidade).
+-- As 3 cidades cadastradas (Toritama, Caruaru e Santa Cruz do Capibaribe) sao os polos.
+-- A main nao tem tabela de pedidos, entao a contagem vem dos lancamentos ativos.
+CREATE OR REPLACE VIEW vw_vendas_polo_regional AS
+SELECT ci.id_cidade AS municipio_id,
+       ci.nome AS municipio,
+       ci.uf,
+       COALESCE(v.faturamento_total, 0) AS faturamento_total,
+       COALESCE(v.volume_itens, 0) AS volume_itens,
+       COALESCE(v.qtd_lancamentos, 0) AS qtd_lancamentos,
+       ROUND(COALESCE(v.faturamento_total, 0) / NULLIF(v.volume_itens, 0), 2) AS ticket_medio_item
+FROM cidade ci
+LEFT JOIN (
+    SELECT c.id_cidade,
+           SUM(x.faturamento) AS faturamento_total,
+           SUM(x.quantidade) AS volume_itens,
+           SUM(x.qtd_lancamentos) AS qtd_lancamentos
+    FROM (
+        SELECT id_confeccao,
+               SUM(faturamento) AS faturamento,
+               SUM(quantidade) AS quantidade,
+               COUNT(*) AS qtd_lancamentos
+        FROM lancamento_mensal
+        WHERE lanc_status = 'ATIVO'
+        GROUP BY id_confeccao
+    ) x
+    INNER JOIN confeccao c ON c.id_confeccao = x.id_confeccao
+    GROUP BY c.id_cidade
+) v ON v.id_cidade = ci.id_cidade;
