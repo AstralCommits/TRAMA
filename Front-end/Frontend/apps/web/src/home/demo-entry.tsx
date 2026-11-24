@@ -5,6 +5,7 @@ import {
   startDemoSession,
   type TramaUser,
 } from '@/lib/auth.client';
+import { isApiConfigured } from '@/services/api';
 
 type Props = {
   mode: string;
@@ -64,7 +65,7 @@ export function DemoEntry({ mode, close, onSuccess }: Props) {
         <span className="eyebrow">TRAMA / {view === 'demo' ? 'DEMONSTRAÇÃO' : 'ÁREA DA PLATAFORMA'}</span>
         <h2>{title}</h2>
         {view === 'register' && <p>Cadastre sua empresa para entrar na área de gestão. Seus registros ficarão salvos neste navegador.</p>}
-        {view === 'login' && <p>Entre com o e-mail e a senha que você cadastrou neste navegador.</p>}
+        {view === 'login' && <p>{isApiConfigured() ? 'Entre com o usuário cadastrado no TRAMA ou com uma conta criada neste navegador.' : 'Entre com o e-mail e a senha que você cadastrou neste navegador.'}</p>}
         {view === 'demo' && <p>Experimente todos os módulos com uma confecção e dados demonstrativos, sem usar informações comerciais reais.</p>}
 
         {view !== 'demo' && (
@@ -104,7 +105,7 @@ export function DemoEntry({ mode, close, onSuccess }: Props) {
           </div>
         </form>
 
-        {view !== 'demo' && <p className="auth-footnote">A conta desta versão é armazenada localmente neste navegador. Para usar entre dispositivos e em produção, será necessária uma API de autenticação.</p>}
+        {view !== 'demo' && <p className="auth-footnote">{isApiConfigured() ? 'Usuários do TRAMA entram pela API e usam o banco de dados. Contas criadas aqui ficam só neste navegador.' : 'A conta desta versão é armazenada localmente neste navegador. Para usar entre dispositivos e em produção, será necessária uma API de autenticação.'}</p>}
         {view === 'demo' && <button type="button" className="text-button auth-demo-switch" onClick={() => { setView('register'); setStep(1); setError(''); }}>Prefiro cadastrar minha empresa</button>}
       </section>
     </div>

@@ -60,7 +60,7 @@ Na raiz do repositório:
 docker compose up --build
 ```
 
-Sobem três serviços: o MySQL 8.0 (`localhost:3307`, com o `banco_completo.sql`), a API (`http://localhost:8080`, com Swagger em `/swagger-ui.html`) e o front (`http://localhost:3000`). A API só inicia depois que o banco está saudável, e o front só depois da API. Para apagar os dados e recomeçar, use `docker compose down -v`.
+Sobem três serviços: o MySQL 8.0 (`localhost:3307`, com o `banco_completo.sql` e a carga de demonstração), a API (`http://localhost:8080`, com Swagger em `/swagger-ui.html`) e o front (`http://localhost:3000`). A API só inicia depois que o banco está saudável, e o front só depois da API. Para apagar os dados e recomeçar, use `docker compose down -v`. Quem já tinha subido antes precisa desse comando uma vez, para o banco receber a carga de demonstração.
 
 ### Sem Docker
 
@@ -215,35 +215,26 @@ A demonstração usa registros fictícios, sempre identificados como demonstraç
 
 ### Integração com o backend
 
-O front-end mantém um cliente Axios centralizado e pode consultar `GET /api/indicadores`. Para ativar a integração, configure `VITE_API_URL` no arquivo `apps/web/.env`, por exemplo:
+Quem entra com um usuário do TRAMA usa a API e o banco de dados. A demonstração e as contas criadas no navegador continuam locais e não chamam a API. No Docker a integração já vem ligada; fora dele, configure o `apps/web/.env`:
 
 ```env
 VITE_API_URL=http://localhost:8080
 ```
 
-O endpoint deve aceitar `mesInicial`, `anoInicial`, `mesFinal`, `anoFinal` e `cidade` como parâmetros. A resposta esperada inclui:
+| Tela | Endpoints |
+|---|---|
+| Login | `POST /api/auth/login` (o perfil e a confecção saem do token JWT) |
+| Visão Geral, Tendências por Categoria, Relatórios | `GET /api/vendas` |
+| Dashboard de Indicadores | `GET /api/indicadores` |
+| Análise de Tendências | `GET /api/indicadores/tendencias` |
+| Dados de Vendas e Lançamento de Vendas | `GET`, `POST`, `PUT` e `DELETE /api/vendas`, `GET` e `POST /api/importacoes` |
+| Gerenciamento de Categorias | `GET`, `POST` e `DELETE /api/categorias` |
+| Gerenciamento de Confecções | `GET`, `POST` e `DELETE /api/confeccoes` |
+| Simulador de Impacto da Concorrência | `POST /api/cenarios/simular`, `GET` e `POST /api/cenarios` |
 
-```json
-{
-  "faturamentoTotal": 0,
-  "pecasVendidas": 0,
-  "faturamentoTotalAnterior": 0,
-  "pecasVendidasAnterior": 0,
-  "categorias": [
-    {
-      "categoria": "Jeans",
-      "faturamento": 0,
-      "pecasVendidas": 0,
-      "faturamentoAnterior": 0,
-      "pecasVendidasAnterior": 0,
-      "variacaoPercentual": 0
-    }
-  ],
-  "categoriaLider": { "categoria": "Jeans", "faturamento": 0 }
-}
-```
+Estoque, Produção, Vendas e Pedidos, Financeiro, Clientes e Fornecedores, Cadastros, Agenda, Equipe, Configurações, Cenário da Concorrência e Simulador de Cenários Comparativos não têm serviço na API: o que é digitado neles fica só no navegador, e a tela avisa. A Comparação de Produtos não aparece para usuários da API, porque o banco guarda o total mensal por categoria e confecção.
 
-Para a análise de tendências, o front envia também `incluirVariacao=true`; a API deve devolver `variacaoPercentual` numérico por categoria. Quando a API estiver configurada mas indisponível, o painel informa o problema e continua exibindo os registros locais.
+A sessão da API termina quando o token vence ou é recusado, e a tela volta para o login. Com a API fora do ar, o login informa que não conseguiu se conectar.
 
 ### Pacotes de entrega
 

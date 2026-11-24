@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { clearApiToken } from '@/lib/apiToken';
-import { isApiConfigured } from '@/services/api';
+import { clearApiToken, hasValidApiToken, readApiClaims } from '@/lib/apiToken';
+import { getApiErrorMessage, isApiConfigured } from '@/services/api';
 import { loginApi } from '@/services/authService';
+import { listConfeccoes } from '@/services/cadastrosService';
 
 export type TramaUser = {
   id: string;
@@ -12,7 +13,12 @@ export type TramaUser = {
   role: string;
   isDemo: boolean;
   createdAt: string;
+  source?: 'api';
 };
+
+export function isApiUser(user: TramaUser | null): boolean {
+  return user?.source === 'api';
+}
 
 type StoredAccount = {
   user: TramaUser;
@@ -75,7 +81,12 @@ export function getSession(): TramaUser | null {
     const raw = window.localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const user = JSON.parse(raw) as TramaUser;
-    return user?.id && user?.email ? user : null;
+    if (!user?.id || !user.email) return null;
+    if ((isApiUser(user) || user.id.startsWith('api-')) && !(isApiUser(user) && isApiConfigured() && hasValidApiToken())) {
+      clearSession();
+      return null;
+    }
+    return user;
   } catch {
     return null;
   }
@@ -123,27 +134,38 @@ export async function registerAccount(input: {
   return user;
 }
 
+async function authenticateWithApi(email: string, password: string): Promise<TramaUser> {
+  const claims = readApiClaims(await loginApi(email, password));
+  if (!claims) throw new Error('A API retornou um token de acesso inválido.');
+  const admin = claims.perfil === 'ADMIN';
+  const confeccao = admin ? undefined : (await listConfeccoes())[0];
+  const alias = claims.sub.split('@')[0];
+  const user: TramaUser = {
+    id: `api-${claims.sub}`,
+    name: alias.charAt(0).toUpperCase() + alias.slice(1),
+    email: claims.sub,
+    company: confeccao?.nome ?? 'Polo Têxtil do Agreste',
+    city: confeccao?.cidade ?? '',
+    role: admin ? 'Administrador' : 'Empresário',
+    isDemo: false,
+    createdAt: new Date().toISOString(),
+    source: 'api',
+  };
+  saveSession(user);
+  return user;
+}
+
 export async function authenticateAccount(emailValue: string, password: string): Promise<TramaUser> {
   const email = emailValue.trim().toLowerCase();
   if (isApiConfigured()) {
     try {
-      await loginApi(email, password);
-      const local = readAccounts().find((item) => item.user.email === email)?.user;
-      const user: TramaUser = local ?? {
-        id: `api-${email}`,
-        name: email.split('@')[0],
-        email,
-        company: 'API do TRAMA',
-        city: '',
-        role: 'Usuário da API',
-        isDemo: false,
-        createdAt: new Date().toISOString(),
-      };
-      saveSession(user);
-      return user;
+      return await authenticateWithApi(email, password);
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        throw new Error('E-mail ou senha incorretos.');
+      clearApiToken();
+      const local = readAccounts().some((item) => item.user.email === email);
+      if (!local) {
+        if (!axios.isAxiosError(error)) throw error;
+        throw new Error(error.response?.status === 401 ? 'E-mail ou senha incorretos.' : getApiErrorMessage(error));
       }
     }
   }
@@ -151,6 +173,7 @@ export async function authenticateAccount(emailValue: string, password: string):
   if (!account) throw new Error('E-mail ou senha incorretos.');
   const candidate = await hashPassword(password, base64ToBytes(account.salt));
   if (candidate !== account.passwordHash) throw new Error('E-mail ou senha incorretos.');
+  clearApiToken();
   saveSession(account.user);
   return account.user;
 }

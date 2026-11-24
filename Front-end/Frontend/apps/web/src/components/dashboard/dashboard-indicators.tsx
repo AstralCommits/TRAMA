@@ -6,7 +6,7 @@ import { getIndicadores } from '@/services/indicadoresService';
 import { getTendencias } from '@/services/tendenciasService';
 import { getApiErrorMessage } from '@/services/api';
 
-type Props = { sales: Sale[]; defaultCity: string };
+type Props = { sales: Sale[]; defaultCity: string; useApi: boolean };
 type Period = { startMonth: number; startYear: number; endMonth: number; endYear: number; city: string };
 
 const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -29,12 +29,11 @@ function formatVariation(value: number | null) {
   return `${value > 0 ? '+' : ''}${value.toFixed(1).replace('.', ',')}%`;
 }
 
-export function DashboardIndicators({ sales, defaultCity }: Props) {
+export function DashboardIndicators({ sales, defaultCity, useApi: apiConfigured }: Props) {
   const [period, setPeriod] = useState<Period>(() => defaultPeriod(sales));
   const [showPrevious, setShowPrevious] = useState(true);
   const [remoteData, setRemoteData] = useState<IndicadoresResponse | null>(null);
   const [apiMessage, setApiMessage] = useState('');
-  const apiConfigured = Boolean(import.meta.env.VITE_API_URL?.trim());
   const start = monthIndex(period.startYear, period.startMonth);
   const end = monthIndex(period.endYear, period.endMonth);
   const validPeriod = start <= end;
@@ -66,7 +65,7 @@ export function DashboardIndicators({ sales, defaultCity }: Props) {
     };
     getIndicadores(params, controller.signal)
       .then((data) => { setRemoteData(data); setApiMessage(''); })
-      .catch((error: unknown) => { if (!controller.signal.aborted) { setRemoteData(null); setApiMessage(`${getApiErrorMessage(error)} Exibindo os registros salvos nesta conta.`); } });
+      .catch((error: unknown) => { if (!controller.signal.aborted) { setRemoteData(null); setApiMessage(`${getApiErrorMessage(error)} Exibindo os últimos dados carregados.`); } });
     return () => controller.abort();
   }, [apiConfigured, validPeriod, period.startMonth, period.startYear, period.endMonth, period.endYear, period.city]);
 
@@ -114,7 +113,7 @@ export function DashboardIndicators({ sales, defaultCity }: Props) {
             <select value={period.city} onChange={(e) => setPeriod({ ...period, city: e.target.value })}>
               <option value="">Todas as cidades</option>
               {cities.map((city) => <option key={city}>{city}</option>)}
-              <option>Outra cidade do Agreste</option>
+              {!apiConfigured && <option>Outra cidade do Agreste</option>}
             </select>
           </label>
           <label className="trama-compare-toggle"><input type="checkbox" checked={showPrevious} onChange={(e) => setShowPrevious(e.target.checked)} /> Comparar com período anterior</label>
@@ -146,16 +145,15 @@ export function DashboardIndicators({ sales, defaultCity }: Props) {
         </tbody></table>{groups.length === 0 && <p>Não há dados para o período selecionado.</p>}</div>
       </section>
       {apiMessage && <p className="auth-error" role="status">{apiMessage}</p>}
-      <p className="data-source-note">Fonte: {remoteData ? 'API do backend (GET /api/indicadores).' : 'registros de vendas salvos nesta conta e neste navegador.'}</p>
+      <p className="data-source-note">Fonte: {remoteData ? 'API do backend (GET /api/indicadores).' : apiConfigured ? 'últimos dados carregados da API.' : 'registros de vendas salvos nesta conta e neste navegador.'}</p>
     </>
   );
 }
 
-export function TrendAnalysis({ sales, defaultCity }: Props) {
+export function TrendAnalysis({ sales, defaultCity, useApi: apiConfigured }: Props) {
   const [period, setPeriod] = useState<Period>(() => defaultPeriod(sales));
   const [remoteTrends, setRemoteTrends] = useState<CategoriaTendencia[] | null>(null);
   const [apiMessage, setApiMessage] = useState('');
-  const apiConfigured = Boolean(import.meta.env.VITE_API_URL?.trim());
   const start = monthIndex(period.startYear, period.startMonth);
   const end = monthIndex(period.endYear, period.endMonth);
   const valid = start <= end;
@@ -172,7 +170,7 @@ export function TrendAnalysis({ sales, defaultCity }: Props) {
     };
     getTendencias(params, controller.signal)
       .then((data) => { setRemoteTrends(data); setApiMessage(''); })
-      .catch((error: unknown) => { if (!controller.signal.aborted) { setRemoteTrends(null); setApiMessage(`${getApiErrorMessage(error)} Exibindo a análise dos registros locais.`); } });
+      .catch((error: unknown) => { if (!controller.signal.aborted) { setRemoteTrends(null); setApiMessage(`${getApiErrorMessage(error)} Exibindo a análise dos últimos dados carregados.`); } });
     return () => controller.abort();
   }, [apiConfigured, valid, period.startMonth, period.startYear, period.endMonth, period.endYear, period.city]);
   const current = valid ? sales.filter((sale) => {
@@ -217,6 +215,6 @@ export function TrendAnalysis({ sales, defaultCity }: Props) {
       </tbody></table>{rows.length === 0 && <p>Não há dados para o período selecionado. Registre vendas em Dados de Vendas para iniciar a análise.</p>}</div>
     </section>
     {apiMessage && <p className="auth-error" role="status">{apiMessage}</p>}
-    <div className="panel trend-rules"><b>Regras utilizadas</b><p><span className="trend-status alta">ALTA</span> variação maior ou igual a +5% · <span className="trend-status queda">QUEDA</span> variação menor ou igual a -5% · <span className="trend-status estável">ESTÁVEL</span> variação entre -5% e +5%.</p><small>Sem faturamento no período anterior, a categoria aparece como “Sem base” e não recebe classificação automática. {remoteTrends ? 'Fonte: API do backend.' : 'Fonte: vendas cadastradas nesta conta.'}</small></div>
+    <div className="panel trend-rules"><b>Regras utilizadas</b><p><span className="trend-status alta">ALTA</span> variação maior ou igual a +5% · <span className="trend-status queda">QUEDA</span> variação menor ou igual a -5% · <span className="trend-status estável">ESTÁVEL</span> variação entre -5% e +5%.</p><small>Sem faturamento no período anterior, a categoria aparece como “Sem base” e não recebe classificação automática. {remoteTrends ? 'Fonte: API do backend.' : apiConfigured ? 'Fonte: últimos dados carregados da API.' : 'Fonte: vendas cadastradas nesta conta.'}</small></div>
   </>;
 }

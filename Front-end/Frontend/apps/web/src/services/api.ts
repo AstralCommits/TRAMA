@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { clearApiToken, getApiToken } from '@/lib/apiToken';
+import { clearApiToken, getApiToken, SESSION_EXPIRED_EVENT } from '@/lib/apiToken';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
@@ -19,7 +19,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) clearApiToken();
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      clearApiToken();
+      if (typeof window !== 'undefined') window.dispatchEvent?.(new Event(SESSION_EXPIRED_EVENT));
+    }
     return Promise.reject(error);
   },
 );
@@ -29,7 +32,9 @@ export function isApiConfigured(): boolean {
 }
 
 export function getApiErrorMessage(error: unknown): string {
-  if (axios.isAxiosError<{ message?: string; error?: string; detail?: string }>(error)) {
+  if (axios.isAxiosError<{ message?: string; error?: string; detail?: string; errors?: Record<string, string> }>(error)) {
+    const campos = Object.values(error.response?.data?.errors ?? {});
+    if (campos.length) return campos.join(' ');
     if (error.response?.data?.detail) return error.response.data.detail;
     if (error.response?.data?.message) return error.response.data.message;
     if (error.response?.data?.error) return error.response.data.error;
