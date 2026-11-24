@@ -52,6 +52,18 @@ As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Ban
 
 ## Como rodar o projeto completo
 
+### Com Docker (um comando)
+
+Na raiz do repositório:
+
+```bash
+docker compose up --build
+```
+
+Sobem três serviços: o MySQL 8.0 (`localhost:3307`, com o `banco_completo.sql`), a API (`http://localhost:8080`, com Swagger em `/swagger-ui.html`) e o front (`http://localhost:3000`). A API só inicia depois que o banco está saudável, e o front só depois da API. Para apagar os dados e recomeçar, use `docker compose down -v`.
+
+### Sem Docker
+
 1. **Banco:** dentro de `Banco-de-Dados/`, `docker compose up -d` sobe o MySQL 8.0 na porta 3307 com o banco `confeccoes` e os dados de exemplo.
 2. **Back-end:** dentro de `Back-end/`, `./mvnw spring-boot:run` (ou `mvnw.cmd` no Windows). O perfil padrão usa H2 em memória; para usar o MySQL do Docker, configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`.
 3. **Front-end:** dentro de `Front-end/Frontend/`, `npm install` e `npm run dev --prefix apps/web`, com `VITE_API_URL=http://localhost:8080` no `apps/web/.env`.
@@ -113,11 +125,18 @@ No Linux/macOS:
 ./mvnw spring-boot:run
 ```
 
-### Próxima etapa
+### Etapa 2: documentação, testes e qualidade
 
-Esta branch corresponde à primeira etapa de desenvolvimento do backend. Após sua revisão e integração à `develop`, será iniciada a segunda etapa, contemplando a documentação da API com OpenAPI/Swagger, testes automatizados adicionais, análise de cobertura com JaCoCo, integração com SonarQube e configuração de CI com GitHub Actions.
+Entregue no PR #18 do repositório de origem (DOC-01, TEST-01, DEVOPS-01 e DEVOPS-02):
 
-Essas entregas serão realizadas em uma nova branch, baseada na `develop` atualizada, mantendo a continuidade do desenvolvimento e a organização do histórico do projeto.
+- **Documentação da API:** SpringDoc OpenAPI 2.6.0 (`config/OpenApiConfig.java`), com os controllers anotados. Com a API rodando, a documentação fica em `http://localhost:8080/swagger-ui.html`.
+- **Testes de integração:** `CenarioIntegrationTest` e `JwtAndImportacaoIntegrationTest`, em `src/test/java/br/com/trama`. Rodam com o perfil `test` (`src/test/resources/application-test.yml`), que usa H2 em memória no modo MySQL.
+- **Cobertura:** `mvn verify` gera o relatório do JaCoCo em `target/site/jacoco/`.
+- **CI:** o workflow [`.github/workflows/back-end.yml`](.github/workflows/back-end.yml) compila e testa o Back-end com Java 21 em todo Pull Request que altera `Back-end/`. Quando `SONAR_TOKEN` e `SONAR_HOST_URL` estão configurados no repositório, ele também envia a análise ao SonarQube.
+
+```bash
+mvn clean verify
+```
 
 ### Banco de dados e migrações do back-end
 

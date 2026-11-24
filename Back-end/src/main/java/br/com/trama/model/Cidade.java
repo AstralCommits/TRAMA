@@ -1,5 +1,8 @@
 package br.com.trama.model;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,12 +15,14 @@ import jakarta.persistence.Table;
 public class Cidade {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JdbcTypeCode(SqlTypes.INTEGER)
     @Column(name = "id_cidade")
     private Long idCidade;
 
     @Column(name = "nome", nullable = false, length = 80)
     private String nome;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "uf", nullable = false, length = 2)
     private String uf;
 
