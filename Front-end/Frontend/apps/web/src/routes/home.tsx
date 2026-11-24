@@ -5,7 +5,8 @@ import { banner } from '@/data/demo';
 import { Institutional } from '@/home/institutional';
 import { DemoEntry } from '@/home/demo-entry';
 import { Workspace } from '@/home/workspace';
-import { clearSession, getSession, type TramaUser } from '@/lib/auth.client';
+import { SESSION_EXPIRED_EVENT } from '@/lib/apiToken';
+import { clearSession, getSession, isApiUser, type TramaUser } from '@/lib/auth.client';
 
 export function meta({ matches, location }: Route.MetaArgs) {
   return seo({ matches, location }, {
@@ -36,6 +37,17 @@ export default function HomePage() {
     setSession(null);
     setEntryMode('');
   };
+
+  useEffect(() => {
+    if (!isApiUser(session)) return;
+    const expire = () => {
+      clearSession();
+      setSession(null);
+      setEntryMode('Entrar');
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, expire);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, expire);
+  }, [session]);
 
   if (!ready) return <main className="auth-loading"><span className="brand">TRAMA</span><p>Preparando seu espaço de trabalho…</p></main>;
 

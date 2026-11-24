@@ -11,7 +11,8 @@ services:
     ports:
       - "${MYSQL_PORT:-3307}:3306"
     volumes:
-      - ./Banco-de-Dados/database/banco_completo.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./Banco-de-Dados/database/banco_completo.sql:/docker-entrypoint-initdb.d/01-banco.sql:ro
+      - ./Banco-de-Dados/database/seed_demonstracao_projetaí.sql:/docker-entrypoint-initdb.d/02-demonstracao.sql:ro
       - trama_mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysql", "-h", "127.0.0.1", "-utrama", "-p${MYSQL_PASSWORD:-trama}", "-e", "SELECT 1 FROM confeccoes.lancamento_mensal LIMIT 1"]
@@ -26,6 +27,7 @@ services:
       banco:
         condition: service_healthy
     environment:
+      TZ: America/Recife
       SPRING_PROFILES_ACTIVE: dev
       DB_URL: jdbc:mysql://banco:3306/confeccoes?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Recife&characterEncoding=UTF-8
       DB_USERNAME: trama
