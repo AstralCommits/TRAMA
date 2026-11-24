@@ -1,0 +1,13 @@
+
+> trama-monorepo@0.2.0-dev.4 lint
+> npm run lint --prefix Frontend
+
+
+> monorepo-ssr@0.2.0-dev.4 lint
+> npm run lint --prefix apps/web
+
+
+> web@0.2.0-dev.4 lint
+> oxlint --threads=1 --format default
+
+sh: 1: oxlint: not found

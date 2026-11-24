@@ -1,0 +1,6 @@
+
+> trama-monorepo@0.2.0-dev.4 verify:backend
+> node scripts/run-maven.mjs clean verify
+
+Maven não encontrado; tentando baixar Maven 3.9.9.
+curl: (6) Could not resolve host: archive.apache.org

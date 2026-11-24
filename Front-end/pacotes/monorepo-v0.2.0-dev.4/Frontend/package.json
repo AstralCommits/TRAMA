@@ -1,0 +1,27 @@
+{
+  "name": "monorepo-ssr",
+  "type": "module",
+  "version": "0.2.0-dev.4",
+  "private": true,
+  "scripts": {
+    "setup": "bun install",
+    "dev": "npm run dev --prefix apps/web",
+    "build": "npm run build --prefix apps/web",
+    "start": "npm run start --prefix apps/web",
+    "lint": "npm run lint --prefix apps/web",
+    "typecheck": "npm run typecheck --prefix apps/web",
+    "qa:trama-contracts": "node scripts/verify-trama-integration.mjs",
+    "qa:all-contracts": "npm run qa:trama-contracts"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6",
+    "knip": "^6.32.1"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "description": "Protótipo de gestão e inteligência comercial para a cadeia têxtil do Agreste pernambucano.",
+  "engines": {
+    "node": ">=22.22.0"
+  }
+}
