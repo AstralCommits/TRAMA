@@ -8,6 +8,9 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 
 ## [Não lançado]
 
+### Removido
+- **DB-01 e DB-03:** tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`, a função `cnpj_valido`, os triggers e a view `vw_pedido_corporativo`, os scripts `04_constraints_pedidos_lote.sql`, `05_seed_produtos_pe.sql` e `teste_constraints_pedidos.sql` e as partes correspondentes no SQLite e no CI. Pedidos corporativos e catálogo de artesanato ficam fora do escopo do TRAMA, que é um painel de inteligência de dados para as confecções do Polo Têxtil do Agreste, e não um marketplace.
+
 ### Adicionado
 - **DB-01 (#9):** `04_constraints_pedidos_lote.sql` com as tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`. `CHECK (quantidade >= 5)` nos itens dos pedidos em lote, chaves estrangeiras `ON DELETE RESTRICT` entre empresas, pedidos, produtos e artesãos, validação de CNPJ (formato, unicidade e dígitos verificadores com a função `cnpj_valido`), bloqueio de itens em pedidos entregues ou cancelados, índices e a view `vw_pedido_corporativo`.
 - **DB-03 (#11):** `05_seed_produtos_pe.sql` com 10 mestres artesãos de Caruaru, Olinda, Cabo de Santo Agostinho e Recife, 30 produtos com descrição, técnica, material e foto, e pedidos de demonstração.
