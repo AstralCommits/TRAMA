@@ -24,38 +24,4 @@ Para testar:
 4. Execute npm ci e depois npm run dev.
 5. Entre na demonstração com perfil Administrador para visualizar todos os módulos.
 
-Observação: o ambiente de execução desta entrega não conseguiu concluir a instalação
-das dependências, portanto não foi possível executar o build/typecheck. Os arquivos
-foram integrados à estrutura existente, mas valide com npm run typecheck e npm run build
-antes de fazer o push.
-
-
-ATUALIZAÇÃO — NAVEGAÇÃO REGIONAL E COMPRAS B2B
-
-Arquivos alterados:
-- Frontend/apps/web/src/home/institutional.tsx
-- Frontend/apps/web/src/index.css
-
-Novos arquivos:
-- Frontend/apps/web/src/home/artisan-catalog.tsx
-- Frontend/apps/web/src/home/quote-modal.tsx
-
-Issue 01 — Navegação Regional por Polo Cultural:
-- Nova seção Artesanato na página institucional.
-- Filtro instantâneo por Renda renascença, Cerâmica e Xilogravura.
-- Contagem dinâmica de peças por técnica e opção Todas.
-- Catálogo demonstrativo com identificação da técnica, referência territorial e mestres artesãos.
-- Os filtros são locais e não recarregam a página.
-
-Issue 02 — US05 Compras B2B Corporativas em Lote:
-- Modal QuoteModal.tsx com dados do responsável, empresa, contato, produto, quantidade e briefing.
-- Validação de quantidade inteira positiva e campos obrigatórios.
-- Envio via POST /api/cotacoes usando a instância Axios já existente em services/api.ts.
-- Comprovante exibido somente após resposta HTTP de sucesso e com protocolo retornado pela API.
-- Erros de conexão/servidor são apresentados sem simular registro ou protocolo.
-
-Pontos importantes para integração:
-- O catálogo utiliza itens demonstrativos locais, pois o ZIP recebido não contém uma API/catálogo público de artesanato para carregar peças reais. Substitua os itens de demonstração por dados do backend quando esse serviço estiver disponível.
-- O frontend espera que POST /api/cotacoes retorne um dos campos de protocolo: protocolo, protocol, numeroProtocolo, protocoloAtendimento ou numero_protocolo. Ajuste o mapeamento caso o contrato real do backend use outro nome.
-- O projeto incluído neste ZIP não contém implementação backend para /api/cotacoes. A solicitação só será registrada quando esse endpoint estiver implementado e acessível pela VITE_API_URL (padrão atual: http://localhost:8080).
-- A instalação de dependências/build não foi concluída neste ambiente; validar com Node.js >= 22.22.0, npm ci e npm run build em ambiente compatível antes do merge.
+O build e o typecheck passam na main e rodam na CI do front-end (.github/workflows/front-end.yml).
