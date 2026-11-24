@@ -9,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { banner } from '@/data/demo';
+import { ArtisanCatalog } from './artisan-catalog';
 
 const navigation = [
   ['Início', 'inicio'],
@@ -17,6 +18,7 @@ const navigation = [
   ['Método', 'metodo'],
   ['Como funciona', 'como'],
   ['Benefícios', 'beneficios'],
+  ['Artesanato', 'artesanato'],
 ];
 
 const features = [
@@ -157,6 +159,8 @@ export function Institutional({ enter }: { enter: (mode: string) => void }) {
             <li>Acompanhe indicadores e use as análises para apoiar suas decisões.</li>
           </ol>
         </section>
+
+        <ArtisanCatalog />
 
         <section id="beneficios" className="closing">
           <div className="closing-content">

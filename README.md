@@ -209,6 +209,48 @@ O endpoint deve aceitar `mesInicial`, `anoInicial`, `mesFinal`, `anoFinal` e `ci
 
 Para a análise de tendências, o front envia também `incluirVariacao=true`; a API deve devolver `variacaoPercentual` numérico por categoria. Quando a API estiver configurada mas indisponível, o painel informa o problema e continua exibindo os registros locais.
 
+### FRONT-05 e FRONT-06: painel do artesão e catálogo responsivo
+
+> O código desta entrega está em [`Front-end/pacotes/front-05-06-marketplace`](Front-end/pacotes/front-05-06-marketplace) e ainda não foi integrado a `Front-end/Frontend/apps/web`. Veja [Pacotes de entrega](#pacotes-de-entrega).
+
+**FRONT-06 (catálogo responsivo, rota `/catalogo`)**
+
+- Produtos em uma ou duas colunas conforme a largura da tela, pensado para celulares de 360px a 480px, com o breakpoint `xs` (360px).
+- Menu lateral mobile com botão hambúrguer, fundo sobreposto, fechamento pela tecla `Esc` e bloqueio da rolagem do fundo enquanto está aberto.
+- Gerenciamento de foco e atributos de acessibilidade (`aria-expanded`, `aria-controls`, `aria-modal`).
+- Áreas de toque de no mínimo 44px, sem rolagem horizontal e com fonte dos campos ajustada no celular.
+
+**FRONT-05 (painel do artesão, rota `/painel-artesao`)**
+
+- Cards com resumo financeiro e valores previstos de repasse ao artesão, com o percentual mínimo de repasse social de 85% por pedido.
+- Histórico de pedidos com filtro por mês: tabela em telas maiores e cartões no celular.
+- Atualização do status de produção (Recebido, Em produção, Pronto, Enviado, Entregue), com aviso de carregamento, sucesso e erro.
+
+**Organização técnica**
+
+- Dados simulados de produtos e pedidos separados da interface, e um serviço que isola o acesso aos pedidos para facilitar a integração futura com a API.
+- Funções de cálculo financeiro em `features/artisan/utils/orderFinancials`, com 7 testes que passaram:
+
+```bash
+node --test apps/web/tests/orderFinancials.test.mjs
+```
+
+**Pendências registradas pela equipe:** instalar dependências, rodar build, typecheck e lint, conferir o visual nas larguras de 360px a 480px, o menu mobile, o painel e as novas rotas. Os dados são fictícios e os pedidos ainda não são salvos no back-end.
+
+### Pacotes de entrega
+
+A equipe do Front entregou várias versões do projeto como arquivos `.zip`. Eles foram descompactados em [`Front-end/pacotes/`](Front-end/pacotes), um pacote por pasta, para que o conteúdo possa ser lido e comparado no GitHub. **Nenhum pacote foi copiado por cima do código em uso**: cada um é uma versão paralela, com funcionalidades que os outros não têm, e a integração ao app em `Front-end/Frontend` ainda precisa ser feita pela equipe.
+
+| Pasta | Autor | Data | Conteúdo | O que só existe nele |
+|---|---|---|---|---|
+| [`entrega-06-07-08`](Front-end/pacotes/entrega-06-07-08) | Júlio Cesar | 09/11 | Back-end e Front-end | `services/authService.ts` |
+| [`front-05-06-marketplace`](Front-end/pacotes/front-05-06-marketplace) | Maria Nicolle | 15/11 | Front-end | FRONT-05 (painel do artesão) e FRONT-06 (catálogo responsivo) em `features/artisan` e `features/catalog` |
+| [`trama-develop`](Front-end/pacotes/trama-develop) | Maria Nicolle | 22/11 | Front-end | Relatórios, comparação de mercado, organização e configurações |
+| [`monorepo-v0.2.0-dev.4`](Front-end/pacotes/monorepo-v0.2.0-dev.4) | Maria Nicolle | 23/11 | Front-end, Back-end e Banco de Dados | Relatórios e cenários mensais, gestão de categorias e equipe; no Back-end, equipe, convites e filtros salvos (29 arquivos). O Banco deste pacote não tem as DB-01/DB-03, o Docker nem o SQLite |
+| [`us02-rest`](Front-end/pacotes/us02-rest) | Júlio Cesar | 24/11 | Front-end | Serviços REST de artesãos, cotações, empresas e produtos (US02) e cadastro de empresa |
+
+Os arquivos são os mesmos dos `.zip`, sem os comentários no código, como no resto do repositório. As cópias de `.zip` que vinham dentro do pacote `us02-rest` eram idênticas aos outros pacotes e não foram repetidas.
+
 ### Limites desta versão
 
 Esta versão já permite criar conta local, entrar, cadastrar vendas e manter os registros no mesmo navegador. Para uso real por várias pessoas, acesso de equipe com permissões efetivas, recuperação de senha, banco compartilhado, backup e sincronização, ainda é necessário implementar/conectar o backend Spring Boot e a autenticação no servidor. A tela Equipe e Permissões e os cadastros operacionais existentes são CRUD local simplificado, não controle de acesso corporativo.
