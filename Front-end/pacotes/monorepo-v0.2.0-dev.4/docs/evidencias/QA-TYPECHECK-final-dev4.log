@@ -1,0 +1,13 @@
+
+> trama-monorepo@0.2.0-dev.4 typecheck
+> npm run typecheck --prefix Frontend
+
+
+> monorepo-ssr@0.2.0-dev.4 typecheck
+> npm run typecheck --prefix apps/web
+
+
+> web@0.2.0-dev.4 typecheck
+> react-router typegen && tsc --noEmit --singleThreaded
+
+sh: 1: react-router: not found

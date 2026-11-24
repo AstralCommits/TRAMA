@@ -1,0 +1,22 @@
+{
+  "name": "trama-monorepo",
+  "private": true,
+  "version": "0.2.0-dev.4",
+  "description": "Monorepositório de integração do TRAMA: Frontend, Back-end e Banco de Dados.",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "install:frontend": "npm ci --prefix Frontend",
+    "dev:frontend": "npm run dev --prefix Frontend",
+    "typecheck": "npm run typecheck --prefix Frontend",
+    "lint": "npm run lint --prefix Frontend",
+    "build": "npm run build --prefix Frontend",
+    "qa:contracts": "npm run qa:all-contracts --prefix Frontend",
+    "test:backend": "node scripts/run-maven.mjs test",
+    "qa:package": "node scripts/verify-monorepo-package.mjs",
+    "qa": "npm run qa:static && npm run typecheck && npm run lint && npm run build && npm run verify:backend",
+    "qa:static": "npm run qa:package && npm run qa:contracts",
+    "verify:backend": "node scripts/run-maven.mjs clean verify"
+  }
+}

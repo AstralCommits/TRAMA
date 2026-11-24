@@ -1,0 +1,41 @@
+PROMPT DE IMPLEMENTAÇÃO — ISSUE RF03
+TRAMA | Segmentação de peças por tipologia e região
+Responsável mandatório: Júlio Cesar Braga
+
+CONTEXTO
+Implementar no front-end TRAMA o Requisito Funcional RF03, valorizando a identidade cultural pernambucana por meio da segmentação de peças artesanais por técnica e localidade.
+
+TAREFAS
+1. Criar um componente de filtros laterais com seleção múltipla de técnicas:
+   - Renda Renascença
+   - Cerâmica/Barro
+   - Bordado de Passira
+   - Fuxico
+   - Tecelagem Manual
+2. Criar seleção múltipla de municípios/polos:
+   - Caruaru
+   - Toritama
+   - Santa Cruz do Capibaribe
+   - Olinda
+   - Recife
+   Incluir também Pesqueira, exigida pelo critério de aceitação, e Passira para representar a localidade associada ao Bordado de Passira.
+3. Integrar os filtros ao estado React do catálogo, com atualização instantânea, sem recarregar a página.
+4. Exibir a quantidade de produtos encontrados e um estado vazio quando não houver correspondências.
+5. Permitir limpar todos os filtros.
+6. Combinar filtros de técnica e localidade: quando houver seleções nos dois grupos, exibir apenas produtos que correspondam a pelo menos uma das técnicas selecionadas E a pelo menos uma das localidades selecionadas.
+7. Preservar a identidade visual existente da TRAMA, a navegação, o conteúdo e as funcionalidades já implementadas.
+
+CRITÉRIO DE ACEITAÇÃO
+Given um visitante no catálogo de produtos,
+When selecionar a técnica “Renda Renascença” e a localidade “Pesqueira” ou “Caruaru”,
+Then a vitrine deve atualizar dinamicamente e exibir somente os itens correspondentes à técnica e à localidade escolhidas, sem reload.
+
+OBSERVAÇÕES TÉCNICAS
+- Não criar backend ou API fictícia.
+- Os itens incluídos nesta entrega são dados demonstrativos locais, pois o ZIP original não contém um catálogo de artesanato conectado a uma API.
+- Em uma próxima integração, substituir a lista local de demonstração pela fonte real de produtos, mantendo a mesma lógica de filtros.
+- Não incluir node_modules, .git ou arquivos gerados no pacote para upload.
+- Arquivos alterados:
+  Frontend/apps/web/src/home/artisan-catalog.tsx (novo)
+  Frontend/apps/web/src/home/institutional.tsx (atualizado)
+  Frontend/apps/web/src/index.css (atualizado)

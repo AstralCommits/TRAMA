@@ -1,0 +1,70 @@
+
+> trama-monorepo@0.2.0-dev.4 qa
+> npm run qa:package && npm run qa:contracts
+
+
+> trama-monorepo@0.2.0-dev.4 qa:package
+> node scripts/verify-monorepo-package.mjs
+
+PASS estrutura: Frontend/package.json
+PASS estrutura: Frontend/package-lock.json
+PASS estrutura: Frontend/apps/web/package.json
+PASS estrutura: Back-end/pom.xml
+PASS estrutura: Back-end/src
+PASS estrutura: Banco-de-Dados
+PASS estrutura: docs/ISSUES-GITHUB-OFICIAIS-2026-11-23.md
+PASS estrutura: docs/issues-internas
+PASS estrutura: docs/issues-github
+PASS estrutura: docs/HISTORICO-RELEASES.md
+PASS estrutura: docs/GUIA-CONSOLIDACAO-MONOREPO.md
+PASS estrutura: Frontend/apps/web/src/home/artisan-catalog.tsx
+PASS issues internas FE-13..FE-31: 19/19
+PASS issues oficiais #1..#22: 22/22
+PASS versão root: 0.2.0-dev.4
+PASS versão Frontend: 0.2.0-dev.4
+PASS versão Frontend/apps/web: 0.2.0-dev.4
+PASS histórico de Release: https://github.com/AstralCommits/Front-end/releases/tag/v0.1.0
+PASS histórico de Release: https://github.com/AstralCommits/Front-end/releases/tag/v0.2.0-dev.2
+PASS histórico de Release: https://github.com/AstralCommits/Front-end/releases/tag/v0.2.0-dev.3
+
+Resultado: estrutura consolidada aprovada.
+
+> trama-monorepo@0.2.0-dev.4 qa:contracts
+> npm run qa:all-contracts --prefix Frontend
+
+
+> monorepo-ssr@0.2.0-dev.4 qa:all-contracts
+> npm run qa:trama-contracts
+
+
+> monorepo-ssr@0.2.0-dev.4 qa:trama-contracts
+> node scripts/verify-trama-integration.mjs
+
+PASS Cliente HTTP anexa JWT nas chamadas protegidas
+PASS Expiração 401 limpa token e notifica a sessão
+PASS Login, cadastro e restauração usam endpoints do servidor
+PASS Venda mensal usa CRUD real do Back-end
+PASS CSV usa multipart com o campo esperado
+PASS Origem do lançamento é distinta da procedência
+PASS Indicadores enviam inicio e fim e permitem filtro por categoria
+PASS Cenários possuem listagem, cadastro, edição, exclusão e simulação
+PASS Relatórios exportam dados mensais e oferecem impressão
+PASS Workspace não apresenta módulos não conectados como dados reais
+PASS Back-end expõe login, cadastro e sessão atual
+PASS Cadastro é público e os demais endpoints exigem autenticação
+PASS Indicadores usam os parâmetros do contrato mensal
+PASS Importação valida vínculo de empresário e funcionário
+PASS Schema MySQL tem fonte_dado e nome_fonte
+PASS Schema completo mantém os novos campos e tipos válidos
+PASS Migração complementar adiciona fonte_dado com backfill e constraint
+PASS FE-13: administração possui CRUD de categorias e confecções
+PASS FE-14: responsável pode atualizar a própria confecção pela API
+PASS FE-17: CSV tem pré-visualização e bloqueia envio com erros
+PASS FE-18: interface permite editar e excluir cenários
+PASS FE-22: diálogos principais tratam Escape, foco inicial e contenção de Tab
+PASS FE-28: filtros salvos são privados e persistidos no servidor para contas reais
+PASS FE-29: equipe possui membros, convites de uso único e auditoria
+PASS Funcionário é perfil explícito e tem escopo de confecção
+PASS SQL e migrações contemplam equipe, auditoria, filtros e convites
+
+Resultado: 26 aprovados, 0 ignorados (repositórios irmãos ausentes), 0 falhas.

@@ -1,0 +1,20 @@
+PROMPT DE IMPLEMENTAÇÃO — ISSUE RF03
+TRAMA | Segmentação de peças por tipologia e região
+Responsável mandatório: Júlio Cesar Braga
+
+CONTEXTO
+Implementar no front-end TRAMA o Requisito Funcional RF03, valorizando a identidade cultural pernambucana por meio da segmentação de peças artesanais por técnica e localidade.
+
+TAREFAS
+1. Criar componente de filtros com seleção múltipla de técnicas (Renda Renascença, Cerâmica/Barro, Bordado de Passira, Fuxico e Tecelagem Manual).
+2. Permitir seleção de Caruaru, Toritama, Santa Cruz do Capibaribe, Olinda, Recife, Pesqueira e Passira.
+3. Atualizar a lista no estado React, sem recarregar a página.
+4. Exibir quantidade encontrada e estado vazio.
+5. Permitir limpar os filtros.
+6. Combinar filtros: pelo menos uma técnica selecionada E pelo menos um município selecionado.
+7. Preservar identidade visual e navegação.
+
+OBSERVAÇÕES
+- O catálogo usa dados demonstrativos locais; não há endpoint de produtos/artesãos no Back-end TRAMA fornecido.
+- Não simular persistência ou API que não existe.
+- A issue oficial correspondente é #19 / FRONT-09. O código e a seção foram preservados na consolidação.

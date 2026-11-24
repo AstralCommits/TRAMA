@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestPartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -119,6 +119,17 @@ public class ApiExceptionHandler {
     @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(Exception ex, HttpServletRequest request) {
         return response(HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos.", request);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAccessDenied(Exception ex, HttpServletRequest request) {
+        return response(HttpStatus.FORBIDDEN,
+                "O usuário autenticado não possui permissão para esta operação.", request);
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handleAuthentication(Exception ex, HttpServletRequest request) {
+        return response(HttpStatus.UNAUTHORIZED, "É necessário apresentar um token Bearer válido.", request);
     }
 
     @ExceptionHandler(Exception.class)

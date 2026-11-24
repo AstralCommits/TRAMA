@@ -9,6 +9,7 @@ Painel de inteligência de dados para confecções do Polo Têxtil do Agreste (P
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Branches](#branches)
 - [Como rodar o projeto completo](#como-rodar-o-projeto-completo)
+- [Como contribuir](#como-contribuir)
 - [Back-end](#back-end)
 - [Front-end](#front-end)
 - [Banco de Dados](#banco-de-dados)
@@ -23,6 +24,18 @@ Este repositório junta os repositórios da organização, com o histórico de c
 | [`Front-end/`](Front-end) | [AstralCommits/Front-end](https://github.com/AstralCommits/Front-end) | SPA em React + Vite + Tailwind |
 | [`Banco-de-Dados/`](Banco-de-Dados) | [AstralCommits/Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados) | Scripts MySQL, versão SQLite, Docker e CI |
 | [`Novas-Funcionalidades/`](Novas-Funcionalidades) | [AstralCommits/TRAMA-novas-funcionalidades](https://github.com/AstralCommits/TRAMA-novas-funcionalidades) | Novas telas do front-end ainda separadas da SPA principal |
+
+## Documentação
+
+A documentação do projeto segue as normas ISO/IEC/IEEE adotadas na disciplina e fica em [`docs/`](docs/README.md):
+
+- [Requisitos (29148)](docs/requisitos/especificacao-requisitos-29148.md)
+- [Arquitetura (42010)](docs/arquitetura/descricao-arquitetura-42010.md)
+- [Instalação e uso (26514)](docs/usuario/guia-instalacao-uso-26514.md)
+- [Testes (29119)](docs/testes/plano-testes-29119.md)
+- [Ciclo de vida (12207)](docs/processo/ciclo-de-vida-12207.md)
+- [Segurança (27001)](docs/seguranca/seguranca-informacao-27001.md)
+- [Auditoria de 09/11](docs/auditoria/2026-11-09-auditoria.md) · [Cronograma até 23/11](docs/cronograma/cronograma-2026-11.md)
 
 ## Branches
 
@@ -39,11 +52,27 @@ As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Ban
 
 ## Como rodar o projeto completo
 
+### Com Docker (um comando)
+
+Na raiz do repositório:
+
+```bash
+docker compose up --build
+```
+
+Sobem três serviços: o MySQL 8.0 (`localhost:3307`, com o `banco_completo.sql`), a API (`http://localhost:8080`, com Swagger em `/swagger-ui.html`) e o front (`http://localhost:3000`). A API só inicia depois que o banco está saudável, e o front só depois da API. Para apagar os dados e recomeçar, use `docker compose down -v`.
+
+### Sem Docker
+
 1. **Banco:** dentro de `Banco-de-Dados/`, `docker compose up -d` sobe o MySQL 8.0 na porta 3307 com o banco `confeccoes` e os dados de exemplo.
 2. **Back-end:** dentro de `Back-end/`, `./mvnw spring-boot:run` (ou `mvnw.cmd` no Windows). O perfil padrão usa H2 em memória; para usar o MySQL do Docker, configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`.
 3. **Front-end:** dentro de `Front-end/Frontend/`, `npm install` e `npm run dev --prefix apps/web`, com `VITE_API_URL=http://localhost:8080` no `apps/web/.env`.
 
 Os detalhes de cada parte estão nas seções abaixo.
+
+## Como contribuir
+
+A `main` é protegida: toda mudança entra por Pull Request com a aprovação de pelo menos uma pessoa da equipe. O [guia de contribuição](CONTRIBUTING.md) explica o fluxo de branches, o padrão de commits (`DB-01:`, `BACK-02:`, `FRONT-04:`) e o que conferir na revisão. Ao abrir uma issue ou um Pull Request, use os modelos do repositório.
 
 ## Back-end
 
@@ -96,11 +125,18 @@ No Linux/macOS:
 ./mvnw spring-boot:run
 ```
 
-### Próxima etapa
+### Etapa 2: documentação, testes e qualidade
 
-Esta branch corresponde à primeira etapa de desenvolvimento do backend. Após sua revisão e integração à `develop`, será iniciada a segunda etapa, contemplando a documentação da API com OpenAPI/Swagger, testes automatizados adicionais, análise de cobertura com JaCoCo, integração com SonarQube e configuração de CI com GitHub Actions.
+Entregue no PR #18 do repositório de origem (DOC-01, TEST-01, DEVOPS-01 e DEVOPS-02):
 
-Essas entregas serão realizadas em uma nova branch, baseada na `develop` atualizada, mantendo a continuidade do desenvolvimento e a organização do histórico do projeto.
+- **Documentação da API:** SpringDoc OpenAPI 2.6.0 (`config/OpenApiConfig.java`), com os controllers anotados. Com a API rodando, a documentação fica em `http://localhost:8080/swagger-ui.html`.
+- **Testes de integração:** `CenarioIntegrationTest` e `JwtAndImportacaoIntegrationTest`, em `src/test/java/br/com/trama`. Rodam com o perfil `test` (`src/test/resources/application-test.yml`), que usa H2 em memória no modo MySQL.
+- **Cobertura:** `mvn verify` gera o relatório do JaCoCo em `target/site/jacoco/`.
+- **CI:** o workflow [`.github/workflows/back-end.yml`](.github/workflows/back-end.yml) compila e testa o Back-end com Java 21 em todo Pull Request que altera `Back-end/`. Quando `SONAR_TOKEN` e `SONAR_HOST_URL` estão configurados no repositório, ele também envia a análise ao SonarQube.
+
+```bash
+mvn clean verify
+```
 
 ### Banco de dados e migrações do back-end
 
@@ -208,6 +244,48 @@ O endpoint deve aceitar `mesInicial`, `anoInicial`, `mesFinal`, `anoFinal` e `ci
 ```
 
 Para a análise de tendências, o front envia também `incluirVariacao=true`; a API deve devolver `variacaoPercentual` numérico por categoria. Quando a API estiver configurada mas indisponível, o painel informa o problema e continua exibindo os registros locais.
+
+### FRONT-05 e FRONT-06: painel do artesão e catálogo responsivo
+
+> O código desta entrega está em [`Front-end/pacotes/front-05-06-marketplace`](Front-end/pacotes/front-05-06-marketplace) e ainda não foi integrado a `Front-end/Frontend/apps/web`. Veja [Pacotes de entrega](#pacotes-de-entrega).
+
+**FRONT-06 (catálogo responsivo, rota `/catalogo`)**
+
+- Produtos em uma ou duas colunas conforme a largura da tela, pensado para celulares de 360px a 480px, com o breakpoint `xs` (360px).
+- Menu lateral mobile com botão hambúrguer, fundo sobreposto, fechamento pela tecla `Esc` e bloqueio da rolagem do fundo enquanto está aberto.
+- Gerenciamento de foco e atributos de acessibilidade (`aria-expanded`, `aria-controls`, `aria-modal`).
+- Áreas de toque de no mínimo 44px, sem rolagem horizontal e com fonte dos campos ajustada no celular.
+
+**FRONT-05 (painel do artesão, rota `/painel-artesao`)**
+
+- Cards com resumo financeiro e valores previstos de repasse ao artesão, com o percentual mínimo de repasse social de 85% por pedido.
+- Histórico de pedidos com filtro por mês: tabela em telas maiores e cartões no celular.
+- Atualização do status de produção (Recebido, Em produção, Pronto, Enviado, Entregue), com aviso de carregamento, sucesso e erro.
+
+**Organização técnica**
+
+- Dados simulados de produtos e pedidos separados da interface, e um serviço que isola o acesso aos pedidos para facilitar a integração futura com a API.
+- Funções de cálculo financeiro em `features/artisan/utils/orderFinancials`, com 7 testes que passaram:
+
+```bash
+node --test apps/web/tests/orderFinancials.test.mjs
+```
+
+**Pendências registradas pela equipe:** instalar dependências, rodar build, typecheck e lint, conferir o visual nas larguras de 360px a 480px, o menu mobile, o painel e as novas rotas. Os dados são fictícios e os pedidos ainda não são salvos no back-end.
+
+### Pacotes de entrega
+
+A equipe do Front entregou várias versões do projeto como arquivos `.zip`. Eles foram descompactados em [`Front-end/pacotes/`](Front-end/pacotes), um pacote por pasta, para que o conteúdo possa ser lido e comparado no GitHub. **Nenhum pacote foi copiado por cima do código em uso**: cada um é uma versão paralela, com funcionalidades que os outros não têm, e a integração ao app em `Front-end/Frontend` ainda precisa ser feita pela equipe.
+
+| Pasta | Autor | Data | Conteúdo | O que só existe nele |
+|---|---|---|---|---|
+| [`entrega-06-07-08`](Front-end/pacotes/entrega-06-07-08) | Júlio Cesar | 09/11 | Back-end e Front-end | `services/authService.ts` |
+| [`front-05-06-marketplace`](Front-end/pacotes/front-05-06-marketplace) | Maria Nicolle | 15/11 | Front-end | FRONT-05 (painel do artesão) e FRONT-06 (catálogo responsivo) em `features/artisan` e `features/catalog` |
+| [`trama-develop`](Front-end/pacotes/trama-develop) | Maria Nicolle | 22/11 | Front-end | Relatórios, comparação de mercado, organização e configurações |
+| [`monorepo-v0.2.0-dev.4`](Front-end/pacotes/monorepo-v0.2.0-dev.4) | Maria Nicolle | 23/11 | Front-end, Back-end e Banco de Dados | Relatórios e cenários mensais, gestão de categorias e equipe; no Back-end, equipe, convites e filtros salvos (29 arquivos). O Banco deste pacote não tem as DB-01/DB-03, o Docker nem o SQLite |
+| [`us02-rest`](Front-end/pacotes/us02-rest) | Júlio Cesar | 24/11 | Front-end | Serviços REST de artesãos, cotações, empresas e produtos (US02) e cadastro de empresa |
+
+Os arquivos são os mesmos dos `.zip`, sem os comentários no código, como no resto do repositório. As cópias de `.zip` que vinham dentro do pacote `us02-rest` eram idênticas aos outros pacotes e não foram repetidas.
 
 ### Limites desta versão
 
@@ -679,6 +757,8 @@ docker compose exec -T mysql mysql -uroot -proot confeccoes < database/teste_con
 | [selects.sql](Banco-de-Dados/database/selects.sql) | Consulta de todos os registros de cada tabela |
 | [consultas.sql](Banco-de-Dados/database/consultas.sql) | Consultas com `INNER JOIN`, `LEFT JOIN`, `GROUP BY`, `COUNT`, `AVG`, `MAX` e `MIN` |
 | [teste_desempenho.sql](Banco-de-Dados/database/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não fica no `banco_completo.sql` e não altera os dados |
+| [seed_demonstracao_projetaí.sql](Banco-de-Dados/database/seed_demonstracao_projetaí.sql) | Massa de dados fictícia do polo têxtil para o ProjetAÍ e a view `vw_serie_polo_regional` |
+| [teste_demonstracao_projetai.sql](Banco-de-Dados/database/teste_demonstracao_projetai.sql) | 12 casos de teste da massa de demonstração; não altera os dados |
 | [schema_sqlite.sql](Banco-de-Dados/database/schema_sqlite.sql) | Versão SQLite3 do `schema.sql`, com os triggers e a view |
 | [gerar_sqlite.py](Banco-de-Dados/database/gerar_sqlite.py) | Gera o `extensao.db` a partir do `schema_sqlite.sql`, do `inserts.sql` e do `05_seed_produtos_pe.sql` |
 | [extensao.db](Banco-de-Dados/database/extensao.db) | Banco SQLite pronto, com os dados de exemplo |
@@ -762,6 +842,19 @@ Para recomeçar do zero, apague o banco antes com `DROP DATABASE confeccoes;`.
 
 Pelo **MySQL Workbench**: abra cada arquivo em *File → Open SQL Script* e execute (⚡), na mesma ordem.
 
+### Massa de demonstração (ProjetAÍ)
+
+Depois de subir o banco, rode a carga e confira (na pasta `Banco-de-Dados`):
+
+```bash
+docker compose exec -T mysql mysql -utrama -ptrama --default-character-set=utf8mb4 confeccoes < database/seed_demonstracao_projetaí.sql
+docker compose exec -T mysql mysql -utrama -ptrama confeccoes < database/teste_demonstracao_projetai.sql
+```
+
+São **dados fictícios**: 12 confecções de Caruaru, Toritama e Santa Cruz do Capibaribe (ids 9001 a 9012, nome iniciado por `Demo`, sem CNPJ) e 408 lançamentos, de novembro/2024 a outubro/2026. Há picos em maio/junho e em novembro/dezembro e, na comparação dos últimos 12 meses com os 12 anteriores, categorias em alta (Jeans e Fitness), em queda (Moda Masculina e Praia) e estáveis (Moda Feminina e Moda Infantil).
+
+A carga cria a `vw_serie_polo_regional`, com faturamento, itens e variação mês a mês por município. Rodar de novo não duplica nada e, se algo falhar, ela desfaz tudo.
+
 ### Backup e restauração
 
 O backup usa o `mysqldump` e guarda as tabelas, os dados, as views, as procedures e os triggers. Os arquivos ficam na pasta `backups/`, que está no `.gitignore` para não irem para o GitHub.
@@ -817,6 +910,12 @@ CHECK TABLE cidade, confeccao, usuario, categoria, lancamento_mensal;
 ```
 
 As contagens devem bater com as do banco de onde o backup saiu, e o `CHECK TABLE` deve mostrar `OK` em todas as linhas.
+### Usuários de demonstração
+
+Os usuários dos dados de exemplo entram na API com a senha `TramaDemo2026`, guardada em BCrypt com um sal por usuário. O e-mail de cada um está no `inserts.sql`: o `admin@confeccoes.com` é ADMIN e os demais são EMPRESARIO.
+
+**Só para desenvolvimento e demonstração.** A senha é pública: não use estes usuários em um banco exposto na internet. Para atualizar um banco já criado, sem apagar dados, rode `database/migracoes/V0_5_1__senhas_bcrypt.sql`, que só muda as senhas antigas de exemplo.
+
 ### Banco local em SQLite (`extensao.db`)
 
 Para quem precisa de um banco local sem instalar MySQL nem Docker, o repositório traz uma versão SQLite3 do mesmo modelo: as 11 tabelas, todas as chaves primárias e estrangeiras, os `UNIQUE`, os `CHECK`, os dois triggers do histórico de lançamento e as views `vw_lancamentos` e `vw_historico_lancamento`, com os mesmos dados de exemplo do `inserts.sql`.

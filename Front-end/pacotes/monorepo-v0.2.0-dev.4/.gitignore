@@ -1,0 +1,28 @@
+# Dependências e builds
+node_modules/
+**/node_modules/
+**/target/
+**/build/
+**/dist/
+**/.react-router/
+coverage/
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dados locais, backups e logs
+*.log
+*.bak
+*.bak-*
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
