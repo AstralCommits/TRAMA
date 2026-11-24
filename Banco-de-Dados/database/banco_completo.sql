@@ -1,17 +1,16 @@
 DROP DATABASE IF EXISTS confeccoes;
-
+ 
 CREATE DATABASE IF NOT EXISTS confeccoes CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE confeccoes;
-
+ 
 CREATE TABLE cidade (
     id_cidade INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(80) NOT NULL UNIQUE,
+    nome VARCHAR(80) NOT NULL,
     uf CHAR(2) NOT NULL,
-    CONSTRAINT chk_cidade_agreste CHECK (
-        uf = 'PE' AND nome IN ('Toritama', 'Caruaru', 'Santa Cruz do Capibaribe')
-    )
+    polo_destaque TINYINT(1) NOT NULL DEFAULT 0,
+    CONSTRAINT chk_cidade_polo CHECK (polo_destaque IN (0,1))
 );
-
+ 
 CREATE TABLE confeccao (
     id_confeccao INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(120) NOT NULL,
@@ -19,11 +18,12 @@ CREATE TABLE confeccao (
     porte VARCHAR(10) NOT NULL,
     tipo VARCHAR(10) NOT NULL,
     id_cidade INT NOT NULL,
+    INDEX idx_confeccao_cidade (id_cidade),
     FOREIGN KEY (id_cidade) REFERENCES cidade (id_cidade),
     CONSTRAINT chk_confeccao_porte CHECK (porte IN ('MICRO','PEQUENA','MEDIA')),
     CONSTRAINT chk_confeccao_tipo  CHECK (tipo IN ('CONFECCAO','FACCAO'))
 );
-
+ 
 CREATE TABLE usuario (
     id_usuario INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -38,12 +38,12 @@ CREATE TABLE usuario (
         OR (perfil = 'EMPRESARIO' AND id_confeccao IS NOT NULL)
     )
 );
-
+ 
 CREATE TABLE categoria (
     id_categoria INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(50) NOT NULL UNIQUE
+    nome VARCHAR(60) NOT NULL UNIQUE
 );
-
+ 
 CREATE TABLE importacao (
     id_importacao INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nome_arquivo VARCHAR(150) NOT NULL,
@@ -54,32 +54,34 @@ CREATE TABLE importacao (
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario),
     CONSTRAINT chk_imp_status CHECK (imp_status IN ('CONCLUIDA','ERRO'))
 );
-
+ 
 CREATE TABLE lancamento_mensal (
     id_lancamento INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     mes_referencia DATE NOT NULL,
     quantidade INT NOT NULL,
     faturamento DECIMAL(12,2) NOT NULL,
     origem VARCHAR(10) NOT NULL,
-    fonte_dado VARCHAR(20) NOT NULL,
-    nome_fonte VARCHAR(200) NOT NULL DEFAULT 'Fonte não informada',
     lanc_status VARCHAR(10) NOT NULL DEFAULT 'ATIVO',
     id_confeccao INT NOT NULL,
     id_categoria INT NOT NULL,
     id_importacao INT NULL,
-    
     UNIQUE (id_confeccao, id_categoria, mes_referencia),
+    INDEX idx_lanc_status_mes (lanc_status, mes_referencia),
+    INDEX idx_lanc_polo (lanc_status, id_confeccao, quantidade, faturamento),
     FOREIGN KEY (id_confeccao) REFERENCES confeccao (id_confeccao),
     FOREIGN KEY (id_categoria) REFERENCES categoria (id_categoria),
     FOREIGN KEY (id_importacao) REFERENCES importacao (id_importacao),
     CONSTRAINT chk_lanc_dia1      CHECK (DAY(mes_referencia) = 1),
     CONSTRAINT chk_lanc_origem    CHECK (origem IN ('MANUAL','IMPORTACAO')),
-    CONSTRAINT chk_lanc_fonte     CHECK (fonte_dado IN ('ENTREVISTA','QUESTIONARIO','FONTE_SECUNDARIA')),
     CONSTRAINT chk_lanc_status    CHECK (lanc_status IN ('ATIVO','CANCELADO')),
     CONSTRAINT chk_lanc_quant     CHECK (quantidade >= 0),
-    CONSTRAINT chk_lanc_fatur     CHECK (faturamento >= 0)
+    CONSTRAINT chk_lanc_fatur     CHECK (faturamento >= 0),
+    CONSTRAINT chk_lanc_origem_importacao CHECK (
+        (origem = 'IMPORTACAO' AND id_importacao IS NOT NULL)
+        OR (origem = 'MANUAL' AND id_importacao IS NULL)
+    )
 );
-
+ 
 CREATE TABLE cenario_concorrencia (
     id_cenario INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -89,9 +91,9 @@ CREATE TABLE cenario_concorrencia (
     id_categoria INT NULL,
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario),
     FOREIGN KEY (id_categoria) REFERENCES categoria (id_categoria),
-    CONSTRAINT chk_cenario_impacto CHECK (percentual_impacto BETWEEN 0 AND 100)
+    CONSTRAINT chk_cenario_impacto CHECK (percentual_impacto >= 0 AND percentual_impacto <= 100)
 );
-
+ 
 CREATE TABLE relatorio (
     id_relatorio INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     tipo VARCHAR(20) NOT NULL,
@@ -104,12 +106,16 @@ CREATE TABLE relatorio (
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario),
     FOREIGN KEY (id_cenario) REFERENCES cenario_concorrencia (id_cenario),
     CONSTRAINT chk_relatorio_tipo CHECK (tipo IN ('REGIONAL','CATEGORIA_PERIODO','TENDENCIA','CENARIO')),
-    CONSTRAINT chk_relatorio_periodo CHECK (periodo_fim >= periodo_inicio)
+    CONSTRAINT chk_relatorio_periodo CHECK (periodo_fim >= periodo_inicio),
+    CONSTRAINT chk_relatorio_cenario CHECK (
+        (tipo = 'CENARIO' AND id_cenario IS NOT NULL)
+        OR (tipo <> 'CENARIO' AND id_cenario IS NULL)
+    )
 );
-
+ 
 CREATE TABLE item_relatorio (
     id_item INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    id_cidade INT NULL,
+    uf CHAR(2) NULL,
     quantidade INT NOT NULL,
     faturamento DECIMAL(12,2) NOT NULL,
     variacao_percentual DECIMAL(7,2) NULL,
@@ -118,10 +124,10 @@ CREATE TABLE item_relatorio (
     id_categoria INT NULL,
     FOREIGN KEY (id_relatorio) REFERENCES relatorio (id_relatorio),
     FOREIGN KEY (id_categoria) REFERENCES categoria (id_categoria),
-    FOREIGN KEY (id_cidade) REFERENCES cidade (id_cidade),
+    CONSTRAINT chk_item_uf CHECK (uf IS NULL OR uf IN ('PE','PB','AL')),
     CONSTRAINT chk_item_tendencia CHECK (tendencia IS NULL OR tendencia IN ('ALTA','QUEDA','ESTAVEL'))
 );
-
+ 
 CREATE TABLE entrevista (
     id_entrevista INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     data DATE NOT NULL,
@@ -133,177 +139,122 @@ CREATE TABLE entrevista (
     FOREIGN KEY (id_categoria_percebida) REFERENCES categoria (id_categoria),
     CONSTRAINT chk_entrevista_novo CHECK (achou_algo_novo IN ('SIM','NAO'))
 );
-
-CREATE TABLE historico_lancamento (
-    id_historico INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ 
+CREATE TABLE log_lancamento (
+    id_log INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     id_lancamento INT NOT NULL,
     acao VARCHAR(10) NOT NULL,
-    origem VARCHAR(10) NOT NULL,
-    mes_referencia DATE NOT NULL,
-    id_confeccao INT NOT NULL,
-    id_categoria INT NOT NULL,
     quantidade_antiga INT NOT NULL,
     faturamento_antigo DECIMAL(12,2) NOT NULL,
     status_antigo VARCHAR(10) NOT NULL,
     quantidade_nova INT NULL,
     faturamento_novo DECIMAL(12,2) NULL,
     status_novo VARCHAR(10) NULL,
-    id_usuario INT NULL,
-    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_hist_acao   CHECK (acao IN ('UPDATE','DELETE')),
-    CONSTRAINT chk_hist_origem CHECK (origem IN ('MANUAL','IMPORTACAO'))
+    usuario_mysql VARCHAR(100) NULL,
+    data_log DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_log_acao CHECK (acao IN ('UPDATE','DELETE'))
 );
-
-INSERT INTO cidade (id_cidade, nome, uf) VALUES
-(1, 'Toritama', 'PE'),
-(2, 'Caruaru', 'PE'),
-(3, 'Santa Cruz do Capibaribe', 'PE');
-
-INSERT INTO confeccao
-(id_confeccao, nome, cnpj, porte, tipo, id_cidade) VALUES
-(1, 'Jeans Toritama', '12345678000101', 'MEDIA', 'CONFECCAO', 1),
-(2, 'Estilo Agreste', '23456789000102', 'PEQUENA', 'CONFECCAO', 2),
-(3, 'Costura Nordeste', '34567890000103', 'MICRO', 'FACCAO', 2),
-(4, 'Sulanca Santa Cruz', '45678901000104', 'PEQUENA', 'CONFECCAO', 3),
-(5, 'Capibaribe Textil', '56789012000105', 'MEDIA', 'CONFECCAO', 3);
-
-INSERT INTO usuario
-(id_usuario, nome, email, senha_hash, perfil, id_confeccao) VALUES
-(1, 'Administrador', 'admin@confeccoes.com', '$2a$10$RUHpWKL8l/MbvAtM6ieBSuaxvvBDVQqw6A2UiAlZUpOmWYKlzWkFi', 'ADMIN', NULL),
-(2, 'Ana Silva', 'ana@jeanstoritama.com', '$2a$10$dS3G2eqaYwRL8yZaR105iufic/MmQ.dmRObzykhRgvrt6xL2u6QiK', 'EMPRESARIO', 1),
-(3, 'Bruno Santos', 'bruno@estiloagreste.com', '$2a$10$tzffyS3CASpBkKWhoiORAONZG8yIrXR0FJ5Ons2eX.K5OfC0F88o6', 'EMPRESARIO', 2),
-(4, 'Carla Oliveira', 'carla@costuranordeste.com', '$2a$10$I2IHsshvvutHa9eUjSZ64.B2ml3o6nRt/fU2FjT4hCqIPpkZk3xL.', 'EMPRESARIO', 3),
-(5, 'Daniel Lima', 'daniel@sulancasantacruz.com', '$2a$10$yXxDfFNef572wcUQHGhBPevG0EcHJ8Y5M/.6z.cZ0zvgu7z.BY60K', 'EMPRESARIO', 4),
-(6, 'Eduarda Costa', 'eduarda@capibaribetextil.com', '$2a$10$dDKa.urDOEn8LNfbPevWKuR.fxUtQysSCCAYjrzJRvhFsxpaSgeie', 'EMPRESARIO', 5);
-
-INSERT INTO categoria (id_categoria, nome) VALUES
-(1, 'Moda Feminina'),
-(2, 'Moda Masculina'),
-(3, 'Moda Infantil'),
-(4, 'Fitness'),
-(5, 'Praia');
-
-INSERT INTO importacao
-(id_importacao, nome_arquivo, data_importacao, qtd_linhas, imp_status, id_usuario) VALUES
-(1, 'vendas_jan_fev_jeanstoritama.csv',    '2026-03-01 09:15:00', 2, 'CONCLUIDA', 2),
-(2, 'vendas_jan_fev_estiloagreste.csv',    '2026-03-01 10:20:00', 2, 'CONCLUIDA', 3),
-(3, 'vendas_janeiro_costuranordeste.csv',  '2026-02-01 14:30:00', 1, 'CONCLUIDA', 4),
-(4, 'vendas_janeiro_sulancasantacruz.csv', '2026-02-01 08:45:00', 1, 'CONCLUIDA', 5);
-
-INSERT INTO lancamento_mensal
-(id_lancamento, mes_referencia, quantidade, faturamento, origem, lanc_status,
- id_confeccao, id_categoria, id_importacao, fonte_dado) VALUES
-
-(1, '2026-01-01', 450, 31500.00, 'IMPORTACAO', 'ATIVO', 1, 1, 1, 'QUESTIONARIO'),
-(2, '2026-01-01', 280, 19600.00, 'MANUAL', 'ATIVO', 1, 2, NULL, 'ENTREVISTA'),
-(3, '2026-02-01', 510, 35700.00, 'IMPORTACAO', 'ATIVO', 1, 1, 1, 'QUESTIONARIO'),
-
-(4, '2026-01-01', 220, 13200.00, 'IMPORTACAO', 'ATIVO', 2, 1, 2, 'QUESTIONARIO'),
-(5, '2026-01-01', 180, 10800.00, 'MANUAL', 'ATIVO', 2, 3, NULL, 'FONTE_SECUNDARIA'),
-(6, '2026-02-01', 250, 15000.00, 'IMPORTACAO', 'ATIVO', 2, 1, 2, 'QUESTIONARIO'),
-
-(7, '2026-01-01', 160, 9600.00, 'IMPORTACAO', 'ATIVO', 3, 2, 3, 'QUESTIONARIO'),
-(8, '2026-02-01', 190, 11400.00, 'MANUAL', 'ATIVO', 3, 2, NULL, 'ENTREVISTA'),
-
-(9, '2026-01-01', 300, 21000.00, 'IMPORTACAO', 'ATIVO', 4, 4, 4, 'QUESTIONARIO'),
-(10, '2026-02-01', 340, 23800.00, 'MANUAL', 'ATIVO', 4, 4, NULL, 'FONTE_SECUNDARIA'),
-
-(11, '2026-01-01', 390, 27300.00, 'MANUAL', 'ATIVO', 5, 5, NULL, 'ENTREVISTA'),
-(12, '2026-02-01', 420, 29400.00, 'MANUAL', 'ATIVO', 5, 5, NULL, 'ENTREVISTA');
-
-INSERT INTO cenario_concorrencia
-(id_cenario, nome, percentual_impacto, descricao, id_usuario, id_categoria) VALUES
-
-(1, 'Aumento da concorrencia', 10.00,
- 'Simulacao de aumento da concorrencia no mercado.',
- 2, 1),
-
-(2, 'Entrada de novo concorrente', 15.00,
- 'Simulacao da entrada de uma nova confeccao na regiao.',
- 3, 2),
-
-(3, 'Queda de demanda', 8.00,
- 'Simulacao de reducao da demanda pela categoria.',
- 5, 4),
-
-(4, 'Expansao regional', 12.50,
- 'Simulacao de crescimento da demanda em novos mercados.',
- 1, NULL);
-
-INSERT INTO relatorio
-(id_relatorio, tipo, periodo_inicio, periodo_fim, limiar_tendencia,
- data_geracao, id_usuario, id_cenario) VALUES
-
-(1, 'REGIONAL', '2026-01-01', '2026-03-31',
- 5.00, '2026-04-05 09:00:00', 1, NULL),
-
-(2, 'CATEGORIA_PERIODO', '2026-01-01', '2026-03-31',
- 5.00, '2026-04-06 10:30:00', 1, NULL),
-
-(3, 'TENDENCIA', '2026-01-01', '2026-03-31',
- 5.00, '2026-04-07 14:00:00', 2, NULL),
-
-(4, 'CENARIO', '2026-01-01', '2026-03-31',
- NULL, '2026-04-08 15:30:00', 3, 1);
-
-INSERT INTO item_relatorio
-(id_item, id_cidade, quantidade, faturamento, variacao_percentual,
- tendencia, id_relatorio, id_categoria) VALUES
-
-(1, 2, 960, 67200.00, 8.50, 'ALTA', 1, 1),
-(2, 3, 300, 21000.00, 3.20, 'ESTAVEL', 1, 2),
-(3, 1, 390, 27300.00, -5.00, 'QUEDA', 1, 5),
-
-(4, 2, 730, 44700.00, 12.00, 'ALTA', 2, 1),
-(5, 2, 180, 10800.00, -2.50, 'ESTAVEL', 2, 3),
-(6, 3, 300, 21000.00, 6.80, 'ALTA', 2, 2),
-
-(7, 2, 960, 67200.00, 8.50, 'ALTA', 3, 1),
-(8, 3, 300, 21000.00, 3.20, 'ESTAVEL', 3, 2),
-
-(9, 2, 1050, 74700.00, 10.50, 'ALTA', 4, 1),
-(10, 3, 300, 21000.00, 5.00, 'ALTA', 4, 2);
-
-INSERT INTO entrevista
-(id_entrevista, data, resumo, achou_algo_novo,
- id_confeccao, id_categoria_percebida) VALUES
-
-(1, '2026-01-15',
- 'A empresa identificou aumento da procura por moda feminina.',
- 'SIM', 1, 1),
-
-(2, '2026-01-20',
- 'A empresa relatou estabilidade nas vendas de moda masculina.',
- 'NAO', 2, 2),
-
-(3, '2026-02-10',
- 'Foi identificada maior procura por produtos fitness.',
- 'SIM', 4, 4),
-
-(4, '2026-02-18',
- 'A empresa percebeu crescimento nas vendas de moda praia.',
- 'SIM', 5, 5),
-
-(5, '2026-03-05',
- 'Nao foram identificadas novas tendencias relevantes.',
- 'NAO', 3, NULL);
-
-CREATE INDEX idx_lancamento_mes_categoria ON lancamento_mensal
-    (mes_referencia, id_categoria, id_confeccao, lanc_status, quantidade, faturamento);
-CREATE INDEX idx_lancamento_confeccao ON lancamento_mensal (id_confeccao);
-CREATE INDEX idx_historico_lancamento ON historico_lancamento (id_lancamento, data_alteracao);
-CREATE INDEX idx_historico_data ON historico_lancamento (data_alteracao, origem);
-CREATE INDEX idx_cenario_usuario_nome ON cenario_concorrencia (id_usuario, nome);
-CREATE INDEX idx_relatorio_usuario_data ON relatorio (id_usuario, data_geracao);
-
+ 
+CREATE TABLE pedido (
+    id_pedido INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    data_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ped_status VARCHAR(12) NOT NULL DEFAULT 'PENDENTE',
+    data_entrega DATETIME NULL,
+    id_usuario INT NOT NULL,
+    id_confeccao INT NOT NULL,
+    INDEX idx_pedido_data (data_pedido),
+    INDEX idx_pedido_confeccao_status (id_confeccao, ped_status),
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario),
+    FOREIGN KEY (id_confeccao) REFERENCES confeccao (id_confeccao),
+    UNIQUE (id_pedido, id_confeccao),
+    CONSTRAINT chk_ped_status CHECK (ped_status IN ('PENDENTE','EM_TRANSITO','ENTREGUE','CANCELADO')),
+    CONSTRAINT chk_ped_entrega CHECK (
+        (ped_status = 'ENTREGUE' AND data_entrega IS NOT NULL)
+        OR (ped_status <> 'ENTREGUE' AND data_entrega IS NULL)
+    )
+);
+ 
+CREATE TABLE avaliacoes_artesao (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    artesao_id INT NOT NULL,
+    nota TINYINT NOT NULL,
+    comentario VARCHAR(500) NULL,
+    data_avaliacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_avaliacao_pedido UNIQUE (pedido_id),
+    CONSTRAINT chk_avaliacao_nota CHECK (nota BETWEEN 1 AND 5),
+    CONSTRAINT fk_avaliacao_pedido_artesao
+        FOREIGN KEY (pedido_id, artesao_id) REFERENCES pedido (id_pedido, id_confeccao)
+        ON DELETE RESTRICT,
+    INDEX idx_avaliacoes_artesao (artesao_id)
+);
+ 
+CREATE TABLE produto (
+    id_produto INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(120) NOT NULL,
+    preco DECIMAL(10,2) NOT NULL,
+    justificativa_preco VARCHAR(255) NULL,
+    id_confeccao INT NOT NULL,
+    FOREIGN KEY (id_confeccao) REFERENCES confeccao (id_confeccao),
+    CONSTRAINT chk_produto_preco CHECK (preco >= 0)
+);
+ 
+CREATE TABLE historico_preco_produto (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    produto_id INT NOT NULL,
+    preco_anterior DECIMAL(10,2) NOT NULL,
+    preco_novo DECIMAL(10,2) NOT NULL,
+    justificativa VARCHAR(255) NULL,
+    alterado_por INT NULL,
+    usuario_mysql VARCHAR(100) NULL,
+    data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_hist_preco_produto_data (produto_id, data_alteracao),
+    FOREIGN KEY (produto_id) REFERENCES produto (id_produto) ON DELETE RESTRICT,
+    FOREIGN KEY (alterado_por) REFERENCES usuario (id_usuario) ON DELETE RESTRICT,
+    CONSTRAINT chk_hist_preco_diferente CHECK (preco_anterior <> preco_novo),
+    CONSTRAINT chk_hist_preco_valores CHECK (preco_anterior >= 0 AND preco_novo >= 0)
+);
+ 
+CREATE TABLE pedido_item (
+    id_item_pedido INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_pedido INT NOT NULL,
+    id_produto INT NOT NULL,
+    quantidade INT NOT NULL,
+    preco_unitario DECIMAL(10,2) NOT NULL,
+    INDEX idx_pedido_item_pedido (id_pedido),
+    FOREIGN KEY (id_pedido)  REFERENCES pedido (id_pedido)   ON DELETE RESTRICT,
+    FOREIGN KEY (id_produto) REFERENCES produto (id_produto) ON DELETE RESTRICT,
+    CONSTRAINT chk_pitem_quant CHECK (quantidade > 0),
+    CONSTRAINT chk_pitem_preco CHECK (preco_unitario >= 0)
+);
+ 
+CREATE TABLE fechamento_comissao (
+    id_fechamento INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ano INT NOT NULL,
+    mes TINYINT NOT NULL,
+    id_confeccao INT NOT NULL,
+    qtd_pedidos INT NOT NULL,
+    valor_bruto DECIMAL(12,2) NOT NULL,
+    taxa_percentual DECIMAL(5,2) NOT NULL DEFAULT 10.00,
+    valor_taxa DECIMAL(12,2) NOT NULL,
+    valor_liquido DECIMAL(12,2) NOT NULL,
+    fech_status VARCHAR(10) NOT NULL DEFAULT 'A_PAGAR',
+    data_fechamento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (ano, mes, id_confeccao),
+    INDEX idx_fech_status (fech_status, ano, mes),
+    FOREIGN KEY (id_confeccao) REFERENCES confeccao (id_confeccao) ON DELETE RESTRICT,
+    CONSTRAINT chk_fech_mes     CHECK (mes BETWEEN 1 AND 12),
+    CONSTRAINT chk_fech_status  CHECK (fech_status IN ('A_PAGAR','PAGO')),
+    CONSTRAINT chk_fech_valores CHECK (valor_bruto >= 0 AND valor_taxa >= 0 AND valor_liquido >= 0),
+    CONSTRAINT chk_fech_contabil CHECK (valor_bruto = valor_taxa + valor_liquido)
+);
+ 
 CREATE OR REPLACE VIEW vw_lancamentos AS
 SELECT l.id_lancamento,
        l.mes_referencia,
        l.quantidade,
        l.faturamento,
        l.origem,
-       l.fonte_dado,
-       l.nome_fonte,
        l.lanc_status,
        c.id_confeccao,
        c.nome AS confeccao,
@@ -316,306 +267,871 @@ INNER JOIN confeccao c   ON l.id_confeccao = c.id_confeccao
 INNER JOIN categoria cat ON l.id_categoria = cat.id_categoria
 INNER JOIN cidade ci     ON c.id_cidade = ci.id_cidade
 WHERE l.lanc_status = 'ATIVO';
-
+ 
+CREATE OR REPLACE VIEW vw_reputacao_artesao AS
+SELECT c.id_confeccao AS artesao_id,
+       c.nome AS artesao,
+       ci.nome AS cidade,
+       ci.uf,
+       ROUND(AVG(a.nota), 2) AS nota_media,
+       COUNT(a.id) AS total_avaliacoes
+FROM confeccao c
+INNER JOIN cidade ci ON c.id_cidade = ci.id_cidade
+LEFT JOIN avaliacoes_artesao a ON a.artesao_id = c.id_confeccao
+GROUP BY c.id_confeccao, c.nome, ci.nome, ci.uf;
+ 
+CREATE OR REPLACE VIEW vw_vendas_polo_regional AS
+SELECT ci.id_cidade AS municipio_id,
+       ci.nome AS municipio,
+       ci.uf,
+       ci.polo_destaque,
+       COALESCE(v.faturamento_total, 0) AS faturamento_total,
+       COALESCE(v.volume_itens, 0) AS volume_itens,
+       COALESCE(p.qtd_pedidos, 0) AS qtd_pedidos,
+       ROUND(COALESCE(v.faturamento_total, 0) / NULLIF(v.volume_itens, 0), 2) AS ticket_medio_item
+FROM cidade ci
+LEFT JOIN (
+    SELECT c.id_cidade,
+           SUM(x.faturamento) AS faturamento_total,
+           SUM(x.quantidade) AS volume_itens
+    FROM (
+        SELECT id_confeccao,
+               SUM(faturamento) AS faturamento,
+               SUM(quantidade) AS quantidade
+        FROM lancamento_mensal
+        WHERE lanc_status = 'ATIVO'
+        GROUP BY id_confeccao
+    ) x
+    INNER JOIN confeccao c ON c.id_confeccao = x.id_confeccao
+    GROUP BY c.id_cidade
+) v ON v.id_cidade = ci.id_cidade
+LEFT JOIN (
+    SELECT c.id_cidade,
+           COUNT(*) AS qtd_pedidos
+    FROM pedido pe
+    INNER JOIN confeccao c ON c.id_confeccao = pe.id_confeccao
+    WHERE pe.ped_status <> 'CANCELADO'
+    GROUP BY c.id_cidade
+) p ON p.id_cidade = ci.id_cidade;
+ 
+USE confeccoes;
+ 
+INSERT INTO cidade (id_cidade, nome, uf, polo_destaque) VALUES
+(1, 'Recife', 'PE', 0),
+(2, 'Caruaru', 'PE', 1),
+(3, 'Joao Pessoa', 'PB', 0),
+(4, 'Maceio', 'AL', 0),
+(5, 'Toritama', 'PE', 1),
+(6, 'Santa Cruz do Capibaribe', 'PE', 1),
+(7, 'Olinda', 'PE', 1),
+(8, 'Passira', 'PE', 1);
+ 
+INSERT INTO confeccao
+(id_confeccao, nome, cnpj, porte, tipo, id_cidade) VALUES
+(1, 'Moda Recife', '12345678000101', 'MEDIA', 'CONFECCAO', 1),
+(2, 'Estilo Agreste', '23456789000102', 'PEQUENA', 'CONFECCAO', 2),
+(3, 'Costura Nordeste', '34567890000103', 'MICRO', 'FACCAO', 2),
+(4, 'Paraiba Fashion', '45678901000104', 'PEQUENA', 'CONFECCAO', 3),
+(5, 'Alagoas Textil', '56789012000105', 'MEDIA', 'CONFECCAO', 4),
+(6, 'Jeans Toritama', '67890123000106', 'PEQUENA', 'CONFECCAO', 5),
+(7, 'Moda Santa Cruz', '78901234000107', 'MEDIA', 'CONFECCAO', 6),
+(8, 'Atelier Olinda', '89012345000108', 'MICRO', 'FACCAO', 7),
+(9, 'Passira Artesanal', '90123456000109', 'MICRO', 'FACCAO', 8);
+ 
+INSERT INTO usuario
+(id_usuario, nome, email, senha_hash, perfil, id_confeccao) VALUES
+(1, 'Administrador', 'admin@confeccoes.com', 'HASH_ADMIN_123', 'ADMIN', NULL),
+(2, 'Ana Silva', 'ana@modarecife.com', 'HASH_ANA_123', 'EMPRESARIO', 1),
+(3, 'Bruno Santos', 'bruno@estiloagreste.com', 'HASH_BRUNO_123', 'EMPRESARIO', 2),
+(4, 'Carla Oliveira', 'carla@costuranordeste.com', 'HASH_CARLA_123', 'EMPRESARIO', 3),
+(5, 'Daniel Lima', 'daniel@paraibafashion.com', 'HASH_DANIEL_123', 'EMPRESARIO', 4),
+(6, 'Eduarda Costa', 'eduarda@alagoastextil.com', 'HASH_EDUARDA_123', 'EMPRESARIO', 5);
+ 
+INSERT INTO categoria (id_categoria, nome) VALUES
+(1, 'Moda Feminina'),
+(2, 'Moda Masculina'),
+(3, 'Moda Infantil'),
+(4, 'Fitness'),
+(5, 'Praia');
+ 
+INSERT INTO importacao
+(id_importacao, nome_arquivo, data_importacao, qtd_linhas, imp_status, id_usuario) VALUES
+(1, 'vendas_jan_fev_modarecife.csv',       '2026-03-01 09:15:00', 2, 'CONCLUIDA', 2),
+(2, 'vendas_jan_fev_estiloagreste.csv',    '2026-03-01 10:20:00', 2, 'CONCLUIDA', 3),
+(3, 'vendas_janeiro_costuranordeste.csv',  '2026-02-01 14:30:00', 1, 'CONCLUIDA', 4),
+(4, 'vendas_janeiro_paraibafashion.csv',   '2026-02-01 08:45:00', 1, 'CONCLUIDA', 5);
+ 
+INSERT INTO lancamento_mensal
+(id_lancamento, mes_referencia, quantidade, faturamento, origem, lanc_status,
+ id_confeccao, id_categoria, id_importacao) VALUES
+ 
+(1, '2026-01-01', 450, 31500.00, 'IMPORTACAO', 'ATIVO', 1, 1, 1),
+(2, '2026-01-01', 280, 19600.00, 'MANUAL', 'ATIVO', 1, 2, NULL),
+(3, '2026-02-01', 510, 35700.00, 'IMPORTACAO', 'ATIVO', 1, 1, 1),
+ 
+(4, '2026-01-01', 220, 13200.00, 'IMPORTACAO', 'ATIVO', 2, 1, 2),
+(5, '2026-01-01', 180, 10800.00, 'MANUAL', 'ATIVO', 2, 3, NULL),
+(6, '2026-02-01', 250, 15000.00, 'IMPORTACAO', 'ATIVO', 2, 1, 2),
+ 
+(7, '2026-01-01', 160, 9600.00, 'IMPORTACAO', 'ATIVO', 3, 2, 3),
+(8, '2026-02-01', 190, 11400.00, 'MANUAL', 'ATIVO', 3, 2, NULL),
+ 
+(9, '2026-01-01', 300, 21000.00, 'IMPORTACAO', 'ATIVO', 4, 4, 4),
+(10, '2026-02-01', 340, 23800.00, 'MANUAL', 'ATIVO', 4, 4, NULL),
+ 
+(11, '2026-01-01', 390, 27300.00, 'MANUAL', 'ATIVO', 5, 5, NULL),
+(12, '2026-02-01', 420, 29400.00, 'MANUAL', 'ATIVO', 5, 5, NULL),
+ 
+(13, '2026-01-01', 520, 31200.00, 'MANUAL', 'ATIVO', 6, 2, NULL),
+(14, '2026-02-01', 610, 36600.00, 'MANUAL', 'ATIVO', 6, 2, NULL),
+ 
+(15, '2026-01-01', 480, 28800.00, 'MANUAL', 'ATIVO', 7, 1, NULL),
+(16, '2026-02-01', 530, 31800.00, 'MANUAL', 'ATIVO', 7, 1, NULL),
+ 
+(17, '2026-01-01', 90, 7200.00, 'MANUAL', 'ATIVO', 8, 3, NULL),
+(18, '2026-02-01', 110, 8800.00, 'MANUAL', 'ATIVO', 8, 3, NULL),
+ 
+(19, '2026-01-01', 60, 4800.00, 'MANUAL', 'ATIVO', 9, 3, NULL),
+(20, '2026-02-01', 75, 6000.00, 'MANUAL', 'ATIVO', 9, 3, NULL);
+ 
+INSERT INTO cenario_concorrencia
+(id_cenario, nome, percentual_impacto, descricao, id_usuario, id_categoria) VALUES
+ 
+(1, 'Aumento da concorrencia', 10.00,
+ 'Simulacao de aumento da concorrencia no mercado.',
+ 2, 1),
+ 
+(2, 'Entrada de novo concorrente', 15.00,
+ 'Simulacao da entrada de uma nova confeccao na regiao.',
+ 3, 2),
+ 
+(3, 'Queda de demanda', 8.00,
+ 'Simulacao de reducao da demanda pela categoria.',
+ 5, 4),
+ 
+(4, 'Expansao regional', 12.50,
+ 'Simulacao de crescimento da demanda em novos mercados.',
+ 1, NULL);
+ 
+INSERT INTO relatorio
+(id_relatorio, tipo, periodo_inicio, periodo_fim, limiar_tendencia,
+ data_geracao, id_usuario, id_cenario) VALUES
+ 
+(1, 'REGIONAL', '2026-01-01', '2026-03-31',
+ 5.00, '2026-04-05 09:00:00', 1, NULL),
+ 
+(2, 'CATEGORIA_PERIODO', '2026-01-01', '2026-03-31',
+ 10.00, '2026-04-06 10:30:00', 1, NULL),
+ 
+(3, 'TENDENCIA', '2026-01-01', '2026-03-31',
+ 5.00, '2026-04-07 14:00:00', 2, NULL),
+ 
+(4, 'CENARIO', '2026-01-01', '2026-03-31',
+ NULL, '2026-04-08 15:30:00', 3, 1);
+ 
+INSERT INTO item_relatorio
+(id_item, uf, quantidade, faturamento, variacao_percentual,
+ tendencia, id_relatorio, id_categoria) VALUES
+ 
+(1, 'PE', 960, 67200.00, 8.50, 'ALTA', 1, 1),
+(2, 'PB', 300, 21000.00, 3.20, 'ESTAVEL', 1, 2),
+(3, 'AL', 390, 27300.00, -4.50, 'QUEDA', 1, 5),
+ 
+(4, 'PE', 730, 44700.00, 12.00, 'ALTA', 2, 1),
+(5, 'PE', 180, 10800.00, -2.50, 'QUEDA', 2, 3),
+(6, 'PB', 300, 21000.00, 6.80, 'ALTA', 2, 2),
+ 
+(7, 'PE', 960, 67200.00, 8.50, 'ALTA', 3, 1),
+(8, 'PB', 300, 21000.00, 3.20, 'ESTAVEL', 3, 2),
+ 
+(9, 'PE', 1050, 74700.00, 10.50, 'ALTA', 4, 1),
+(10, 'PB', 300, 21000.00, 5.00, 'ALTA', 4, 2);
+ 
+INSERT INTO entrevista
+(id_entrevista, data, resumo, achou_algo_novo,
+ id_confeccao, id_categoria_percebida) VALUES
+ 
+(1, '2026-01-15',
+ 'A empresa identificou aumento da procura por moda feminina.',
+ 'SIM', 1, 1),
+ 
+(2, '2026-01-20',
+ 'A empresa relatou estabilidade nas vendas de moda masculina.',
+ 'NAO', 2, 2),
+ 
+(3, '2026-02-10',
+ 'Foi identificada maior procura por produtos fitness.',
+ 'SIM', 4, 4),
+ 
+(4, '2026-02-18',
+ 'A empresa percebeu crescimento nas vendas de moda praia.',
+ 'SIM', 5, 5),
+ 
+(5, '2026-03-05',
+ 'Nao foram identificadas novas tendencias relevantes.',
+ 'NAO', 3, NULL);
+ 
+INSERT INTO pedido
+(id_pedido, data_pedido, ped_status, data_entrega, id_usuario, id_confeccao) VALUES
+(1, '2026-02-02 10:00:00', 'ENTREGUE', '2026-02-09 15:30:00', 2, 3),
+(2, '2026-02-10 11:20:00', 'ENTREGUE', '2026-02-17 09:00:00', 3, 3),
+(3, '2026-03-01 08:40:00', 'PENDENTE', NULL, 5, 1),
+(4, '2026-01-10 09:00:00', 'ENTREGUE', '2026-01-17 10:00:00', 2, 2),
+(5, '2026-01-20 14:00:00', 'ENTREGUE', '2026-01-28 16:00:00', 3, 6),
+(6, '2026-02-05 10:30:00', 'EM_TRANSITO', NULL, 2, 7),
+(7, '2026-02-12 08:15:00', 'ENTREGUE', '2026-02-20 11:00:00', 5, 8),
+(8, '2026-02-25 13:45:00', 'PENDENTE', NULL, 4, 9),
+(9, '2026-03-03 09:20:00', 'CANCELADO', NULL, 6, 6),
+(10, '2026-03-08 15:00:00', 'ENTREGUE', '2026-03-15 09:30:00', 2, 7),
+(11, '2026-03-10 10:10:00', 'ENTREGUE', '2026-03-18 14:00:00', 3, 2);
+ 
+INSERT INTO avaliacoes_artesao
+(id, pedido_id, artesao_id, nota, comentario, data_avaliacao) VALUES
+(1, 1, 3, 5, 'Pecas dentro do prazo e com acabamento excelente.', '2026-02-10 09:00:00'),
+(2, 2, 3, 4, 'Boa qualidade, pequeno atraso na entrega.', '2026-02-18 14:10:00');
+ 
+INSERT INTO produto (id_produto, nome, preco, id_confeccao) VALUES
+(1, 'Camiseta bordada a mao', 80.00, 3),
+(2, 'Bolsa de palha trancada', 120.00, 9),
+(3, 'Vestido de renda', 250.00, 8),
+(4, 'Bermuda jeans lavada', 95.00, 6),
+(5, 'Blusa de croche', 70.00, 7);
+ 
+INSERT INTO produto (id_produto, nome, preco, id_confeccao) VALUES
+(6,  'Short jeans masculino',   85.00, 6),
+(7,  'Calca jeans reta',       140.00, 6),
+(8,  'Jaqueta jeans',          210.00, 6),
+(9,  'Camisa social',          110.00, 7),
+(10, 'Vestido estampado',      130.00, 7),
+(11, 'Conjunto infantil',       90.00, 7),
+(12, 'Blusa de renda',         100.00, 8),
+(13, 'Saia de renda',          115.00, 8),
+(14, 'Chapeu de palha',         60.00, 9),
+(15, 'Cesto de palha',          75.00, 9),
+(16, 'Esteira de palha',        55.00, 9),
+(17, 'Vestido midi',           160.00, 2),
+(18, 'Camisa polo',             75.00, 2),
+(19, 'Legging',                 65.00, 2),
+(20, 'Camiseta estampada',      45.00, 3),
+(21, 'Bermuda sarja',           70.00, 3),
+(22, 'Short fitness',           60.00, 4),
+(23, 'Top fitness',             50.00, 4),
+(24, 'Maio',                   120.00, 5),
+(25, 'Saida de praia',          90.00, 5),
+(26, 'Blazer feminino',        220.00, 1),
+(27, 'Calca alfaiataria',      150.00, 1),
+(28, 'Macacao jeans',          175.00, 6),
+(29, 'Colete de croche',        85.00, 7),
+(30, 'Bolsa de croche',         95.00, 8);
+ 
+INSERT INTO pedido_item
+(id_item_pedido, id_pedido, id_produto, quantidade, preco_unitario) VALUES
+(1, 1, 1, 3, 80.00),
+(2, 2, 1, 2, 80.00),
+(3, 5, 4, 10, 95.00),
+(4, 6, 5, 6, 70.00),
+(5, 7, 3, 2, 250.00),
+(6, 8, 2, 4, 120.00),
+(7, 9, 4, 5, 95.00),
+(8, 10, 5, 8, 70.00);
+ 
+INSERT INTO pedido (id_pedido, data_pedido, ped_status, data_entrega, id_usuario, id_confeccao) VALUES
+(12, '2026-01-12 09:00:00', 'ENTREGUE',    '2026-01-19 10:00:00', 2, 6),
+(13, '2026-01-18 10:30:00', 'ENTREGUE',    '2026-01-25 11:00:00', 3, 7),
+(14, '2026-02-03 08:50:00', 'ENTREGUE',    '2026-02-10 15:00:00', 5, 2),
+(15, '2026-02-08 14:10:00', 'ENTREGUE',    '2026-02-15 09:30:00', 4, 9),
+(16, '2026-02-14 11:00:00', 'EM_TRANSITO', NULL,                  2, 8),
+(17, '2026-02-20 16:20:00', 'PENDENTE',    NULL,                  6, 6),
+(18, '2026-03-02 09:40:00', 'ENTREGUE',    '2026-03-09 13:00:00', 3, 3),
+(19, '2026-03-06 10:15:00', 'CANCELADO',   NULL,                  5, 7),
+(20, '2026-03-12 15:30:00', 'ENTREGUE',    '2026-03-19 10:00:00', 2, 1),
+(21, '2026-03-15 08:30:00', 'ENTREGUE',    '2026-03-22 16:00:00', 5, 4);
+ 
+INSERT INTO pedido_item (id_pedido, id_produto, quantidade, preco_unitario) VALUES
+(12, 6, 10,  85.00), (12, 7, 5, 140.00),
+(13, 9,  6, 110.00), (13, 10, 4, 130.00),
+(14, 17, 3, 160.00), (14, 18, 8,  75.00),
+(15, 14, 12, 60.00), (15, 15, 6,  75.00),
+(16, 12, 5, 100.00),
+(17, 8,  2, 210.00), (17, 28, 1, 175.00),
+(18, 20, 15, 45.00), (18, 21, 4,  70.00),
+(19, 29, 3,  85.00),
+(20, 26, 2, 220.00),
+(21, 22, 10, 60.00);
+ 
+USE confeccoes;
+ 
 DROP PROCEDURE IF EXISTS inserir_lancamento;
 DROP PROCEDURE IF EXISTS atualizar_lancamento;
 DROP PROCEDURE IF EXISTS cancelar_lancamento;
 DROP PROCEDURE IF EXISTS excluir_lancamento;
-
+DROP PROCEDURE IF EXISTS gerar_relatorio_regional;
+DROP PROCEDURE IF EXISTS sp_fechamento_mensal_artesao;
+ 
 DELIMITER $$
 CREATE PROCEDURE inserir_lancamento(
     IN p_mes_referencia DATE,
     IN p_quantidade INT,
     IN p_faturamento DECIMAL(12,2),
     IN p_id_confeccao INT,
-    IN p_id_categoria INT,
-    IN p_fonte_dado VARCHAR(20)
+    IN p_id_categoria INT
 )
 BEGIN
     INSERT INTO lancamento_mensal
-    (mes_referencia, quantidade, faturamento, origem, fonte_dado, lanc_status,
+    (mes_referencia, quantidade, faturamento, origem, lanc_status,
      id_confeccao, id_categoria, id_importacao)
     VALUES
     (DATE_FORMAT(p_mes_referencia, '%Y-%m-01'), p_quantidade, p_faturamento,
-     'MANUAL', p_fonte_dado, 'ATIVO', p_id_confeccao, p_id_categoria, NULL);
+     'MANUAL', 'ATIVO', p_id_confeccao, p_id_categoria, NULL);
 END $$
 DELIMITER ;
-
+ 
 DELIMITER $$
 CREATE PROCEDURE atualizar_lancamento(
     IN p_id_lancamento INT,
     IN p_quantidade INT,
-    IN p_faturamento DECIMAL(12,2),
-    IN p_id_usuario INT
+    IN p_faturamento DECIMAL(12,2)
 )
 BEGIN
-    IF (SELECT lanc_status FROM lancamento_mensal
-        WHERE id_lancamento = p_id_lancamento) = 'CANCELADO' THEN
+    DECLARE v_status VARCHAR(10);
+ 
+    SELECT lanc_status INTO v_status
+    FROM lancamento_mensal
+    WHERE id_lancamento = p_id_lancamento;
+ 
+    IF v_status IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Lancamento nao encontrado.';
+    ELSEIF v_status = 'CANCELADO' THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Lancamento cancelado nao pode ser atualizado.';
     END IF;
-
-    SET @id_usuario = p_id_usuario;
+ 
     UPDATE lancamento_mensal
     SET quantidade = p_quantidade,
         faturamento = p_faturamento
     WHERE id_lancamento = p_id_lancamento;
-    SET @id_usuario = NULL;
 END $$
 DELIMITER ;
-
+ 
 DELIMITER $$
 CREATE PROCEDURE cancelar_lancamento(
-    IN p_id_lancamento INT,
-    IN p_id_usuario INT
+    IN p_id_lancamento INT
 )
 BEGIN
-    SET @id_usuario = p_id_usuario;
     UPDATE lancamento_mensal
     SET lanc_status = 'CANCELADO'
     WHERE id_lancamento = p_id_lancamento;
-    SET @id_usuario = NULL;
 END $$
 DELIMITER ;
-
+ 
 DELIMITER $$
 CREATE PROCEDURE excluir_lancamento(
-    IN p_id_lancamento INT,
-    IN p_id_usuario INT
+    IN p_id_lancamento INT
 )
 BEGIN
-    SET @id_usuario = p_id_usuario;
     DELETE FROM lancamento_mensal
     WHERE id_lancamento = p_id_lancamento;
-    SET @id_usuario = NULL;
 END $$
 DELIMITER ;
-
-DROP TRIGGER IF EXISTS trg_historico_lancamento_update;
-DROP TRIGGER IF EXISTS trg_historico_lancamento_delete;
-
+ 
 DELIMITER $$
-CREATE TRIGGER trg_historico_lancamento_update
+CREATE PROCEDURE gerar_relatorio_regional(
+    IN p_id_usuario INT,
+    IN p_periodo_inicio DATE,
+    IN p_periodo_fim DATE,
+    IN p_limiar DECIMAL(5,2)
+)
+BEGIN
+    DECLARE v_id_relatorio INT;
+    DECLARE v_meses INT;
+    DECLARE v_ant_inicio DATE;
+    DECLARE v_ant_fim DATE;
+ 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+ 
+    SET v_meses = TIMESTAMPDIFF(MONTH, p_periodo_inicio, p_periodo_fim) + 1;
+    SET v_ant_inicio = DATE_SUB(p_periodo_inicio, INTERVAL v_meses MONTH);
+    SET v_ant_fim = DATE_SUB(p_periodo_inicio, INTERVAL 1 DAY);
+ 
+    START TRANSACTION;
+ 
+    INSERT INTO relatorio (tipo, periodo_inicio, periodo_fim, limiar_tendencia, id_usuario)
+    VALUES ('REGIONAL', p_periodo_inicio, p_periodo_fim, p_limiar, p_id_usuario);
+    SET v_id_relatorio = LAST_INSERT_ID();
+ 
+    INSERT INTO item_relatorio
+    (uf, quantidade, faturamento, variacao_percentual, tendencia, id_relatorio)
+    SELECT a.uf, a.quantidade, a.faturamento, a.variacao,
+           CASE WHEN a.variacao IS NULL THEN NULL
+                WHEN a.variacao > p_limiar THEN 'ALTA'
+                WHEN a.variacao < -p_limiar THEN 'QUEDA'
+                ELSE 'ESTAVEL'
+           END,
+           v_id_relatorio
+    FROM (
+        SELECT atual.uf, atual.quantidade, atual.faturamento,
+               CASE WHEN ant.faturamento IS NULL OR ant.faturamento = 0 THEN NULL
+                    ELSE ROUND((atual.faturamento - ant.faturamento) / ant.faturamento * 100, 2)
+               END AS variacao
+        FROM (SELECT uf, SUM(quantidade) AS quantidade, SUM(faturamento) AS faturamento
+              FROM vw_lancamentos
+              WHERE mes_referencia BETWEEN p_periodo_inicio AND p_periodo_fim
+              GROUP BY uf) atual
+        LEFT JOIN (SELECT uf, SUM(faturamento) AS faturamento
+                   FROM vw_lancamentos
+                   WHERE mes_referencia BETWEEN v_ant_inicio AND v_ant_fim
+                   GROUP BY uf) ant ON ant.uf = atual.uf
+    ) a;
+ 
+    IF ROW_COUNT() = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Periodo sem lancamentos ativos: relatorio nao gerado.';
+    END IF;
+ 
+    COMMIT;
+    SELECT v_id_relatorio AS id_relatorio;
+END $$
+DELIMITER ;
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_fechamento_mensal_artesao(
+    IN p_ano INT,
+    IN p_mes INT
+)
+BEGIN
+    DECLARE v_inicio DATE;
+    DECLARE v_fim DATE;
+    DECLARE v_taxa DECIMAL(5,2) DEFAULT 10.00;
+ 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+ 
+    IF p_ano IS NULL OR p_mes IS NULL OR p_mes NOT BETWEEN 1 AND 12 OR p_ano < 2000 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Ano ou mes invalido.';
+    END IF;
+ 
+    SET v_inicio = STR_TO_DATE(CONCAT(p_ano, '-', p_mes, '-01'), '%Y-%m-%d');
+    SET v_fim    = DATE_ADD(v_inicio, INTERVAL 1 MONTH);
+ 
+    IF EXISTS (SELECT 1 FROM fechamento_comissao WHERE ano = p_ano AND mes = p_mes) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Mes ja fechado: fechamento nao pode ser repetido.';
+    END IF;
+ 
+    START TRANSACTION;
+ 
+    INSERT INTO fechamento_comissao
+    (ano, mes, id_confeccao, qtd_pedidos, valor_bruto, taxa_percentual,
+     valor_taxa, valor_liquido, fech_status)
+    SELECT p_ano, p_mes, t.id_confeccao, t.qtd_pedidos, t.bruto, v_taxa,
+           ROUND(t.bruto * v_taxa / 100, 2),
+           t.bruto - ROUND(t.bruto * v_taxa / 100, 2),
+           'A_PAGAR'
+    FROM (
+        SELECT pe.id_confeccao,
+               COUNT(DISTINCT pe.id_pedido) AS qtd_pedidos,
+               SUM(pit.quantidade * pit.preco_unitario) AS bruto
+        FROM pedido pe
+        INNER JOIN pedido_item pit ON pit.id_pedido = pe.id_pedido
+        WHERE pe.ped_status = 'ENTREGUE'
+          AND pe.data_entrega >= v_inicio
+          AND pe.data_entrega <  v_fim
+        GROUP BY pe.id_confeccao
+    ) t;
+ 
+    IF ROW_COUNT() = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Sem pedidos entregues no mes: fechamento nao gerado.';
+    END IF;
+ 
+    COMMIT;
+ 
+    SELECT c.nome AS artesao, f.qtd_pedidos, f.valor_bruto,
+           f.valor_taxa, f.valor_liquido, f.fech_status
+    FROM fechamento_comissao f
+    INNER JOIN confeccao c ON c.id_confeccao = f.id_confeccao
+    WHERE f.ano = p_ano AND f.mes = p_mes
+    ORDER BY f.valor_liquido DESC;
+END $$
+DELIMITER ;
+ 
+USE confeccoes;
+ 
+DROP TRIGGER IF EXISTS trg_log_lancamento_update;
+DROP TRIGGER IF EXISTS trg_log_lancamento_delete;
+DROP TRIGGER IF EXISTS trg_avaliacao_pedido_entregue;
+DROP TRIGGER IF EXISTS trg_audita_preco_produto;
+DROP TRIGGER IF EXISTS trg_pedido_item_artesao;
+ 
+DELIMITER $$
+CREATE TRIGGER trg_log_lancamento_update
 AFTER UPDATE ON lancamento_mensal
 FOR EACH ROW
 BEGIN
-    INSERT INTO historico_lancamento
-    (id_lancamento, acao, origem, mes_referencia, id_confeccao, id_categoria,
-     quantidade_antiga, faturamento_antigo, status_antigo,
-     quantidade_nova, faturamento_novo, status_novo, id_usuario)
+    INSERT INTO log_lancamento
+    (id_lancamento, acao, quantidade_antiga, faturamento_antigo, status_antigo,
+     quantidade_nova, faturamento_novo, status_novo, usuario_mysql)
     VALUES
-    (OLD.id_lancamento, 'UPDATE', OLD.origem, OLD.mes_referencia, OLD.id_confeccao, OLD.id_categoria,
-     OLD.quantidade, OLD.faturamento, OLD.lanc_status,
-     NEW.quantidade, NEW.faturamento, NEW.lanc_status, @id_usuario);
+    (OLD.id_lancamento, 'UPDATE', OLD.quantidade, OLD.faturamento, OLD.lanc_status,
+     NEW.quantidade, NEW.faturamento, NEW.lanc_status, CURRENT_USER());
 END $$
 DELIMITER ;
-
+ 
 DELIMITER $$
-CREATE TRIGGER trg_historico_lancamento_delete
+CREATE TRIGGER trg_log_lancamento_delete
 AFTER DELETE ON lancamento_mensal
 FOR EACH ROW
 BEGIN
-    INSERT INTO historico_lancamento
-    (id_lancamento, acao, origem, mes_referencia, id_confeccao, id_categoria,
-     quantidade_antiga, faturamento_antigo, status_antigo, id_usuario)
+    INSERT INTO log_lancamento
+    (id_lancamento, acao, quantidade_antiga, faturamento_antigo, status_antigo,
+     usuario_mysql)
     VALUES
-    (OLD.id_lancamento, 'DELETE', OLD.origem, OLD.mes_referencia, OLD.id_confeccao, OLD.id_categoria,
-     OLD.quantidade, OLD.faturamento, OLD.lanc_status, @id_usuario);
+    (OLD.id_lancamento, 'DELETE', OLD.quantidade, OLD.faturamento, OLD.lanc_status,
+     CURRENT_USER());
 END $$
 DELIMITER ;
-
-CALL inserir_lancamento('2026-03-15', 360, 25200.00, 4, 4, 'ENTREVISTA');
+ 
+DELIMITER $$
+CREATE TRIGGER trg_avaliacao_pedido_entregue
+BEFORE INSERT ON avaliacoes_artesao
+FOR EACH ROW
+BEGIN
+    IF (SELECT ped_status FROM pedido WHERE id_pedido = NEW.pedido_id) <> 'ENTREGUE' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Somente pedidos entregues podem ser avaliados.';
+    END IF;
+END $$
+DELIMITER ;
+ 
+DELIMITER $$
+CREATE TRIGGER trg_audita_preco_produto
+BEFORE UPDATE ON produto
+FOR EACH ROW
+BEGIN
+    IF OLD.preco <> NEW.preco THEN
+        IF NEW.preco < 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Preco nao pode ser negativo.';
+        END IF;
+ 
+        IF OLD.preco > 0
+           AND NEW.preco > OLD.preco * 3
+           AND (NEW.justificativa_preco IS NULL OR TRIM(NEW.justificativa_preco) = '') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Acrescimo acima de 200% exige justificativa.';
+        END IF;
+ 
+        INSERT INTO historico_preco_produto
+        (produto_id, preco_anterior, preco_novo, justificativa, alterado_por, usuario_mysql)
+        VALUES
+        (OLD.id_produto, OLD.preco, NEW.preco, NULLIF(TRIM(NEW.justificativa_preco), ''),
+         @id_usuario_logado, CURRENT_USER());
+    END IF;
+ 
+    SET NEW.justificativa_preco = NULL;
+END $$
+DELIMITER ;
+ 
+DELIMITER $$
+CREATE TRIGGER trg_pedido_item_artesao
+BEFORE INSERT ON pedido_item
+FOR EACH ROW
+BEGIN
+    IF (SELECT id_confeccao FROM produto WHERE id_produto = NEW.id_produto)
+       <> (SELECT id_confeccao FROM pedido WHERE id_pedido = NEW.id_pedido) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Produto nao pertence ao artesao do pedido.';
+    END IF;
+END $$
+DELIMITER ;
+ 
+USE confeccoes;
+ 
+CALL inserir_lancamento('2026-03-15', 360, 25200.00, 4, 4);
 SET @id_novo = LAST_INSERT_ID();
 SELECT * FROM lancamento_mensal WHERE id_lancamento = @id_novo;
-CALL atualizar_lancamento(10, 350, 24500.00, 5);
-CALL cancelar_lancamento(8, 4);
-CALL excluir_lancamento(@id_novo, 1);
-SELECT * FROM historico_lancamento;
-
-CREATE OR REPLACE VIEW vw_historico_lancamento AS
-SELECT h.id_historico,
-       h.data_alteracao,
-       h.acao,
-       h.origem,
-       h.id_lancamento,
-       h.mes_referencia,
-       h.id_confeccao,
-       c.nome AS confeccao,
-       ci.nome AS cidade,
-       ci.uf,
-       h.id_categoria,
-       cat.nome AS categoria,
-       h.quantidade_antiga,
-       h.quantidade_nova,
-       h.quantidade_nova - h.quantidade_antiga AS diferenca_quantidade,
-       h.faturamento_antigo,
-       h.faturamento_novo,
-       h.faturamento_novo - h.faturamento_antigo AS diferenca_faturamento,
-       h.status_antigo,
-       h.status_novo,
-       h.id_usuario,
-       COALESCE(u.nome, 'Nao identificado') AS usuario
-FROM historico_lancamento h
-LEFT JOIN confeccao c   ON h.id_confeccao = c.id_confeccao
-LEFT JOIN cidade ci     ON c.id_cidade = ci.id_cidade
-LEFT JOIN categoria cat ON h.id_categoria = cat.id_categoria
-LEFT JOIN usuario u     ON h.id_usuario = u.id_usuario;
-
-DROP PROCEDURE IF EXISTS relatorio_historico_periodo;
-DROP PROCEDURE IF EXISTS relatorio_alteracoes_por_usuario;
-DROP PROCEDURE IF EXISTS relatorio_alteracoes_por_confeccao;
-
-DELIMITER $$
-CREATE PROCEDURE relatorio_historico_periodo(
-    IN p_inicio DATE,
-    IN p_fim DATE,
-    IN p_origem VARCHAR(10)
-)
-BEGIN
-    SELECT data_alteracao, acao, origem, id_lancamento, mes_referencia,
-           confeccao, categoria,
-           quantidade_antiga, quantidade_nova,
-           faturamento_antigo, faturamento_novo, diferenca_faturamento,
-           status_antigo, status_novo, usuario
-    FROM vw_historico_lancamento
-    WHERE data_alteracao >= p_inicio
-      AND data_alteracao < p_fim + INTERVAL 1 DAY
-      AND (p_origem IS NULL OR origem = p_origem)
-    ORDER BY data_alteracao DESC, id_historico DESC;
-END $$
-DELIMITER ;
-
-DELIMITER $$
-CREATE PROCEDURE relatorio_alteracoes_por_usuario(
-    IN p_inicio DATE,
-    IN p_fim DATE,
-    IN p_origem VARCHAR(10)
-)
-BEGIN
-    SELECT usuario,
-           COUNT(*) AS total_alteracoes,
-           SUM(acao = 'UPDATE' AND status_novo = status_antigo) AS correcoes,
-           SUM(acao = 'UPDATE' AND status_novo = 'CANCELADO' AND status_antigo = 'ATIVO') AS cancelamentos,
-           SUM(acao = 'DELETE') AS exclusoes,
-           SUM(CASE WHEN acao = 'DELETE' OR (status_antigo = 'ATIVO' AND status_novo = 'CANCELADO')
-                    THEN -faturamento_antigo
-                    ELSE diferenca_faturamento END) AS impacto_faturamento,
-           MAX(data_alteracao) AS ultima_alteracao
-    FROM vw_historico_lancamento
-    WHERE data_alteracao >= p_inicio
-      AND data_alteracao < p_fim + INTERVAL 1 DAY
-      AND (p_origem IS NULL OR origem = p_origem)
-    GROUP BY id_usuario, usuario
-    ORDER BY total_alteracoes DESC;
-END $$
-DELIMITER ;
-
-DELIMITER $$
-CREATE PROCEDURE relatorio_alteracoes_por_confeccao(
-    IN p_inicio DATE,
-    IN p_fim DATE,
-    IN p_origem VARCHAR(10)
-)
-BEGIN
-    SELECT confeccao,
-           cidade,
-           uf,
-           COUNT(*) AS total_alteracoes,
-           COUNT(DISTINCT id_lancamento) AS lancamentos_alterados,
-           SUM(acao = 'UPDATE' AND status_novo = status_antigo) AS correcoes,
-           SUM(acao = 'UPDATE' AND status_novo = 'CANCELADO' AND status_antigo = 'ATIVO') AS cancelamentos,
-           SUM(acao = 'DELETE') AS exclusoes,
-           SUM(CASE WHEN acao = 'DELETE' OR (status_antigo = 'ATIVO' AND status_novo = 'CANCELADO')
-                    THEN -faturamento_antigo
-                    ELSE diferenca_faturamento END) AS impacto_faturamento
-    FROM vw_historico_lancamento
-    WHERE data_alteracao >= p_inicio
-      AND data_alteracao < p_fim + INTERVAL 1 DAY
-      AND (p_origem IS NULL OR origem = p_origem)
-    GROUP BY id_confeccao, confeccao, cidade, uf
-    ORDER BY total_alteracoes DESC;
-END $$
-DELIMITER ;
-
-SELECT * FROM vw_historico_lancamento;
-CALL relatorio_historico_periodo(CURDATE(), CURDATE(), NULL);
-CALL relatorio_historico_periodo(CURDATE(), CURDATE(), 'MANUAL');
-CALL relatorio_alteracoes_por_usuario(CURDATE(), CURDATE(), NULL);
-CALL relatorio_alteracoes_por_confeccao(CURDATE(), CURDATE(), 'MANUAL');
-
+CALL atualizar_lancamento(10, 350, 24500.00);
+CALL cancelar_lancamento(8);
+CALL excluir_lancamento(@id_novo);
+SELECT * FROM log_lancamento;
+ 
+SET @id_usuario_logado = 4;
+UPDATE produto SET preco = 95.00 WHERE id_produto = 1;
+SELECT * FROM historico_preco_produto;
+SET @id_usuario_logado = NULL;
+ 
 START TRANSACTION;
-
+ 
 INSERT INTO importacao (nome_arquivo, qtd_linhas, imp_status, id_usuario)
-VALUES ('vendas_marco_jeanstoritama.csv', 2, 'CONCLUIDA', 2);
+VALUES ('vendas_marco_modarecife.csv', 2, 'CONCLUIDA', 2);
 SET @id_importacao = LAST_INSERT_ID();
-
+ 
 INSERT INTO lancamento_mensal
-(mes_referencia, quantidade, faturamento, origem, fonte_dado, lanc_status,
+(mes_referencia, quantidade, faturamento, origem, lanc_status,
  id_confeccao, id_categoria, id_importacao) VALUES
-('2026-03-01', 530, 37100.00, 'IMPORTACAO', 'QUESTIONARIO', 'ATIVO', 1, 1, @id_importacao),
-('2026-03-01', 300, 21000.00, 'IMPORTACAO', 'QUESTIONARIO', 'ATIVO', 1, 2, @id_importacao);
-
+('2026-03-01', 530, 37100.00, 'IMPORTACAO', 'ATIVO', 1, 1, @id_importacao),
+('2026-03-01', 300, 21000.00, 'IMPORTACAO', 'ATIVO', 1, 2, @id_importacao);
+ 
 COMMIT;
-
+ 
 SELECT * FROM lancamento_mensal WHERE id_importacao = @id_importacao;
-
+ 
 START TRANSACTION;
-
+ 
 INSERT INTO importacao (nome_arquivo, qtd_linhas, imp_status, id_usuario)
 VALUES ('vendas_marco_estiloagreste.csv', 1, 'CONCLUIDA', 3);
 SET @id_importacao = LAST_INSERT_ID();
-
+ 
 INSERT INTO lancamento_mensal
-(mes_referencia, quantidade, faturamento, origem, fonte_dado, lanc_status,
+(mes_referencia, quantidade, faturamento, origem, lanc_status,
  id_confeccao, id_categoria, id_importacao) VALUES
-('2026-03-01', 270, 16200.00, 'IMPORTACAO', 'QUESTIONARIO', 'ATIVO', 2, 1, @id_importacao);
-
+('2026-03-01', 270, 16200.00, 'IMPORTACAO', 'ATIVO', 2, 1, @id_importacao);
+ 
 ROLLBACK;
-
+ 
 INSERT INTO importacao (nome_arquivo, qtd_linhas, imp_status, id_usuario)
 VALUES ('vendas_marco_estiloagreste.csv', NULL, 'ERRO', 3);
-
+ 
 SELECT * FROM importacao;
 SELECT * FROM lancamento_mensal WHERE id_confeccao = 2 AND mes_referencia = '2026-03-01';
-
+ 
 START TRANSACTION;
-
+ 
 INSERT INTO relatorio (tipo, periodo_inicio, periodo_fim, limiar_tendencia, id_usuario)
 VALUES ('REGIONAL', '2026-01-01', '2026-03-31', 5.00, 1);
 SET @id_relatorio = LAST_INSERT_ID();
-
+ 
 SAVEPOINT relatorio_criado;
-
-INSERT INTO item_relatorio (id_cidade, quantidade, faturamento, id_relatorio)
-VALUES (2, 2880, 193500.00, @id_relatorio);
-
-SAVEPOINT item_caruaru;
-
-INSERT INTO item_relatorio (id_cidade, quantidade, faturamento, id_relatorio)
-VALUES (3, 650, 45500.00, @id_relatorio);
-
-SAVEPOINT item_santa_cruz;
-
-INSERT INTO item_relatorio (id_cidade, quantidade, faturamento, id_relatorio)
-VALUES (1, 810, 5670.00, @id_relatorio);
-
-ROLLBACK TO SAVEPOINT item_santa_cruz;
-
-INSERT INTO item_relatorio (id_cidade, quantidade, faturamento, id_relatorio)
-VALUES (1, 810, 56700.00, @id_relatorio);
-
+ 
+INSERT INTO item_relatorio (uf, quantidade, faturamento, id_relatorio)
+VALUES ('PE', 2880, 193500.00, @id_relatorio);
+ 
+SAVEPOINT item_pe;
+ 
+INSERT INTO item_relatorio (uf, quantidade, faturamento, id_relatorio)
+VALUES ('PB', 650, 45500.00, @id_relatorio);
+ 
+SAVEPOINT item_pb;
+ 
+INSERT INTO item_relatorio (uf, quantidade, faturamento, id_relatorio)
+VALUES ('AL', 810, 5670.00, @id_relatorio);
+ 
+ROLLBACK TO SAVEPOINT item_pb;
+ 
+INSERT INTO item_relatorio (uf, quantidade, faturamento, id_relatorio)
+VALUES ('AL', 810, 56700.00, @id_relatorio);
+ 
 COMMIT;
-
+ 
 SELECT * FROM item_relatorio WHERE id_relatorio = @id_relatorio;
-
+ 
 START TRANSACTION;
-
+ 
 INSERT INTO relatorio (tipo, periodo_inicio, periodo_fim, limiar_tendencia, id_usuario)
 VALUES ('TENDENCIA', '2025-01-01', '2025-03-31', 5.00, 2);
-
+ 
 ROLLBACK;
 SELECT * FROM relatorio;
-
+ 
+CALL sp_fechamento_mensal_artesao(2026, 2);
+ 
+DROP PROCEDURE IF EXISTS teste_trigger_audita_preco;
+ 
+DELIMITER $$
+CREATE PROCEDURE teste_trigger_audita_preco()
+BEGIN
+    DECLARE v_id INT;
+    DECLARE v_erro VARCHAR(255);
+    DECLARE v_qtd INT;
+    DECLARE v_anterior DECIMAL(10,2);
+    DECLARE v_novo DECIMAL(10,2);
+    DECLARE v_data DATETIME;
+    DECLARE v_autor INT;
+    DECLARE v_preco DECIMAL(10,2);
+    DECLARE v_just VARCHAR(255);
+ 
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 v_erro = MESSAGE_TEXT;
+    END;
+ 
+    DROP TEMPORARY TABLE IF EXISTS resultado_teste;
+    CREATE TEMPORARY TABLE resultado_teste (
+        teste INT,
+        descricao VARCHAR(120),
+        resultado VARCHAR(4)
+    ) ENGINE = MEMORY;
+ 
+    START TRANSACTION;
+ 
+    INSERT INTO produto (nome, preco, id_confeccao)
+    VALUES ('Produto de teste', 80.00, 3);
+    SET v_id = LAST_INSERT_ID();
+    SET @id_usuario_logado = 4;
+ 
+    UPDATE produto SET preco = 95.00 WHERE id_produto = v_id;
+    SELECT COUNT(*), MAX(preco_anterior), MAX(preco_novo), MAX(data_alteracao), MAX(alterado_por)
+      INTO v_qtd, v_anterior, v_novo, v_data, v_autor
+    FROM historico_preco_produto WHERE produto_id = v_id;
+    INSERT INTO resultado_teste VALUES
+    (1, 'R$ 80,00 para R$ 95,00 grava 1 linha com valores, autor e data',
+     IF(v_qtd = 1 AND v_anterior = 80.00 AND v_novo = 95.00
+        AND v_data IS NOT NULL AND v_autor = 4, 'OK', 'FALHA'));
+ 
+    UPDATE produto SET nome = 'Produto de teste renomeado', preco = 95.00
+    WHERE id_produto = v_id;
+    SELECT COUNT(*) INTO v_qtd FROM historico_preco_produto WHERE produto_id = v_id;
+    INSERT INTO resultado_teste VALUES
+    (2, 'Atualizar sem mudar o preco nao grava historico',
+     IF(v_qtd = 1, 'OK', 'FALHA'));
+ 
+    SET v_erro = NULL;
+    UPDATE produto SET preco = -10.00 WHERE id_produto = v_id;
+    SELECT preco INTO v_preco FROM produto WHERE id_produto = v_id;
+    SELECT COUNT(*) INTO v_qtd FROM historico_preco_produto WHERE produto_id = v_id;
+    INSERT INTO resultado_teste VALUES
+    (3, 'Preco negativo e bloqueado, preco e historico ficam intactos',
+     IF(v_erro = 'Preco nao pode ser negativo.' AND v_preco = 95.00 AND v_qtd = 1,
+        'OK', 'FALHA'));
+ 
+    SET v_erro = NULL;
+    UPDATE produto SET preco = 285.01 WHERE id_produto = v_id;
+    SELECT preco INTO v_preco FROM produto WHERE id_produto = v_id;
+    SELECT COUNT(*) INTO v_qtd FROM historico_preco_produto WHERE produto_id = v_id;
+    SET @bloqueou_sem_justificativa =
+        (v_erro = 'Acrescimo acima de 200% exige justificativa.' AND v_preco = 95.00 AND v_qtd = 1);
+ 
+    SET v_erro = NULL;
+    UPDATE produto SET preco = 285.00 WHERE id_produto = v_id;
+    SELECT COUNT(*) INTO v_qtd FROM historico_preco_produto WHERE produto_id = v_id;
+    SET @limite_exato_liberado = (v_erro IS NULL AND v_qtd = 2);
+ 
+    UPDATE produto SET preco = 1000.00, justificativa_preco = 'Edicao limitada de colecao'
+    WHERE id_produto = v_id;
+    SELECT COUNT(*), MAX(justificativa) INTO v_qtd, v_just
+    FROM historico_preco_produto WHERE produto_id = v_id;
+    INSERT INTO resultado_teste VALUES
+    (4, 'Acrescimo acima de 200%: bloqueia sem justificativa, aceita no limite e com justificativa',
+     IF(@bloqueou_sem_justificativa AND @limite_exato_liberado
+        AND v_qtd = 3 AND v_just = 'Edicao limitada de colecao', 'OK', 'FALHA'));
+ 
+    ROLLBACK;
+    SET @id_usuario_logado = NULL;
+ 
+    SELECT teste, descricao, resultado FROM resultado_teste ORDER BY teste;
+    DROP TEMPORARY TABLE resultado_teste;
+END $$
+DELIMITER ;
+ 
+CALL teste_trigger_audita_preco();
+DROP PROCEDURE teste_trigger_audita_preco;
+ 
+DROP PROCEDURE IF EXISTS teste_fechamento_outubro;
+ 
+DELIMITER $$
+CREATE PROCEDURE teste_fechamento_outubro()
+BEGIN
+    DECLARE v_i INT DEFAULT 1;
+    DECLARE v_id INT;
+    DECLARE v_base INT DEFAULT NULL;
+    DECLARE v_pedidos INT;
+    DECLARE v_bruto DECIMAL(12,2);
+    DECLARE v_taxa DECIMAL(12,2);
+    DECLARE v_liq DECIMAL(12,2);
+    DECLARE v_extrato_ok INT;
+    DECLARE v_erro VARCHAR(255) DEFAULT NULL;
+ 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        IF v_base IS NOT NULL THEN
+            DELETE FROM fechamento_comissao WHERE ano = 2026 AND mes = 10;
+            DELETE FROM pedido_item WHERE id_pedido > v_base;
+            DELETE FROM pedido WHERE id_pedido > v_base;
+        END IF;
+        RESIGNAL;
+    END;
+ 
+    IF EXISTS (SELECT 1 FROM fechamento_comissao WHERE ano = 2026 AND mes = 10) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Teste exige outubro/2026 ainda nao fechado.';
+    END IF;
+ 
+    SELECT COALESCE(MAX(id_pedido), 0) INTO v_base FROM pedido;
+ 
+    WHILE v_i <= 15 DO
+        INSERT INTO pedido (data_pedido, ped_status, data_entrega, id_usuario, id_confeccao)
+        VALUES ('2026-10-05 10:00:00', 'ENTREGUE',
+                CONCAT('2026-10-', LPAD(v_i + 5, 2, '0'), ' 12:00:00'),
+                2, IF(v_i <= 10, 3, 9));
+        SET v_id = LAST_INSERT_ID();
+        INSERT INTO pedido_item (id_pedido, id_produto, quantidade, preco_unitario)
+        VALUES (v_id, IF(v_i <= 10, 1, 2), IF(v_i <= 10, 2, 1), IF(v_i <= 10, 80.00, 120.00));
+        SET v_i = v_i + 1;
+    END WHILE;
+ 
+    INSERT INTO pedido (data_pedido, ped_status, data_entrega, id_usuario, id_confeccao)
+    VALUES ('2026-10-20 10:00:00', 'CANCELADO', NULL, 2, 3);
+    SET v_id = LAST_INSERT_ID();
+    INSERT INTO pedido_item (id_pedido, id_produto, quantidade, preco_unitario)
+    VALUES (v_id, 1, 1, 80.00);
+ 
+    INSERT INTO pedido (data_pedido, ped_status, data_entrega, id_usuario, id_confeccao)
+    VALUES ('2026-10-28 10:00:00', 'ENTREGUE', '2026-11-03 10:00:00', 2, 3);
+    SET v_id = LAST_INSERT_ID();
+    INSERT INTO pedido_item (id_pedido, id_produto, quantidade, preco_unitario)
+    VALUES (v_id, 1, 1, 80.00);
+ 
+    CALL sp_fechamento_mensal_artesao(2026, 10);
+ 
+    SELECT qtd_pedidos, valor_bruto, valor_taxa, valor_liquido
+      INTO v_pedidos, v_bruto, v_taxa, v_liq
+    FROM fechamento_comissao
+    WHERE ano = 2026 AND mes = 10 AND id_confeccao = 3;
+ 
+    SELECT (COUNT(*) = 2
+            AND SUM(qtd_pedidos) = 15
+            AND SUM(valor_bruto) = 2200.00
+            AND SUM(valor_taxa) = 220.00
+            AND SUM(valor_liquido) = 1980.00
+            AND SUM(fech_status = 'A_PAGAR') = 2)
+      INTO v_extrato_ok
+    FROM fechamento_comissao
+    WHERE ano = 2026 AND mes = 10;
+ 
+    BEGIN
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        BEGIN
+            GET DIAGNOSTICS CONDITION 1 v_erro = MESSAGE_TEXT;
+        END;
+        CALL sp_fechamento_mensal_artesao(2026, 10);
+    END;
+ 
+    DELETE FROM fechamento_comissao WHERE ano = 2026 AND mes = 10;
+    DELETE FROM pedido_item WHERE id_pedido > v_base;
+    DELETE FROM pedido WHERE id_pedido > v_base;
+ 
+    SELECT IF(v_pedidos = 10 AND v_bruto = 1600.00 AND v_taxa = 160.00
+              AND v_liq = 1440.00 AND v_extrato_ok = 1, 'OK', 'FALHA')
+               AS resultado_fechamento_outubro,
+           IF(v_erro = 'Mes ja fechado: fechamento nao pode ser repetido.', 'OK', 'FALHA')
+               AS resultado_bloqueio_duplicidade;
+END $$
+DELIMITER ;
+ 
+CALL teste_fechamento_outubro();
+DROP PROCEDURE teste_fechamento_outubro;
+ 
+USE confeccoes;
+ 
 SELECT * FROM cidade;
 SELECT * FROM confeccao;
 SELECT * FROM usuario;
@@ -626,15 +1142,25 @@ SELECT * FROM cenario_concorrencia;
 SELECT * FROM relatorio;
 SELECT * FROM item_relatorio;
 SELECT * FROM entrevista;
-
+SELECT * FROM pedido;
+SELECT * FROM avaliacoes_artesao;
+SELECT * FROM produto;
+SELECT * FROM historico_preco_produto;
+SELECT * FROM pedido_item;
+SELECT * FROM fechamento_comissao;
+ 
 SELECT
     (SELECT COUNT(*) FROM cidade)            AS total_cidades,
     (SELECT COUNT(*) FROM confeccao)         AS total_confeccoes,
     (SELECT COUNT(*) FROM usuario)           AS total_usuarios,
     (SELECT COUNT(*) FROM categoria)         AS total_categorias,
     (SELECT COUNT(*) FROM lancamento_mensal) AS total_lancamentos,
-    (SELECT COUNT(*) FROM entrevista)        AS total_entrevistas;
-
+    (SELECT COUNT(*) FROM entrevista)        AS total_entrevistas,
+    (SELECT COUNT(*) FROM pedido)            AS total_pedidos,
+    (SELECT COUNT(*) FROM avaliacoes_artesao) AS total_avaliacoes,
+    (SELECT COUNT(*) FROM pedido_item)       AS total_itens_pedido,
+    (SELECT COUNT(*) FROM fechamento_comissao) AS total_fechamentos;
+ 
 SELECT
     SUM(faturamento) AS faturamento_total,
     SUM(CASE WHEN lanc_status = 'ATIVO' THEN faturamento END) AS faturamento_ativo,
@@ -646,7 +1172,7 @@ SELECT
     MAX(quantidade)  AS maior_quantidade,
     MIN(quantidade)  AS menor_quantidade
 FROM lancamento_mensal;
-
+ 
 SELECT 'confeccao.porte' AS campo, porte AS valor, COUNT(*) AS qtd FROM confeccao GROUP BY porte
 UNION ALL
 SELECT 'confeccao.tipo', tipo, COUNT(*) FROM confeccao GROUP BY tipo
@@ -655,8 +1181,12 @@ SELECT 'importacao.status', imp_status, COUNT(*) FROM importacao GROUP BY imp_st
 UNION ALL
 SELECT 'lancamento.origem', origem, COUNT(*) FROM lancamento_mensal GROUP BY origem
 UNION ALL
-SELECT 'lancamento.status', lanc_status, COUNT(*) FROM lancamento_mensal GROUP BY lanc_status;
-
+SELECT 'lancamento.status', lanc_status, COUNT(*) FROM lancamento_mensal GROUP BY lanc_status
+UNION ALL
+SELECT 'pedido.status', ped_status, COUNT(*) FROM pedido GROUP BY ped_status
+UNION ALL
+SELECT 'fechamento.status', fech_status, COUNT(*) FROM fechamento_comissao GROUP BY fech_status;
+ 
 SELECT 'usuario sem confeccao' AS caso, COUNT(*) AS qtd FROM usuario WHERE id_confeccao IS NULL
 UNION ALL
 SELECT 'cenario sem categoria', COUNT(*) FROM cenario_concorrencia WHERE id_categoria IS NULL
@@ -666,41 +1196,43 @@ UNION ALL
 SELECT 'entrevista sem categoria', COUNT(*) FROM entrevista WHERE id_categoria_percebida IS NULL
 UNION ALL
 SELECT 'lancamento sem importacao', COUNT(*) FROM lancamento_mensal WHERE id_importacao IS NULL;
-
+ 
 SELECT * FROM cenario_concorrencia
 WHERE percentual_impacto > 10
 ORDER BY percentual_impacto DESC;
-
+ 
 SELECT * FROM confeccao WHERE nome LIKE 'Moda%';
-
+ 
 SELECT * FROM confeccao
 WHERE id_cidade IN (SELECT id_cidade FROM cidade WHERE uf = 'PE');
-
+ 
 SELECT * FROM lancamento_mensal
 WHERE mes_referencia BETWEEN '2026-01-01' AND '2026-02-01';
-
+ 
 SELECT DISTINCT uf FROM cidade ORDER BY uf;
-
-SELECT cidade,
+ 
+USE confeccoes;
+ 
+SELECT uf,
        SUM(faturamento) AS faturamento_total,
        SUM(quantidade)  AS quantidade_total
 FROM vw_lancamentos
-GROUP BY cidade
+GROUP BY uf
 ORDER BY faturamento_total DESC;
-
+ 
 SELECT categoria,
        SUM(faturamento) AS faturamento_total,
        SUM(quantidade)  AS quantidade_total
 FROM vw_lancamentos
 GROUP BY categoria
 ORDER BY faturamento_total DESC;
-
+ 
 SELECT mes_referencia,
        SUM(faturamento) AS faturamento_total
 FROM vw_lancamentos
 GROUP BY mes_referencia
 ORDER BY mes_referencia;
-
+ 
 SELECT confeccao,
        SUM(faturamento) AS faturamento_total,
        SUM(quantidade)  AS quantidade_total
@@ -708,31 +1240,37 @@ FROM vw_lancamentos
 GROUP BY id_confeccao, confeccao
 HAVING SUM(faturamento) > 50000
 ORDER BY faturamento_total DESC;
-
+ 
 SELECT * FROM vw_lancamentos
-ORDER BY cidade, confeccao, mes_referencia;
-
+ORDER BY uf, confeccao, mes_referencia;
+ 
+SELECT * FROM vw_reputacao_artesao
+ORDER BY nota_media DESC;
+ 
+SELECT * FROM vw_vendas_polo_regional
+ORDER BY faturamento_total DESC;
+ 
 SELECT c.nome AS confeccao, ci.nome AS cidade, ci.uf, u.nome AS usuario, u.email
 FROM confeccao c
 INNER JOIN cidade ci ON c.id_cidade = ci.id_cidade
 LEFT JOIN usuario u  ON c.id_confeccao = u.id_confeccao;
-
+ 
 SELECT cat.nome AS categoria, l.id_lancamento, l.faturamento
 FROM categoria cat
 LEFT JOIN lancamento_mensal l ON cat.id_categoria = l.id_categoria;
-
+ 
 SELECT i.id_importacao, i.nome_arquivo, i.data_importacao, i.qtd_linhas,
        i.imp_status, u.nome AS usuario, c.nome AS confeccao
 FROM importacao i
 INNER JOIN usuario u   ON i.id_usuario = u.id_usuario
 LEFT JOIN confeccao c  ON u.id_confeccao = c.id_confeccao;
-
+ 
 SELECT r.id_relatorio, r.tipo, r.periodo_inicio, r.periodo_fim,
        u.nome AS usuario, cc.nome AS cenario
 FROM relatorio r
 INNER JOIN usuario u                ON r.id_usuario = u.id_usuario
 LEFT JOIN cenario_concorrencia cc   ON r.id_cenario = cc.id_cenario;
-
+ 
 SELECT e.id_entrevista, e.data, c.nome AS confeccao, ci.nome AS cidade, ci.uf,
        cat.nome AS categoria_percebida, e.achou_algo_novo, e.resumo
 FROM entrevista e
@@ -740,16 +1278,163 @@ INNER JOIN confeccao c   ON e.id_confeccao = c.id_confeccao
 INNER JOIN cidade ci     ON c.id_cidade = ci.id_cidade
 LEFT JOIN categoria cat  ON e.id_categoria_percebida = cat.id_categoria
 ORDER BY e.data;
-
+ 
 SELECT cc.nome AS cenario, cc.percentual_impacto,
        cat.nome AS categoria, u.nome AS usuario
 FROM cenario_concorrencia cc
 INNER JOIN usuario u    ON cc.id_usuario = u.id_usuario
 LEFT JOIN categoria cat ON cc.id_categoria = cat.id_categoria
 ORDER BY cc.percentual_impacto DESC;
-
-SELECT cat.nome AS categoria, ci.nome AS cidade, ir.variacao_percentual, ir.tendencia
+ 
+SELECT cat.nome AS categoria, ir.uf, ir.variacao_percentual, ir.tendencia
 FROM item_relatorio ir
 INNER JOIN categoria cat ON ir.id_categoria = cat.id_categoria
-LEFT JOIN cidade ci      ON ir.id_cidade = ci.id_cidade
 ORDER BY ir.tendencia, ir.variacao_percentual DESC;
+ 
+SELECT p.id_pedido, p.ped_status, comprador.nome AS comprador,
+       c.nome AS artesao, a.nota, a.comentario
+FROM pedido p
+INNER JOIN usuario comprador ON p.id_usuario = comprador.id_usuario
+INNER JOIN confeccao c       ON p.id_confeccao = c.id_confeccao
+LEFT JOIN avaliacoes_artesao a ON a.pedido_id = p.id_pedido
+ORDER BY p.id_pedido;
+ 
+SELECT u.nome AS usuario, COUNT(r.id_relatorio) AS relatorios_gerados
+FROM usuario u
+LEFT JOIN relatorio r ON r.id_usuario = u.id_usuario
+GROUP BY u.id_usuario, u.nome
+ORDER BY relatorios_gerados DESC;
+ 
+SELECT l.id_log, l.id_lancamento, l.acao,
+       l.quantidade_antiga, l.quantidade_nova,
+       l.faturamento_antigo, l.faturamento_novo,
+       l.status_antigo, l.status_novo, l.usuario_mysql, l.data_log
+FROM log_lancamento l
+LEFT JOIN lancamento_mensal lm ON lm.id_lancamento = l.id_lancamento
+ORDER BY l.data_log, l.id_log;
+ 
+SELECT h.id, p.nome AS produto, c.nome AS artesao,
+       h.preco_anterior, h.preco_novo,
+       ROUND((h.preco_novo - h.preco_anterior) / h.preco_anterior * 100, 2) AS variacao_percentual,
+       h.justificativa, u.nome AS alterado_por, h.data_alteracao
+FROM historico_preco_produto h
+INNER JOIN produto p   ON p.id_produto = h.produto_id
+INNER JOIN confeccao c ON c.id_confeccao = p.id_confeccao
+LEFT JOIN usuario u    ON u.id_usuario = h.alterado_por
+ORDER BY h.data_alteracao, h.id;
+ 
+SELECT f.ano, f.mes, c.nome AS artesao, ci.nome AS cidade, ci.uf,
+       f.qtd_pedidos, f.valor_bruto, f.taxa_percentual,
+       f.valor_taxa, f.valor_liquido, f.fech_status, f.data_fechamento
+FROM fechamento_comissao f
+INNER JOIN confeccao c ON c.id_confeccao = f.id_confeccao
+INNER JOIN cidade ci   ON ci.id_cidade = c.id_cidade
+ORDER BY f.ano, f.mes, f.valor_liquido DESC;
+ 
+SELECT ano, mes,
+       SUM(qtd_pedidos)   AS pedidos,
+       SUM(valor_bruto)   AS bruto_total,
+       SUM(valor_taxa)    AS taxa_plataforma,
+       SUM(valor_liquido) AS liquido_a_repassar
+FROM fechamento_comissao
+GROUP BY ano, mes
+ORDER BY ano, mes;
+ 
+SELECT pe.id_confeccao,
+       SUM(pit.quantidade * pit.preco_unitario) AS bruto_pedidos
+FROM pedido pe
+INNER JOIN pedido_item pit ON pit.id_pedido = pe.id_pedido
+WHERE pe.ped_status = 'ENTREGUE'
+  AND pe.data_entrega >= '2026-02-01' AND pe.data_entrega < '2026-03-01'
+GROUP BY pe.id_confeccao;
+ 
+SELECT municipio, uf, faturamento_total, volume_itens, qtd_pedidos, ticket_medio_item
+FROM vw_vendas_polo_regional
+WHERE polo_destaque = 1
+ORDER BY faturamento_total DESC;
+ 
+SELECT SUM(faturamento_total) AS faturamento_polos,
+       SUM(volume_itens)      AS itens_polos,
+       SUM(qtd_pedidos)       AS pedidos_polos
+FROM vw_vendas_polo_regional
+WHERE polo_destaque = 1;
+ 
+SELECT ci.nome AS municipio, COUNT(*) AS pedidos_no_periodo
+FROM pedido p
+INNER JOIN confeccao c ON c.id_confeccao = p.id_confeccao
+INNER JOIN cidade ci   ON ci.id_cidade = c.id_cidade
+WHERE p.data_pedido >= '2026-02-01' AND p.data_pedido < '2026-03-01'
+  AND p.ped_status <> 'CANCELADO'
+GROUP BY ci.id_cidade, ci.nome
+ORDER BY pedidos_no_periodo DESC;
+ 
+SHOW INDEX FROM pedido;
+SHOW INDEX FROM confeccao;
+SHOW INDEX FROM lancamento_mensal;
+SHOW INDEX FROM pedido_item;
+SHOW INDEX FROM fechamento_comissao;
+ 
+EXPLAIN SELECT * FROM vw_vendas_polo_regional;
+ 
+EXPLAIN ANALYZE SELECT * FROM vw_vendas_polo_regional;
+ 
+EXPLAIN SELECT COUNT(*) FROM pedido
+WHERE data_pedido >= '2026-02-01' AND data_pedido < '2026-03-01';
+ 
+EXPLAIN ANALYZE
+SELECT ci.nome AS municipio, COUNT(*) AS pedidos_no_periodo
+FROM pedido p
+INNER JOIN confeccao c ON c.id_confeccao = p.id_confeccao
+INNER JOIN cidade ci   ON ci.id_cidade = c.id_cidade
+WHERE p.data_pedido >= '2026-02-01' AND p.data_pedido < '2026-03-01'
+  AND p.ped_status <> 'CANCELADO'
+GROUP BY ci.id_cidade, ci.nome;
+ 
+-- DB-04: teste de desempenho da view vw_vendas_polo_regional
+-- municipio_id e o alias de cidade.id_cidade; o indice equivalente e confeccao(id_cidade)
+DROP PROCEDURE IF EXISTS teste_desempenho_polo_regional;
+ 
+DELIMITER $$
+CREATE PROCEDURE teste_desempenho_polo_regional()
+BEGIN
+    DECLARE v_produtos INT;
+    DECLARE v_idx INT;
+    DECLARE v_linhas INT;
+    DECLARE v_polos INT;
+    DECLARE v_fat_view DECIMAL(14,2);
+    DECLARE v_fat_base DECIMAL(14,2);
+    DECLARE v_inicio DATETIME(6);
+    DECLARE v_micro BIGINT;
+ 
+    SELECT COUNT(*) INTO v_produtos FROM produto;
+ 
+    SELECT COUNT(*) INTO v_idx
+    FROM information_schema.statistics
+    WHERE table_schema = 'confeccoes'
+      AND ((table_name = 'confeccao'          AND index_name = 'idx_confeccao_cidade')
+        OR (table_name = 'pedido'             AND index_name = 'idx_pedido_data')
+        OR (table_name = 'pedido'             AND index_name = 'idx_pedido_confeccao_status')
+        OR (table_name = 'lancamento_mensal'  AND index_name = 'idx_lanc_polo'))
+      AND seq_in_index = 1;
+ 
+    SET v_inicio = NOW(6);
+    SELECT COUNT(*), SUM(polo_destaque = 1), SUM(faturamento_total)
+      INTO v_linhas, v_polos, v_fat_view
+    FROM vw_vendas_polo_regional;
+    SET v_micro = TIMESTAMPDIFF(MICROSECOND, v_inicio, NOW(6));
+ 
+    SELECT SUM(faturamento) INTO v_fat_base
+    FROM lancamento_mensal WHERE lanc_status = 'ATIVO';
+ 
+    SELECT
+        IF(v_produtos >= 30, 'OK', 'FALHA')            AS carga_30_produtos,
+        IF(v_idx = 4, 'OK', 'FALHA')                   AS indices_presentes,
+        IF(v_linhas = 8 AND v_polos = 5, 'OK', 'FALHA') AS um_registro_por_municipio,
+        IF(v_fat_view = v_fat_base, 'OK', 'FALHA')     AS faturamento_confere,
+        IF(v_micro < 100000, 'OK', 'FALHA')            AS resposta_abaixo_de_100ms,
+        v_micro                                        AS tempo_microsegundos;
+END $$
+DELIMITER ;
+ 
+CALL teste_desempenho_polo_regional();
+DROP PROCEDURE teste_desempenho_polo_regional;
