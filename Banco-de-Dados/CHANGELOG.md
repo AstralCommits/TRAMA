@@ -8,6 +8,9 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 
 ## [Não lançado]
 
+### Alterado
+- **Incompatível (compatibilização com a API):** em `lancamento_mensal`, `origem_dado` volta a se chamar `fonte_dado` (VARCHAR(20)), o nome que a entidade `LancamentoMensal` do Back-end usa em todas as branches. `nome_fonte` não muda. Versão SQLite e `extensao.db` acompanham. Bancos já criados usam `database/migracoes/V0_5_0__fonte_dado.sql`.
+
 ### Adicionado
 - **DEMO-DB-01:** massa de dados fictícia do polo têxtil para o ProjetAÍ (`seed_demonstracao_projetaí.sql`), view `vw_serie_polo_regional` com a série mensal por município e `teste_demonstracao_projetai.sql` com 12 casos.
 - **DB-01 (#9):** `04_constraints_pedidos_lote.sql` com as tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`. `CHECK (quantidade >= 5)` nos itens dos pedidos em lote, chaves estrangeiras `ON DELETE RESTRICT` entre empresas, pedidos, produtos e artesãos, validação de CNPJ (formato, unicidade e dígitos verificadores com a função `cnpj_valido`), bloqueio de itens em pedidos entregues ou cancelados, índices e a view `vw_pedido_corporativo`.

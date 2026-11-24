@@ -348,7 +348,7 @@ erDiagram
 | **Confecção** | id_confeccao | nome, cnpj (opcional), porte (micro, pequena, média), tipo (confecção, facção) |
 | **Usuário** | id_usuario | nome, email, senha_hash, perfil (ADMIN, EMPRESARIO) |
 | **Categoria** | id_categoria | nome (até 50 caracteres) |
-| **Lançamento mensal** | id_lancamento | mes_referencia, quantidade, faturamento, origem (MANUAL, IMPORTACAO), origem_dado (ENTREVISTA, QUESTIONARIO, FONTE_SECUNDARIA), nome_fonte, status (ATIVO, CANCELADO) |
+| **Lançamento mensal** | id_lancamento | mes_referencia, quantidade, faturamento, origem (MANUAL, IMPORTACAO), fonte_dado (ENTREVISTA, QUESTIONARIO, FONTE_SECUNDARIA), nome_fonte, status (ATIVO, CANCELADO) |
 | **Importação** | id_importacao | nome_arquivo, data_importacao, qtd_linhas, status (CONCLUIDA, ERRO) |
 | **Cenário de concorrência** | id_cenario | nome, percentual_impacto, descricao (opcional) |
 | **Entrevista** | id_entrevista | data, resumo, achou_algo_novo (sim, não) |
@@ -417,7 +417,7 @@ erDiagram
         int     quantidade
         decimal faturamento
         varchar origem "MANUAL | IMPORTACAO"
-        varchar origem_dado "ENTREVISTA | QUESTIONARIO | FONTE_SECUNDARIA"
+        varchar fonte_dado "ENTREVISTA | QUESTIONARIO | FONTE_SECUNDARIA"
         varchar nome_fonte "nome da fonte (RF04)"
         varchar lanc_status "ATIVO | CANCELADO"
         int     id_confeccao FK
@@ -560,7 +560,7 @@ A numeração segue o [minimundo](Banco-de-Dados/docs/minimundo.md).
 | RN09 | Entrevista registra a categoria que o empresário *acha* que mais vende | `id_categoria_percebida` aceita NULL |
 | RN10 | Todo relatório tem pelo menos um item | Transação em `transacoes.sql` faz `ROLLBACK` se nenhum item for gerado |
 | RN12 | O sistema atende só Toritama, Caruaru e Santa Cruz do Capibaribe, em PE (RF02) | `CHECK chk_cidade_agreste` e `UNIQUE` no nome da cidade |
-| RN13 | Todo lançamento informa a fonte do dado: entrevista, questionário ou fonte secundária (RF04) | `origem_dado NOT NULL` com `CHECK chk_lanc_fonte` e `nome_fonte NOT NULL` |
+| RN13 | Todo lançamento informa a fonte do dado: entrevista, questionário ou fonte secundária (RF04) | `fonte_dado NOT NULL` com `CHECK chk_lanc_fonte` e `nome_fonte NOT NULL` |
 | RN11 | Toda alteração ou exclusão de lançamento fica no histórico | Triggers `trg_historico_lancamento_update` e `trg_historico_lancamento_delete`; relatórios em `auditoria.sql` |
 | RN14 | Pedido corporativo é feito em lote: cada item tem no mínimo 5 peças (RNF03) | `CHECK chk_item_pedido_lote (quantidade >= 5)` |
 | RN15 | Empresa, produto ou artesão com pedidos ou produtos vinculados não pode ser excluído | `FOREIGN KEY ... ON DELETE RESTRICT` em `pedido_corporativo`, `item_pedido_corporativo` e `produto` |
