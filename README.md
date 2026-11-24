@@ -39,6 +39,18 @@ As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Ban
 
 ## Como rodar o projeto completo
 
+### Com Docker (um comando)
+
+Na raiz do repositório:
+
+```bash
+docker compose up --build
+```
+
+Sobem três serviços: o MySQL 8.0 (`localhost:3307`, com o `banco_completo.sql`), a API (`http://localhost:8080`, com Swagger em `/swagger-ui.html`) e o front (`http://localhost:3000`). A API só inicia depois que o banco está saudável, e o front só depois da API. Para apagar os dados e recomeçar, use `docker compose down -v`.
+
+### Sem Docker
+
 1. **Banco:** dentro de `Banco-de-Dados/`, `docker compose up -d` sobe o MySQL 8.0 na porta 3307 com o banco `confeccoes` e os dados de exemplo.
 2. **Back-end:** dentro de `Back-end/`, `./mvnw spring-boot:run` (ou `mvnw.cmd` no Windows). O perfil padrão usa H2 em memória; para usar o MySQL do Docker, configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`.
 3. **Front-end:** dentro de `Front-end/Frontend/`, `npm install` e `npm run dev --prefix apps/web`, com `VITE_API_URL=http://localhost:8080` no `apps/web/.env`.
