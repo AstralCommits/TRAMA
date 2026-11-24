@@ -133,7 +133,7 @@ export async function authenticateAccount(emailValue: string, password: string):
         id: `api-${email}`,
         name: email.split('@')[0],
         email,
-        company: '',
+        company: 'API do TRAMA',
         city: '',
         role: 'Usuário da API',
         isDemo: false,
