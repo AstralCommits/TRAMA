@@ -1,5 +1,3 @@
-# Sobe o TRAMA inteiro com um comando: docker compose up --build
-# Front: http://localhost:3000 · API: http://localhost:8080 (Swagger em /swagger-ui.html) · MySQL: localhost:3307
 services:
   banco:
     image: mysql:8.0
