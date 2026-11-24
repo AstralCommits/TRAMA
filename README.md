@@ -679,6 +679,8 @@ docker compose exec -T mysql mysql -uroot -proot confeccoes < database/teste_con
 | [selects.sql](Banco-de-Dados/database/selects.sql) | Consulta de todos os registros de cada tabela |
 | [consultas.sql](Banco-de-Dados/database/consultas.sql) | Consultas com `INNER JOIN`, `LEFT JOIN`, `GROUP BY`, `COUNT`, `AVG`, `MAX` e `MIN` |
 | [teste_desempenho.sql](Banco-de-Dados/database/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não fica no `banco_completo.sql` e não altera os dados |
+| [seed_demonstracao_projetaí.sql](Banco-de-Dados/database/seed_demonstracao_projetaí.sql) | Massa de dados fictícia do polo têxtil para o ProjetAÍ e a view `vw_serie_polo_regional` |
+| [teste_demonstracao_projetai.sql](Banco-de-Dados/database/teste_demonstracao_projetai.sql) | 12 casos de teste da massa de demonstração; não altera os dados |
 | [schema_sqlite.sql](Banco-de-Dados/database/schema_sqlite.sql) | Versão SQLite3 do `schema.sql`, com os triggers e a view |
 | [gerar_sqlite.py](Banco-de-Dados/database/gerar_sqlite.py) | Gera o `extensao.db` a partir do `schema_sqlite.sql`, do `inserts.sql` e do `05_seed_produtos_pe.sql` |
 | [extensao.db](Banco-de-Dados/database/extensao.db) | Banco SQLite pronto, com os dados de exemplo |
@@ -761,6 +763,19 @@ mysql -u root -p < database/teste_desempenho.sql
 Para recomeçar do zero, apague o banco antes com `DROP DATABASE confeccoes;`.
 
 Pelo **MySQL Workbench**: abra cada arquivo em *File → Open SQL Script* e execute (⚡), na mesma ordem.
+
+### Massa de demonstração (ProjetAÍ)
+
+Depois de subir o banco, rode a carga e confira (na pasta `Banco-de-Dados`):
+
+```bash
+docker compose exec -T mysql mysql -utrama -ptrama --default-character-set=utf8mb4 confeccoes < database/seed_demonstracao_projetaí.sql
+docker compose exec -T mysql mysql -utrama -ptrama confeccoes < database/teste_demonstracao_projetai.sql
+```
+
+São **dados fictícios**: 12 confecções de Caruaru, Toritama e Santa Cruz do Capibaribe (ids 9001 a 9012, nome iniciado por `Demo`, sem CNPJ) e 408 lançamentos, de novembro/2024 a outubro/2026. Há picos em maio/junho e em novembro/dezembro e, na comparação dos últimos 12 meses com os 12 anteriores, categorias em alta (Jeans e Fitness), em queda (Moda Masculina e Praia) e estáveis (Moda Feminina e Moda Infantil).
+
+A carga cria a `vw_serie_polo_regional`, com faturamento, itens e variação mês a mês por município. Rodar de novo não duplica nada e, se algo falhar, ela desfaz tudo.
 
 ### Backup e restauração
 

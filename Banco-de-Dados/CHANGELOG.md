@@ -9,6 +9,7 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 ## [Não lançado]
 
 ### Adicionado
+- **DEMO-DB-01:** massa de dados fictícia do polo têxtil para o ProjetAÍ (`seed_demonstracao_projetaí.sql`), view `vw_serie_polo_regional` com a série mensal por município e `teste_demonstracao_projetai.sql` com 12 casos.
 - **DB-01 (#9):** `04_constraints_pedidos_lote.sql` com as tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`. `CHECK (quantidade >= 5)` nos itens dos pedidos em lote, chaves estrangeiras `ON DELETE RESTRICT` entre empresas, pedidos, produtos e artesãos, validação de CNPJ (formato, unicidade e dígitos verificadores com a função `cnpj_valido`), bloqueio de itens em pedidos entregues ou cancelados, índices e a view `vw_pedido_corporativo`.
 - **DB-03 (#11):** `05_seed_produtos_pe.sql` com 10 mestres artesãos de Caruaru, Olinda, Cabo de Santo Agostinho e Recife, 30 produtos com descrição, técnica, material e foto, e pedidos de demonstração.
 - `teste_constraints_pedidos.sql` com 18 casos de teste das novas regras.
