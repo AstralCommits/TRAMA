@@ -2,6 +2,7 @@ package br.com.trama.dto;
 
 import br.com.trama.model.enums.OrigemDado;
 import br.com.trama.model.enums.OrigemLancamento;
+import br.com.trama.validation.TextoSeguro;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -40,5 +41,6 @@ public record VendaRequest(
 
         @NotBlank(message = "Informe o nome da fonte ou da coleta.")
         @Size(max = 200, message = "O nome da fonte deve ter no máximo 200 caracteres.")
+        @Pattern(regexp = TextoSeguro.SEM_HTML, message = TextoSeguro.MENSAGEM)
         String nomeFonte) {
 }
