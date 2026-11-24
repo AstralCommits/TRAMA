@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - develop
     paths:
       - "Front-end/**"
       - ".github/workflows/front-end.yml"
@@ -36,5 +37,7 @@ jobs:
         run: npm run lint --prefix apps/web
       - name: Typecheck
         run: npm run typecheck --prefix apps/web
+      - name: Testes (Vitest)
+        run: npm test --prefix apps/web
       - name: Build
         run: npm run build --prefix apps/web
