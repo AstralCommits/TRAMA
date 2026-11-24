@@ -297,6 +297,7 @@ CREATE INDEX idx_historico_lancamento ON historico_lancamento (id_lancamento, da
 CREATE INDEX idx_historico_data ON historico_lancamento (data_alteracao, origem);
 CREATE INDEX idx_cenario_usuario_nome ON cenario_concorrencia (id_usuario, nome);
 CREATE INDEX idx_relatorio_usuario_data ON relatorio (id_usuario, data_geracao);
+CREATE INDEX idx_confeccao_cidade ON confeccao (id_cidade);
 
 CREATE OR REPLACE VIEW vw_lancamentos AS
 SELECT l.id_lancamento,
@@ -318,6 +319,37 @@ INNER JOIN confeccao c   ON l.id_confeccao = c.id_confeccao
 INNER JOIN categoria cat ON l.id_categoria = cat.id_categoria
 INNER JOIN cidade ci     ON c.id_cidade = ci.id_cidade
 WHERE l.lanc_status = 'ATIVO';
+
+-- DB-04: analitica de faturamento e vendas por polo regional.
+-- municipio_id e o alias de cidade.id_cidade; o indice equivalente e confeccao(id_cidade).
+-- As 3 cidades cadastradas (Toritama, Caruaru e Santa Cruz do Capibaribe) sao os polos.
+-- A main nao tem tabela de pedidos, entao a contagem vem dos lancamentos ativos.
+CREATE OR REPLACE VIEW vw_vendas_polo_regional AS
+SELECT ci.id_cidade AS municipio_id,
+       ci.nome AS municipio,
+       ci.uf,
+       COALESCE(v.faturamento_total, 0) AS faturamento_total,
+       COALESCE(v.volume_itens, 0) AS volume_itens,
+       COALESCE(v.qtd_lancamentos, 0) AS qtd_lancamentos,
+       ROUND(COALESCE(v.faturamento_total, 0) / NULLIF(v.volume_itens, 0), 2) AS ticket_medio_item
+FROM cidade ci
+LEFT JOIN (
+    SELECT c.id_cidade,
+           SUM(x.faturamento) AS faturamento_total,
+           SUM(x.quantidade) AS volume_itens,
+           SUM(x.qtd_lancamentos) AS qtd_lancamentos
+    FROM (
+        SELECT id_confeccao,
+               SUM(faturamento) AS faturamento,
+               SUM(quantidade) AS quantidade,
+               COUNT(*) AS qtd_lancamentos
+        FROM lancamento_mensal
+        WHERE lanc_status = 'ATIVO'
+        GROUP BY id_confeccao
+    ) x
+    INNER JOIN confeccao c ON c.id_confeccao = x.id_confeccao
+    GROUP BY c.id_cidade
+) v ON v.id_cidade = ci.id_cidade;
 
 DROP PROCEDURE IF EXISTS inserir_lancamento;
 DROP PROCEDURE IF EXISTS atualizar_lancamento;
@@ -755,3 +787,67 @@ FROM item_relatorio ir
 INNER JOIN categoria cat ON ir.id_categoria = cat.id_categoria
 LEFT JOIN cidade ci      ON ir.id_cidade = ci.id_cidade
 ORDER BY ir.tendencia, ir.variacao_percentual DESC;
+
+
+-- DB-04: vendas por polo regional
+SELECT * FROM vw_vendas_polo_regional
+ORDER BY faturamento_total DESC;
+
+SELECT SUM(faturamento_total) AS faturamento_polos,
+       SUM(volume_itens)      AS itens_polos,
+       SUM(qtd_lancamentos)   AS lancamentos_polos
+FROM vw_vendas_polo_regional;
+
+SHOW INDEX FROM confeccao;
+SHOW INDEX FROM lancamento_mensal;
+
+EXPLAIN SELECT * FROM vw_vendas_polo_regional;
+
+EXPLAIN ANALYZE SELECT * FROM vw_vendas_polo_regional;
+
+-- DB-04: teste de desempenho da view vw_vendas_polo_regional
+DROP PROCEDURE IF EXISTS teste_desempenho_polo_regional;
+
+DELIMITER $$
+CREATE PROCEDURE teste_desempenho_polo_regional()
+BEGIN
+    DECLARE v_idx INT;
+    DECLARE v_cidades INT;
+    DECLARE v_linhas INT;
+    DECLARE v_fat_view DECIMAL(14,2);
+    DECLARE v_lanc_view INT;
+    DECLARE v_fat_base DECIMAL(14,2);
+    DECLARE v_lanc_base INT;
+    DECLARE v_inicio DATETIME(6);
+    DECLARE v_micro BIGINT;
+
+    SELECT COUNT(*) INTO v_idx
+    FROM information_schema.statistics
+    WHERE table_schema = 'confeccoes'
+      AND ((table_name = 'confeccao'          AND index_name = 'idx_confeccao_cidade')
+        OR (table_name = 'lancamento_mensal'  AND index_name = 'idx_lancamento_mes_categoria'))
+      AND seq_in_index = 1;
+
+    SELECT COUNT(*) INTO v_cidades FROM cidade;
+
+    SET v_inicio = NOW(6);
+    SELECT COUNT(*), SUM(faturamento_total), SUM(qtd_lancamentos)
+      INTO v_linhas, v_fat_view, v_lanc_view
+    FROM vw_vendas_polo_regional;
+    SET v_micro = TIMESTAMPDIFF(MICROSECOND, v_inicio, NOW(6));
+
+    SELECT SUM(faturamento), COUNT(*) INTO v_fat_base, v_lanc_base
+    FROM lancamento_mensal WHERE lanc_status = 'ATIVO';
+
+    SELECT
+        IF(v_idx = 2, 'OK', 'FALHA')                         AS indices_presentes,
+        IF(v_linhas = v_cidades, 'OK', 'FALHA')              AS um_registro_por_municipio,
+        IF(v_fat_view = v_fat_base, 'OK', 'FALHA')           AS faturamento_confere,
+        IF(v_lanc_view = v_lanc_base, 'OK', 'FALHA')         AS lancamentos_conferem,
+        IF(v_micro < 100000, 'OK', 'FALHA')                  AS resposta_abaixo_de_100ms,
+        v_micro                                              AS tempo_microsegundos;
+END $$
+DELIMITER ;
+
+CALL teste_desempenho_polo_regional();
+DROP PROCEDURE teste_desempenho_polo_regional;
