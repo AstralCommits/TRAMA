@@ -1,9 +1,3 @@
--- Referência de DDL alinhada à branch Banco-de-Dados/develop consultada em 08/11/2026.
--- Não substitui o repositório SQL principal e não contém DROP DATABASE.
--- A coluna nome_fonte é uma extensão proposta pelo backend para completar o RF04;
--- ela requer alinhamento/merge no repositório Banco-de-Dados antes da integração MySQL.
--- Use somente em um schema vazio de referência.
-
 CREATE DATABASE IF NOT EXISTS confeccoes CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE confeccoes;
 
@@ -66,7 +60,7 @@ CREATE TABLE lancamento_mensal (
     faturamento DECIMAL(12,2) NOT NULL,
     origem VARCHAR(10) NOT NULL,
     fonte_dado VARCHAR(20) NOT NULL,
-    -- Extensão da API para o nome específico da fonte/coleta (RF04).
+
     nome_fonte VARCHAR(200) NOT NULL DEFAULT 'Fonte não informada (registro legado)',
     lanc_status VARCHAR(10) NOT NULL DEFAULT 'ATIVO',
     id_confeccao INT NOT NULL,
@@ -154,7 +148,7 @@ CREATE TABLE historico_lancamento (
     status_novo VARCHAR(10) NULL,
     id_usuario INT NULL,
     data_alteracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- id_lancamento não é FK para preservar histórico após exclusão do lançamento.
+
     CONSTRAINT chk_hist_acao CHECK (acao IN ('UPDATE','DELETE')),
     CONSTRAINT chk_hist_origem CHECK (origem IN ('MANUAL','IMPORTACAO'))
 );
@@ -187,10 +181,6 @@ INNER JOIN categoria cat ON l.id_categoria = cat.id_categoria
 INNER JOIN cidade ci ON c.id_cidade = ci.id_cidade
 WHERE l.lanc_status = 'ATIVO';
 
--- BACK-05 (#26): tabelas usadas por POST /api/avaliacoes.
--- Cópia de referência do schema da equipe de Banco de Dados (Banco-de-Dados-main/database/schema.sql).
--- artesao_id (nome do banco) guarda o id_confeccao do pedido; a FK composta impede avaliar com outra confecção.
--- O trigger trg_avaliacao_pedido_entregue (triggers.sql) também só aceita pedido ENTREGUE.
 CREATE TABLE pedido (
     id_pedido INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     data_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -222,7 +212,6 @@ CREATE TABLE avaliacoes_artesao (
         ON DELETE RESTRICT
 );
 
--- View lida por GET /api/confeccoes/{id}/reputacao (BACK-05).
 CREATE OR REPLACE VIEW vw_reputacao_artesao AS
 SELECT c.id_confeccao AS artesao_id,
        c.nome AS artesao,
