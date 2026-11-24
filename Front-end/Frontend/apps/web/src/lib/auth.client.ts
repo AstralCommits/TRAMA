@@ -52,7 +52,7 @@ async function hashPassword(password: string, salt: Uint8Array): Promise<string>
     'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'],
   );
   const bits = await window.crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: 120_000, hash: 'SHA-256' }, key, 256,
+    { name: 'PBKDF2', salt: salt as BufferSource, iterations: 120_000, hash: 'SHA-256' }, key, 256,
   );
   return bytesToBase64(new Uint8Array(bits));
 }

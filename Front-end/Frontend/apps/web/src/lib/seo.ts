@@ -6,7 +6,7 @@ type SeoMatch = {
 };
 
 type SeoArgs = {
-  matches: ReadonlyArray<SeoMatch>;
+  matches: ReadonlyArray<SeoMatch | undefined>;
   location: {
     pathname: string;
   };
@@ -19,10 +19,11 @@ type SeoOptions = {
   jsonLd?: Record<string, unknown>;
 };
 
-function getSiteOrigin(matches: ReadonlyArray<SeoMatch>): string | undefined {
+function getSiteOrigin(matches: ReadonlyArray<SeoMatch | undefined>): string | undefined {
+  const present = matches.filter((match): match is SeoMatch => match !== undefined);
   const orderedMatches = [
-    ...matches.filter((match) => match.id === "root"),
-    ...matches.filter((match) => match.id !== "root"),
+    ...present.filter((match) => match.id === "root"),
+    ...present.filter((match) => match.id !== "root"),
   ];
 
   for (const match of orderedMatches) {
