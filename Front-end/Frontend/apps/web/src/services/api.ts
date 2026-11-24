@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearApiToken, getApiToken } from '@/lib/apiToken';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
@@ -9,8 +10,27 @@ export const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = getApiToken();
+  if (token) config.headers.set('Authorization', `Bearer ${token}`);
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) clearApiToken();
+    return Promise.reject(error);
+  },
+);
+
+export function isApiConfigured(): boolean {
+  return Boolean(import.meta.env.VITE_API_URL?.trim());
+}
+
 export function getApiErrorMessage(error: unknown): string {
-  if (axios.isAxiosError<{ message?: string; error?: string }>(error)) {
+  if (axios.isAxiosError<{ message?: string; error?: string; detail?: string }>(error)) {
+    if (error.response?.data?.detail) return error.response.data.detail;
     if (error.response?.data?.message) return error.response.data.message;
     if (error.response?.data?.error) return error.response.data.error;
     if (error.response) {

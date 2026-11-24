@@ -1,9 +1,11 @@
 package br.com.trama.controller;
 
+import br.com.trama.dto.CategoriaIndicadorDTO;
 import br.com.trama.dto.IndicadorResponseDTO;
 import br.com.trama.service.IndicadorService;
 import br.com.trama.security.UsuarioPrincipal;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,5 +33,14 @@ public class IndicadorController {
         return ResponseEntity.ok(
                 indicadorService.buscarIndicadores(inicio, fim, categoriaId, cidade, principal)
         );
+    }
+
+    @GetMapping("/tendencias")
+    public List<CategoriaIndicadorDTO> buscarTendencias(
+            @RequestParam String inicio,
+            @RequestParam String fim,
+            @RequestParam(required = false) String cidade,
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        return indicadorService.buscarTendencias(inicio, fim, cidade, principal);
     }
 }

@@ -21,7 +21,7 @@ export interface CategoriaIndicador {
   pecasVendidas?: number;
   faturamentoAnterior?: number;
   pecasVendidasAnterior?: number;
-  variacaoPercentual?: number;
+  variacaoPercentual?: number | null;
 }
 
 export interface IndicadoresResponse {
@@ -36,10 +36,10 @@ export interface IndicadoresResponse {
   } | null;
 }
 
-export type TrendClassification = 'ALTA' | 'QUEDA' | 'ESTÁVEL';
+export type TrendClassification = 'ALTA' | 'QUEDA' | 'ESTÁVEL' | 'SEM BASE';
 
 export interface CategoriaTendencia extends CategoriaIndicador {
-  variacaoPercentual: number;
+  variacaoPercentual: number | null;
   classificacao: TrendClassification;
 }
 

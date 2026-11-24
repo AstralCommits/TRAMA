@@ -1,3 +1,8 @@
+import axios from 'axios';
+import { clearApiToken } from '@/lib/apiToken';
+import { isApiConfigured } from '@/services/api';
+import { loginApi } from '@/services/authService';
+
 export type TramaUser = {
   id: string;
   name: string;
@@ -78,6 +83,7 @@ export function getSession(): TramaUser | null {
 
 export function clearSession() {
   window.localStorage.removeItem(SESSION_KEY);
+  clearApiToken();
 }
 
 export async function registerAccount(input: {
@@ -119,6 +125,28 @@ export async function registerAccount(input: {
 
 export async function authenticateAccount(emailValue: string, password: string): Promise<TramaUser> {
   const email = emailValue.trim().toLowerCase();
+  if (isApiConfigured()) {
+    try {
+      await loginApi(email, password);
+      const local = readAccounts().find((item) => item.user.email === email)?.user;
+      const user: TramaUser = local ?? {
+        id: `api-${email}`,
+        name: email.split('@')[0],
+        email,
+        company: 'API do TRAMA',
+        city: '',
+        role: 'Usuário da API',
+        isDemo: false,
+        createdAt: new Date().toISOString(),
+      };
+      saveSession(user);
+      return user;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        throw new Error('E-mail ou senha incorretos.');
+      }
+    }
+  }
   const account = readAccounts().find((item) => item.user.email === email);
   if (!account) throw new Error('E-mail ou senha incorretos.');
   const candidate = await hashPassword(password, base64ToBytes(account.salt));
