@@ -121,6 +121,17 @@ public class ApiExceptionHandler {
         return response(HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos.", request);
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAccessDenied(Exception ex, HttpServletRequest request) {
+        return response(HttpStatus.FORBIDDEN,
+                "O usuário autenticado não possui permissão para esta operação.", request);
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handleAuthentication(Exception ex, HttpServletRequest request) {
+        return response(HttpStatus.UNAUTHORIZED, "É necessário apresentar um token Bearer válido.", request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex, HttpServletRequest request) {
         return response(HttpStatus.INTERNAL_SERVER_ERROR,

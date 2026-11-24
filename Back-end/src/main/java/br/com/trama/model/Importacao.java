@@ -1,5 +1,8 @@
 package br.com.trama.model;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import br.com.trama.model.enums.StatusImportacao;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,6 +22,7 @@ import java.time.LocalDateTime;
 public class Importacao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JdbcTypeCode(SqlTypes.INTEGER)
     @Column(name = "id_importacao")
     private Long idImportacao;
 
