@@ -1,5 +1,8 @@
 package br.com.trama.model;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import br.com.trama.model.enums.OrigemDado;
 import br.com.trama.model.enums.OrigemLancamento;
 import br.com.trama.model.enums.StatusLancamento;
@@ -25,6 +28,7 @@ import java.time.LocalDate;
 public class LancamentoMensal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JdbcTypeCode(SqlTypes.INTEGER)
     @Column(name = "id_lancamento")
     private Long idLancamento;
 
@@ -53,6 +57,7 @@ public class LancamentoMensal {
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
 
+    @JdbcTypeCode(SqlTypes.INTEGER)
     @Column(name = "id_importacao")
     private Long idImportacao;
 
