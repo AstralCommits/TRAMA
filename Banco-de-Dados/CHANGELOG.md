@@ -8,6 +8,9 @@ Cada versão tem uma tag anotada no Git (`git tag -l -n9` lista todas).
 
 ## [Não lançado]
 
+### Removido
+- **DB-01 e DB-03:** tabelas `artesao`, `produto`, `empresa_cliente`, `pedido_corporativo` e `item_pedido_corporativo`, a função `cnpj_valido`, os triggers e a view `vw_pedido_corporativo`, os scripts `04_constraints_pedidos_lote.sql`, `05_seed_produtos_pe.sql` e `teste_constraints_pedidos.sql` e as partes correspondentes no SQLite e no CI. Pedidos corporativos e catálogo de artesanato ficam fora do escopo do TRAMA, que é um painel de inteligência de dados para as confecções do Polo Têxtil do Agreste, e não um marketplace.
+
 ### Alterado
 - **Incompatível (compatibilização com a API):** em `lancamento_mensal`, `origem_dado` volta a se chamar `fonte_dado` (VARCHAR(20)), o nome que a entidade `LancamentoMensal` do Back-end usa em todas as branches. `nome_fonte` não muda. Versão SQLite e `extensao.db` acompanham. Bancos já criados usam `database/migracoes/V0_5_0__fonte_dado.sql`.
 
