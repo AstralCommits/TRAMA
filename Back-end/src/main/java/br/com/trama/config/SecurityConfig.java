@@ -24,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-    /** Permite apenas recursos do próprio servidor (necessário para o Swagger UI) e bloqueia iframes. */
+
     static final String CONTENT_SECURITY_POLICY = "default-src 'self'; img-src 'self' data:; "
             + "style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
 
@@ -64,9 +64,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .headers(headers -> headers
-                        // X-Content-Type-Options: nosniff
+
                         .contentTypeOptions(Customizer.withDefaults())
-                        // X-Frame-Options: DENY (evita clickjacking)
+
                         .frameOptions(frame -> frame.deny())
                         .contentSecurityPolicy(csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
                         .referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.NO_REFERRER))

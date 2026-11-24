@@ -36,10 +36,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-/**
- * Testes de segurança (OWASP Top 10 - XSS / Injection): payloads com scripts devem ser
- * recusados com HTTP 400 e as respostas devem trazer os headers de segurança.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
