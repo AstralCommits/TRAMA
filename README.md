@@ -788,6 +788,8 @@ Os usuários dos dados de exemplo entram na API com a senha `TramaDemo2026`, gua
 
 **Só para desenvolvimento e demonstração.** A senha é pública: não use estes usuários em um banco exposto na internet. Para atualizar um banco já criado, sem apagar dados, rode `database/migracoes/V0_5_1__senhas_bcrypt.sql`, que só muda as senhas antigas de exemplo.
 
+As outras migrações de `database/migracoes/` também servem só para bancos já criados, e cada uma roda uma única vez, na ordem da versão: `V0_4_0__origem_dado_nome_fonte.sql` (v0.3.x para v0.4.0, renomeia `fonte_dado` para `origem_dado` e cria `nome_fonte`) e `V0_5_0__fonte_dado.sql` (volta o nome para `fonte_dado`). Depois da `V0_4_0`, rode de novo `database/procedures.sql` e o trecho de views de `database/schema.sql`. Bancos novos, criados pelo `docker compose` ou pelo `banco_completo.sql`, já nascem com a estrutura atual.
+
 ### Banco local em SQLite (`extensao.db`)
 
 Para quem precisa de um banco local sem instalar MySQL nem Docker, o repositório traz uma versão SQLite3 do mesmo modelo: as 11 tabelas, todas as chaves primárias e estrangeiras, os `UNIQUE`, os `CHECK`, os dois triggers do histórico de lançamento e as views `vw_lancamentos` e `vw_historico_lancamento`, com os mesmos dados de exemplo do `inserts.sql`.
