@@ -1,0 +1,3 @@
+# DB-07: forca LF (evita quebrar scripts bash no Windows)
+*.sh  text eol=lf
+*.sql text eol=lf
