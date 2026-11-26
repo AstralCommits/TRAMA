@@ -152,7 +152,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
           <button className="mobile-toggle" aria-label="Abrir módulos" aria-expanded={menu} onClick={() => setMenu(!menu)}><Menu /></button>
           <span className="workspace-company-icon"><Scissors size={17} /></span>
           <span className="workspace-company-name">{user.company}</span>
-          <span className="badge">{user.isDemo ? 'DEMONSTRAÇÃO' : 'BANCO CONECTADO'}</span>
+          <span className="badge">{user.isDemo ? 'DEMONSTRAÇÃO' : apiMode ? 'BANCO CONECTADO' : 'CONTA LOCAL'}</span>
         </div>
         <div className="profile-menu-wrap">
           <button
@@ -184,7 +184,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
             ? <><b>Ambiente de demonstração.</b> A Confecção Fio do Agreste e os registros iniciais são fictícios. Você pode testar cadastros e vendas; suas alterações ficam salvas neste navegador.</>
             : apiMode
               ? <><b>{user.role} · {user.company}.</b> Dados lidos e gravados no banco do TRAMA pela API.</>
-            : null}
+            : <><b>Conta de {user.company}.</b> Seus cadastros e vendas são salvos neste navegador e separados por conta. Para acesso compartilhado entre dispositivos, backup central e autenticação de produção, conecte o backend.</>}
         </div>
 
         {!salesReady ? <section className="panel">Carregando os dados salvos desta conta…</section> : <>
@@ -231,7 +231,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
             />
           )}
         </>}
-        <div className="dashboard-foot"><span>TRAMA · Feita para quem faz.</span><span>{user.isDemo ? 'Dados de demonstração, editáveis neste navegador.' : 'Dados do banco TRAMA, pela API.'}</span></div>
+        <div className="dashboard-foot"><span>TRAMA · Feita para quem faz.</span><span>{user.isDemo ? 'Dados de demonstração, editáveis neste navegador.' : apiMode ? 'Dados do banco TRAMA, pela API.' : 'Dados desta conta salvos neste navegador.'}</span></div>
       </div>
     </div>
     {profileOpen && <ProfileDialog user={user} onClose={() => setProfileOpen(false)} onSaved={onUserUpdated} />}

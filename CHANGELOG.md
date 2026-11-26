@@ -6,7 +6,6 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 
 ### Segurança
 
-- Login só pela API: as contas criadas no navegador saíram, e as senhas que tinham ficado no `localStorage` são apagadas.
 - O login fica bloqueado por 15 minutos depois de 5 senhas erradas seguidas para o mesmo e-mail (`429` com `Retry-After`).
 - A API não sobe mais com um segredo de JWT padrão: fora do perfil `local`, `TRAMA_JWT_SECRET` é obrigatório.
 - Erros inesperados passam a ser registrados no log da API.
@@ -15,7 +14,7 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 
 - `GET /api/auth/me` devolve nome, perfil e confecção do usuário logado; o front deixou de deduzir a confecção pela primeira da lista.
 - Contrato da API versionado em `docs/api/openapi.json`, com teste no back e tipos gerados no front (`npm run api:types`), conferidos no CI.
-- Quem entra pela API vê só os módulos da SRS, todos ligados ao banco; os módulos locais ficam só na demonstração.
+- Quem entra pela API vê só os módulos da SRS, todos ligados ao banco; os módulos locais ficam na demonstração e nas contas locais.
 
 ### Alterado
 

@@ -64,8 +64,8 @@ export function Institutional({ enter }: { enter: (mode: string) => void }) {
           <button className="text-button site-login" type="button" onClick={() => { closeMenu(); enter('Entrar'); }}>
             Entrar
           </button>
-          <button className="site-signup" type="button" onClick={() => { closeMenu(); enter('Entrar na demonstração'); }}>
-            Testar a demonstração <ArrowUpRight size={16} />
+          <button className="site-signup" type="button" onClick={() => { closeMenu(); enter('Cadastrar-se'); }}>
+            Cadastrar-se <ArrowUpRight size={16} />
           </button>
         </nav>
       </header>
@@ -80,7 +80,7 @@ export function Institutional({ enter }: { enter: (mode: string) => void }) {
             Gestão e inteligência comercial para quem faz a moda acontecer.
           </p>
           <div className="hero-actions">
-            <button type="button" onClick={() => enter('Entrar')}>
+            <button type="button" onClick={() => enter('Cadastrar-se')}>
               Começar agora <ArrowUpRight size={18} />
             </button>
             <a className="outline-button" href="#plataforma">Conhecer a plataforma</a>
@@ -164,7 +164,7 @@ export function Institutional({ enter }: { enter: (mode: string) => void }) {
             <h2>O próximo capítulo do seu negócio começa aqui.</h2>
             <p>Uma plataforma feita para acompanhar a força de quem movimenta o mercado têxtil do Agreste.</p>
             <div className="closing-actions">
-              <button type="button" onClick={() => enter('Entrar')}>Entrar na TRAMA <ArrowUpRight size={18} /></button>
+              <button type="button" onClick={() => enter('Cadastrar-se')}>Criar minha conta <ArrowUpRight size={18} /></button>
               <button type="button" className="outline-button" onClick={() => enter('Entrar na demonstração')}>Conhecer a demonstração</button>
             </div>
           </div>
