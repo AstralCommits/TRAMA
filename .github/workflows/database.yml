@@ -2,10 +2,6 @@ name: Banco de Dados CI
 
 on:
   pull_request:
-    paths:
-      - "database/**"
-      - "docker-compose.yml"
-      - ".github/workflows/database.yml"
   push:
     branches:
       - main
