@@ -1,4 +1,6 @@
 spring:
+  flyway:
+    enabled: false
   datasource:
     url: ${SQLITE_URL:jdbc:sqlite:./data/confeccoes.db}
     username:

@@ -1,5 +1,3 @@
-USE confeccoes;
-
 DROP PROCEDURE IF EXISTS inserir_lancamento;
 DROP PROCEDURE IF EXISTS atualizar_lancamento;
 DROP PROCEDURE IF EXISTS cancelar_lancamento;
