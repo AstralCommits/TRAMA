@@ -1,4 +1,4 @@
-import type { Categoria, Confeccao, ConfeccaoInput } from '@/types/api';
+import type { Cidade, Categoria, Confeccao, ConfeccaoInput } from '@/types/api';
 import { api } from './api';
 
 export async function listCategorias(signal?: AbortSignal): Promise<Categoria[]> {
@@ -23,4 +23,8 @@ export async function createConfeccao(input: ConfeccaoInput): Promise<Confeccao>
 
 export async function deleteConfeccao(id: number): Promise<void> {
   await api.delete(`/api/confeccoes/${id}`);
+}
+
+export async function listCidades(signal?: AbortSignal): Promise<Cidade[]> {
+  return (await api.get<Cidade[]>('/api/cidades', { signal })).data;
 }

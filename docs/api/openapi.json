@@ -1,6 +1,51 @@
 {
   "components" : {
     "schemas" : {
+      "CadastroRequest" : {
+        "properties" : {
+          "cidade" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "cnpj" : {
+            "pattern" : "^(?:\\d{14}|\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})?$",
+            "type" : "string"
+          },
+          "email" : {
+            "maxLength" : 120,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "nome" : {
+            "maxLength" : 100,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "nomeConfeccao" : {
+            "maxLength" : 120,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "porte" : {
+            "enum" : [ "MICRO", "PEQUENA", "MEDIA" ],
+            "type" : "string"
+          },
+          "senha" : {
+            "maxLength" : 72,
+            "minLength" : 8,
+            "type" : "string"
+          },
+          "tipo" : {
+            "enum" : [ "CONFECCAO", "FACCAO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "cidade", "email", "nome", "nomeConfeccao", "porte", "senha", "tipo" ],
+        "type" : "object"
+      },
       "CategoriaIndicadorDTO" : {
         "properties" : {
           "categoria" : {
@@ -506,6 +551,36 @@
   },
   "openapi" : "3.0.1",
   "paths" : {
+    "/api/auth/cadastro" : {
+      "post" : {
+        "operationId" : "cadastrar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CadastroRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Cadastra uma confecção e o usuário EMPRESARIO dela, e retorna um JWT Bearer",
+        "tags" : [ "Autenticação" ]
+      }
+    },
     "/api/auth/login" : {
       "post" : {
         "operationId" : "login",

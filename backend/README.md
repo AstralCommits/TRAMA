@@ -15,7 +15,7 @@ API REST do [TRAMA](../README.md) em Spring Boot. Os comandos deste documento ro
 
 | Recurso | Endpoints |
 |---|---|
-| Autenticação | `POST /api/auth/login` (devolve o token JWT) e `GET /api/auth/me` (nome, perfil e confecção do usuário logado) |
+| Autenticação | `POST /api/auth/login` (devolve o token JWT), `POST /api/auth/cadastro` (cria a confecção e o usuário EMPRESARIO e devolve o token) e `GET /api/auth/me` (nome, perfil e confecção do usuário logado) |
 | Vendas (lançamentos mensais) | `GET`, `POST`, `PUT` e `DELETE /api/vendas` |
 | Importação de CSV | `GET` e `POST /api/importacoes` |
 | Indicadores e tendências | `GET /api/indicadores` e `GET /api/indicadores/tendencias` |
@@ -27,6 +27,7 @@ API REST do [TRAMA](../README.md) em Spring Boot. Os comandos deste documento ro
 Regras principais:
 
 - há dois perfis, `ADMIN` e `EMPRESARIO`, e cada empresário só vê os dados da própria confecção;
+- o cadastro público cria sempre um usuário EMPRESARIO, nunca ADMIN; e-mail repetido responde `409`, e cada conexão pode fazer até 5 cadastros por hora (`TRAMA_CADASTRO_MAX_POR_HORA`);
 - depois de 5 senhas erradas seguidas para o mesmo e-mail, o login fica bloqueado por 15 minutos e responde `429` com `Retry-After` (`TRAMA_LOGIN_MAX_TENTATIVAS` e `TRAMA_LOGIN_BLOQUEIO_MINUTOS` mudam os limites);
 - fora do perfil `local`, a API só sobe com `TRAMA_JWT_SECRET` definido, com pelo menos 32 caracteres;
 - o impacto de um cenário vai de 0 a 100;
