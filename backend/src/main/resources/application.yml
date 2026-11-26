@@ -21,8 +21,11 @@ trama:
   cors:
     allowed-origins: ${TRAMA_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
   jwt:
-    secret: ${TRAMA_JWT_SECRET:trama-local-development-only-secret-change-before-use-2026}
+    secret: ${TRAMA_JWT_SECRET:}
     expiration-ms: ${TRAMA_JWT_EXPIRATION_MS:86400000}
+  login:
+    max-tentativas: ${TRAMA_LOGIN_MAX_TENTATIVAS:5}
+    bloqueio-minutos: ${TRAMA_LOGIN_BLOQUEIO_MINUTOS:15}
 
 springdoc:
   swagger-ui:
