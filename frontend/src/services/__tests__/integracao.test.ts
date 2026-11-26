@@ -87,16 +87,9 @@ describe('token e sessão', () => {
     expect(getApiToken()).toBeNull();
   });
 
-  it('mantém a sessão de demonstração sem token', () => {
-    saveSession({ ...apiUser, id: 'demo-1', isDemo: true, source: undefined });
-    expect(getSession()?.id).toBe('demo-1');
-  });
-
-  it('encerra sessões de contas locais e apaga as senhas antigas do navegador', () => {
-    window.localStorage.setItem('trama:accounts:v1', JSON.stringify([{ user: { email: 'x@x.com' }, salt: 's', passwordHash: 'h' }]));
+  it('mantém a sessão local sem token', () => {
     saveSession({ ...apiUser, id: 'local-1', source: undefined });
-    expect(getSession()).toBeNull();
-    expect(window.localStorage.getItem('trama:accounts:v1')).toBeNull();
+    expect(getSession()?.id).toBe('local-1');
   });
 
   it('avisa a página quando a API responde 401', async () => {
@@ -132,9 +125,9 @@ describe('login pela API', () => {
     expect(getApiToken()).toBeNull();
   });
 
-  it('não tenta login sem a API configurada', async () => {
+  it('sem a API configurada, procura só as contas deste navegador', async () => {
     import.meta.env.VITE_API_URL = '';
-    await expect(authenticateAccount('ana@x.com', 'x')).rejects.toThrow('O login precisa da API do TRAMA');
+    await expect(authenticateAccount('ana@x.com', 'x')).rejects.toThrow('E-mail ou senha incorretos.');
   });
 
   it('separa senha errada de API fora do ar', async () => {
