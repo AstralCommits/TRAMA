@@ -2,16 +2,17 @@ import sqlite3
 from pathlib import Path
 
 PASTA = Path(__file__).resolve().parent
+SEEDS = PASTA.parent / "seeds"
 BANCO = PASTA / "extensao.db"
 
-def ler_sem_use(nome):
+def ler_sem_use(caminho):
     return "\n".join(
-        linha for linha in (PASTA / nome).read_text(encoding="utf-8").splitlines()
+        linha for linha in caminho.read_text(encoding="utf-8").splitlines()
         if not linha.strip().upper().startswith("USE ")
     )
 
 
-inserts = ler_sem_use("inserts.sql")
+inserts = ler_sem_use(SEEDS / "inserts.sql")
 
 BANCO.unlink(missing_ok=True)
 con = sqlite3.connect(BANCO)

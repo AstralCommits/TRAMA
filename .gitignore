@@ -13,5 +13,5 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
-Banco-de-Dados/backups/*
-!Banco-de-Dados/backups/.gitkeep
+database/backups/*
+!database/backups/.gitkeep

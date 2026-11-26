@@ -1,831 +1,153 @@
-# TRAMA
+<p align="center">
+  <img src="frontend/public/images/trama-logo.png" alt="TRAMA" width="220">
+</p>
 
-Painel de inteligência de dados para confecções do Polo Têxtil do Agreste (PE). Reúne indicadores de vendas por categoria, tendências de mercado e simulação do impacto da concorrência para apoiar decisões de produção. Java/Spring Boot, MySQL e React. Projeto Integrador – ADS Senac Recife.
+<h1 align="center">TRAMA</h1>
 
-**Equipe AstralCommits:** Maria Nicolle, Júlio Cesar Braga e Gyovanna Gabrielly (Front-end) · Ester Reis e Gabriela Olegário (Back-end) · Jamile Keiller e Júlia Cássia (Banco de Dados).
+<p align="center">
+  Painel de inteligência de dados para as confecções do Polo Têxtil do Agreste pernambucano.
+</p>
+
+<p align="center">
+  <a href="https://github.com/AstralCommits/TRAMA/actions/workflows/backend.yml"><img src="https://github.com/AstralCommits/TRAMA/actions/workflows/backend.yml/badge.svg" alt="Back-end CI"></a>
+  <a href="https://github.com/AstralCommits/TRAMA/actions/workflows/frontend.yml"><img src="https://github.com/AstralCommits/TRAMA/actions/workflows/frontend.yml/badge.svg" alt="Front-end CI"></a>
+  <a href="https://github.com/AstralCommits/TRAMA/actions/workflows/database.yml"><img src="https://github.com/AstralCommits/TRAMA/actions/workflows/database.yml/badge.svg" alt="Banco de Dados CI"></a>
+</p>
+
+---
 
 ## Sumário
 
+- [Sobre o projeto](#sobre-o-projeto)
+- [Funcionalidades](#funcionalidades)
+- [Arquitetura](#arquitetura)
+- [Tecnologias](#tecnologias)
 - [Estrutura do repositório](#estrutura-do-repositório)
-- [Branches](#branches)
-- [Como rodar o projeto completo](#como-rodar-o-projeto-completo)
+- [Como rodar](#como-rodar)
+- [Documentação](#documentação)
 - [Como contribuir](#como-contribuir)
-- [Back-end](#back-end)
-- [Front-end](#front-end)
-- [Banco de Dados](#banco-de-dados)
+- [Equipe](#equipe)
+
+## Sobre o projeto
+
+O TRAMA reúne as vendas das confecções do Polo Têxtil do Agreste (Caruaru, Toritama e Santa Cruz do Capibaribe), mostra as tendências por categoria e simula o impacto da concorrência, para apoiar a decisão sobre o que produzir.
+
+Projeto Integrador do curso de Análise e Desenvolvimento de Sistemas do Senac Recife, desenvolvido pela equipe AstralCommits.
+
+## Funcionalidades
+
+- **Indicadores de vendas:** faturamento, peças vendidas e categoria líder, com filtros por mês, ano e cidade.
+- **Tendências por categoria:** compara cada período com o anterior e marca alta, queda ou estabilidade.
+- **Simulador de concorrência:** mostra o faturamento de uma categoria com um percentual de impacto da concorrência, de 0 a 100%, e guarda os cenários.
+- **Importação de CSV:** carrega as vendas do mês de uma vez, validando cada linha numa transação única.
+- **Cadastros:** categorias, confecções e lançamentos mensais.
+- **Perfis de acesso:** administrador e empresário, e cada empresário só vê os dados da própria confecção.
+- **Auditoria:** o banco registra toda alteração e exclusão de lançamento.
+- **Demonstração:** a Confecção Fio do Agreste já vem com dados fictícios para conhecer o sistema.
+
+## Arquitetura
+
+```mermaid
+flowchart LR
+    U[Navegador] -->|HTTP :3000| W[Front-end<br/>React + React Router]
+    W -->|REST + JWT :8080| A[Back-end<br/>Spring Boot]
+    A -->|JPA| D[(MySQL 8<br/>confeccoes)]
+```
+
+O front conversa com a API por REST, com um token JWT. A API é a única parte que acessa o banco. Com a demonstração ou com uma conta criada só no navegador, o front funciona sem a API e guarda os dados localmente.
+
+## Tecnologias
+
+| Parte | Tecnologias |
+|---|---|
+| Front-end | React 19, React Router 8, Vite 8, Tailwind CSS, TypeScript, Vitest |
+| Back-end | Java 21, Spring Boot 3.3 (Web, Data JPA, Validation, Security), JWT, SpringDoc OpenAPI, JaCoCo |
+| Banco de dados | MySQL 8 (procedures, triggers, views), SQLite como alternativa local |
+| Infraestrutura | Docker Compose, GitHub Actions, SonarQube (opcional) |
 
 ## Estrutura do repositório
 
-Este repositório junta os repositórios da organização, com o histórico de commits de cada um preservado:
+```
+TRAMA/
+├── backend/            API REST em Spring Boot            → backend/README.md
+├── frontend/           aplicação web em React             → frontend/README.md
+├── database/           scripts MySQL, SQLite e backup     → database/README.md
+├── docs/               requisitos, arquitetura, testes, segurança e histórico
+├── .github/            CI, CODEOWNERS e modelos de issue e de Pull Request
+├── docker-compose.yml  sobe banco, API e front juntos
+├── .env.example        senhas e porta do banco para o docker compose
+├── CHANGELOG.md        mudanças de cada versão
+├── CONTRIBUTING.md     fluxo de trabalho da equipe
+├── SECURITY.md         como relatar uma falha de segurança
+└── LICENSE             licença MIT
+```
 
-| Pasta | Origem | Conteúdo |
-|---|---|---|
-| [`Back-end/`](Back-end) | [AstralCommits/Back-end](https://github.com/AstralCommits/Back-end) | API REST em Spring Boot 3 / Java 21 |
-| [`Front-end/`](Front-end) | [AstralCommits/Front-end](https://github.com/AstralCommits/Front-end) | SPA em React + Vite + Tailwind |
-| [`Banco-de-Dados/`](Banco-de-Dados) | [AstralCommits/Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados) | Scripts MySQL, versão SQLite, Docker e CI |
-| [`Novas-Funcionalidades/`](Novas-Funcionalidades) | [AstralCommits/TRAMA-novas-funcionalidades](https://github.com/AstralCommits/TRAMA-novas-funcionalidades) | Novas telas do front-end ainda separadas da SPA principal |
+Cada pasta tem um README com os detalhes da sua parte.
 
-## Documentação
+## Como rodar
 
-A documentação do projeto segue as normas ISO/IEC/IEEE adotadas na disciplina e fica em [`docs/`](docs/README.md):
+### Com Docker (recomendado)
 
-- [Requisitos (29148)](docs/requisitos/especificacao-requisitos-29148.md)
-- [Arquitetura (42010)](docs/arquitetura/descricao-arquitetura-42010.md)
-- [Instalação e uso (26514)](docs/usuario/guia-instalacao-uso-26514.md)
-- [Testes (29119)](docs/testes/plano-testes-29119.md)
-- [Ciclo de vida (12207)](docs/processo/ciclo-de-vida-12207.md)
-- [Segurança (27001)](docs/seguranca/seguranca-informacao-27001.md)
-- [Auditoria de 09/11](docs/auditoria/2026-11-09-auditoria.md) · [Cronograma até 23/11](docs/cronograma/cronograma-2026-11.md)
-
-## Branches
-
-A `main` tem a branch `develop` de cada repositório, que é a branch de integração do GitFlow da equipe. Todas as outras branches foram trazidas com o nome do repositório na frente:
-
-| Repositório | Branches |
-|---|---|
-| Back-end | `back-end/main`, `back-end/develop`, `back-end/backend-regras-importacao`, `back-end/feature/backend-documentacao-qualidade` |
-| Front-end | `front-end/main`, `front-end/develop`, `front-end/TRAMA-Versão-1` |
-| Banco de Dados | `banco-de-dados/main`, `banco-de-dados/develop`, `banco-de-dados/feature/alinhamento-srs`, `banco-de-dados/feature/auditoria-historico`, `banco-de-dados/feature/compatibiliza-origem-dado`, `banco-de-dados/feature/db-01-db-03-pedidos-produtos`, `banco-de-dados/feature/docker-mysql`, `banco-de-dados/feature/indices-rnf01`, `banco-de-dados/feature/perfil-empresario`, `banco-de-dados/feature/sqlite-local` |
-| Novas funcionalidades | `novas-funcionalidades/main`, `novas-funcionalidades/develop` |
-
-As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados/tags). Novas funcionalidades entram na `main` por Pull Request.
-
-## Como rodar o projeto completo
-
-### Com Docker (um comando)
-
-Na raiz do repositório:
+Precisa do [Docker](https://www.docker.com/) com o Compose. Na raiz do repositório:
 
 ```bash
 docker compose up --build
 ```
 
-Sobem três serviços: o MySQL 8.0 (`localhost:3307`, com o `banco_completo.sql` e a carga de demonstração), a API (`http://localhost:8080`, com Swagger em `/swagger-ui.html`) e o front (`http://localhost:3000`). A API só inicia depois que o banco está saudável, e o front só depois da API. Para apagar os dados e recomeçar, use `docker compose down -v`. Quem já tinha subido antes precisa desse comando uma vez, para o banco receber a carga de demonstração.
+| Serviço | Endereço |
+|---|---|
+| Front-end | http://localhost:3000 |
+| API | http://localhost:8080 |
+| Documentação da API (Swagger) | http://localhost:8080/swagger-ui.html |
+| MySQL | `localhost:3307`, banco `confeccoes`, usuário `trama` |
+
+O banco sobe com o schema completo e com a massa de demonstração. A API espera o banco ficar pronto, e o front espera a API. Para apagar os dados e começar de novo:
+
+```bash
+docker compose down -v
+```
+
+As senhas e a porta do banco têm valores padrão para desenvolvimento. Para trocar, crie um arquivo `.env` na raiz a partir do [`.env.example`](.env.example) antes de subir.
+
+Os usuários para entrar no sistema estão no [README do banco](database/README.md#usuários-de-demonstração).
 
 ### Sem Docker
 
-1. **Banco:** dentro de `Banco-de-Dados/`, `docker compose up -d` sobe o MySQL 8.0 na porta 3307 com o banco `confeccoes` e os dados de exemplo.
-2. **Back-end:** dentro de `Back-end/`, `./mvnw spring-boot:run` (ou `mvnw.cmd` no Windows). O perfil padrão usa H2 em memória; para usar o MySQL do Docker, configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`.
-3. **Front-end:** dentro de `Front-end/Frontend/`, `npm install` e `npm run dev --prefix apps/web`, com `VITE_API_URL=http://localhost:8080` no `apps/web/.env`.
+| Parte | Requisito | Como rodar |
+|---|---|---|
+| Banco | MySQL 8 | [database/README.md](database/README.md#como-executar) |
+| Back-end | Java 21 | [backend/README.md](backend/README.md#como-rodar) |
+| Front-end | Node.js 22.22+ | [frontend/README.md](frontend/README.md#como-rodar) |
 
-Os detalhes de cada parte estão nas seções abaixo.
+O Back-end também roda sozinho, com um banco H2 em memória, e o Front-end roda sozinho no modo demonstração.
+
+## Documentação
+
+A documentação segue as normas ISO/IEC/IEEE adotadas na disciplina e fica em [`docs/`](docs/README.md):
+
+| Norma | Documento |
+|---|---|
+| ISO/IEC/IEEE 29148 | [Especificação de requisitos](docs/requisitos/especificacao-requisitos-29148.md) |
+| ISO/IEC/IEEE 42010 | [Descrição da arquitetura](docs/arquitetura/descricao-arquitetura-42010.md) |
+| ISO/IEC/IEEE 26514 | [Guia de instalação e uso](docs/usuario/guia-instalacao-uso-26514.md) |
+| ISO/IEC/IEEE 29119 | [Plano de testes](docs/testes/plano-testes-29119.md) |
+| ISO/IEC 12207 | [Ciclo de vida](docs/processo/ciclo-de-vida-12207.md) |
+| ISO/IEC 27001 | [Segurança da informação](docs/seguranca/seguranca-informacao-27001.md) |
+
+Acompanhamento: [auditoria de 09/11](docs/auditoria/2026-11-09-auditoria.md), [cronograma](docs/cronograma/cronograma-2026-11.md) e [roteiro da apresentação](docs/apresentacao/ROTEIRO_APRESENTACAO.md).
 
 ## Como contribuir
 
-A `main` é protegida: toda mudança entra por Pull Request com a aprovação de pelo menos uma pessoa da equipe. O [guia de contribuição](CONTRIBUTING.md) explica o fluxo de branches, o padrão de commits (`DB-01:`, `BACK-02:`, `FRONT-04:`) e o que conferir na revisão. Ao abrir uma issue ou um Pull Request, use os modelos do repositório.
+A `main` é protegida: toda mudança entra por Pull Request, com a aprovação de pelo menos uma pessoa da equipe e o CI passando. O [guia de contribuição](CONTRIBUTING.md) explica o nome das branches, o padrão dos commits (`DB-01:`, `BACK-02:`, `FRONT-04:`) e o que conferir na revisão.
 
-## Back-end
+Este repositório junta os antigos [Back-end](https://github.com/AstralCommits/Back-end), [Front-end](https://github.com/AstralCommits/Front-end) e [Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados), com o histórico de commits de cada um. As branches que vieram de lá têm o nome do repositório na frente (`back-end/`, `front-end/`, `banco-de-dados/` e `novas-funcionalidades/`) e ficam só como histórico. As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados/tags).
 
-Os comandos desta seção são executados dentro da pasta `Back-end/`.
+## Equipe
 
-Esta branch reúne a primeira etapa de desenvolvimento e atualização do backend do TRAMA. Seu objetivo é concentrar as funcionalidades relacionadas à estrutura principal da aplicação, ao gerenciamento de dados e às regras de negócio necessárias para o funcionamento da plataforma.
-
-A branch `backend-regras-importacao` foi criada a partir da `develop` e contém as implementações das issues #1 a #4, #12, #13 e #17.
-
-### Issues desta etapa
-
-- **#1 a #4:** configuração inicial do projeto Spring Boot, criação das entidades e repositórios JPA, gerenciamento de categorias e confecções e operações relacionadas aos lançamentos mensais.
-- **#12 — BACK-08:** implementação do tratamento global de exceções, utilizando Problem Details conforme a RFC 7807, para padronizar as respostas de erro da API.
-- **#13 — BACK-09:** desenvolvimento da importação de dados de vendas por arquivos CSV, incluindo validação dos registros, associação ao usuário responsável e controle transacional.
-- **#17:** atualização das regras de usuários e perfis, com suporte aos perfis `ADMIN` e `EMPRESARIO`, controle de acesso aos dados por confecção e validação do impacto dos cenários entre 0 e 100.
-
-### Organização das branches
-
-O repositório utiliza branches para organizar o desenvolvimento e manter a versão principal do projeto estável.
-
-- **`main`:** mantém a versão estável e consolidada do backend.
-- **`develop`:** reúne as funcionalidades integradas e validadas pela equipe durante o desenvolvimento.
-- **`backend-regras-importacao`:** concentra as implementações da primeira etapa do backend, antes de serem integradas à `develop`.
-
-As alterações desta branch devem ser revisadas e integradas à `develop` por meio de um Pull Request. A próxima etapa será desenvolvida em uma nova branch, criada a partir da `develop` atualizada.
-
-### Alinhamento com o Banco de Dados
-
-Esta etapa considera a estrutura e as regras definidas pela equipe de Banco de Dados, incluindo os perfis `ADMIN` e `EMPRESARIO`, a restrição `chk_cenario_impacto` e os campos relacionados à origem dos dados.
-
-O backend também prevê o armazenamento do campo `nome_fonte`, conforme a necessidade de identificação da origem dos lançamentos. A migração `V0_5_0__nome_fonte_lancamento.sql` deverá ser alinhada e aprovada pela equipe de Banco de Dados antes de sua aplicação no MySQL.
-
-A migração `V0_4_0` não deve ser executada caso as alterações correspondentes ao PR #6 já estejam aplicadas no banco.
-
-### Execução local
-
-O projeto utiliza Java 21 e Maven. O perfil padrão `local` utiliza o banco H2 em memória para facilitar a execução e os testes durante o desenvolvimento.
-
-No Windows:
-
-```bash
-mvnw.cmd clean test
-mvnw.cmd spring-boot:run
-```
-
-No Linux/macOS:
-
-```bash
-./mvnw clean test
-./mvnw spring-boot:run
-```
-
-### Etapa 2: documentação, testes e qualidade
-
-Entregue no PR #18 do repositório de origem (DOC-01, TEST-01, DEVOPS-01 e DEVOPS-02):
-
-- **Documentação da API:** SpringDoc OpenAPI 2.6.0 (`config/OpenApiConfig.java`), com os controllers anotados. Com a API rodando, a documentação fica em `http://localhost:8080/swagger-ui.html`.
-- **Testes de integração:** `CenarioIntegrationTest` e `JwtAndImportacaoIntegrationTest`, em `src/test/java/br/com/trama`. Rodam com o perfil `test` (`src/test/resources/application-test.yml`), que usa H2 em memória no modo MySQL.
-- **Cobertura:** `mvn verify` gera o relatório do JaCoCo em `target/site/jacoco/`.
-- **CI:** o workflow [`.github/workflows/back-end.yml`](.github/workflows/back-end.yml) compila e testa o Back-end com Java 21 em todo Pull Request que altera `Back-end/`. Quando `SONAR_TOKEN` e `SONAR_HOST_URL` estão configurados no repositório, ele também envia a análise ao SonarQube.
-
-```bash
-mvn clean verify
-```
-
-### Banco de dados e migrações do back-end
-
-O backend utiliza o schema MySQL `confeccoes` mantido pela equipe de Banco de Dados. O schema canônico é o da branch `develop` do repositório SQL; os arquivos desta pasta são referências para o mapeamento JPA e migrações complementares da API.
-
-- `schema_reference.sql`: referência das tabelas principais já alinhada às alterações do PR #6 (perfil `EMPRESARIO`, `fonte_dado`, `chk_cenario_impacto`, tabela `historico_lancamento`) e inclui a extensão proposta `nome_fonte` para atender ao RF04. Não executar sobre uma base existente.
-- `migrations/V0_5_0__nome_fonte_lancamento.sql`: acrescenta apenas `nome_fonte` à tabela `lancamento_mensal`, pois a branch atual já possui `fonte_dado`. A equipe de Banco de Dados deve aprovar e integrar essa extensão antes da validação MySQL.
-- `migrations/V0_4_0__perfil_empresario_e_impacto.sql`: compatibilidade para bancos antigos que ainda usam perfil `CONFECCAO`; não executar em bancos que já receberam o PR #6.
-
-O PR #6 do repositório Banco-de-Dados foi integrado à `develop` em 3 de novembro de 2026. O ZIP do banco recebido nesta revisão ainda estava desatualizado, portanto a branch remota `develop` deve ser considerada a fonte de verdade.
-
-O script SQL principal da equipe pode recriar o banco do zero. Não o execute em ambiente com dados que devam ser preservados.
-
-## Front-end
-
-Os comandos desta seção são executados dentro da pasta `Front-end/Frontend/`, onde fica o `package.json`.
-
-O projeto reúne o site institucional original do TRAMA e a área de gestão na mesma aplicação. O site continua sendo a porta de entrada; cadastro, login ou demonstração levam ao painel integrado.
-
-### Como executar no Windows
-
-Abra o PowerShell **na pasta onde está este `package.json`**. Nesta versão, o `package.json` fica diretamente na raiz do projeto, sem precisar entrar em outra pasta `TRAMA`.
-
-```powershell
-npm.cmd install
-Copy-Item .\apps\web\.env.example .\apps\web\.env
-npm.cmd run dev --prefix apps/web
-```
-
-Acesse `http://localhost:3000` e mantenha o PowerShell aberto enquanto utiliza o sistema.
-
-Requisito indicado pelo projeto: Node.js `22.22.0` ou superior.
-
-#### Atualizar uma instalação anterior sem perder as dependências
-
-Pare o servidor (`Ctrl + C`), extraia **o conteúdo deste ZIP** diretamente na pasta que já contém o `package.json` (a pasta `TRAMA` dentro de `TRAMA-FRONTEND-ATUALIZADO`) e aceite substituir os arquivos. Não extraia criando outra pasta dentro dela. O `node_modules` e o `.env` existentes podem permanecer. Depois, nessa mesma pasta, execute `npm.cmd run dev --prefix apps/web`. Só rode `npm.cmd install` caso o npm informe que falta alguma dependência.
-
-### Fluxo de entrada
-
-- **Cadastrar-se:** cria uma conta com nome, e-mail, nome da confecção, cidade e senha; ao concluir, abre a área de gestão.
-- **Entrar:** valida o e-mail e a senha da conta cadastrada neste navegador.
-- **Entrar na demonstração:** mantém o fluxo de duas etapas do site original e abre a Confecção Fio do Agreste com dados de exemplo.
-
-Nesta entrega, cadastro, login e persistência são locais ao navegador. A senha não é salva em texto puro: é derivada com PBKDF2 e salt usando Web Crypto. Isso torna o fluxo testável agora, mas **não substitui autenticação de servidor**. A conta não é compartilhada entre dispositivos ou navegadores.
-
-### O que foi preservado
-
-O site institucional original continua na página inicial, incluindo a navegação, apresentação, método, benefícios e as chamadas para entrar ou se cadastrar. A entrada pela demonstração continua com as perguntas de perfil e cidade.
-
-Os módulos antigos permanecem na área de gestão:
-
-1. Visão Geral
-2. Dados de Vendas
-3. Tendências por Categoria
-4. Comparação de Produtos
-5. Cenário da Concorrência
-6. Estoque
-7. Produção
-8. Vendas e Pedidos
-9. Financeiro
-10. Clientes e Fornecedores
-11. Relatórios e Indicadores
-12. Agenda e Notificações
-13. Equipe e Permissões
-14. Configurações
-
-### Funcionalidades acrescentadas e integradas
-
-- **Dashboard de Indicadores:** faturamento total, peças vendidas, categoria líder, filtros por mês/ano/cidade e gráfico por categoria. Usa as vendas registradas na conta quando não há backend configurado.
-- **Análise de Tendências:** compara o período selecionado com o período imediatamente anterior; classifica variação `>= +5%` como alta, `<= -5%` como queda e valores intermediários como estáveis. Sem período anterior, mostra “Sem base”.
-- **Simulador de Cenários Comparativos:** preserva a simulação matemática que já existia em Cenário da Concorrência e deixa o acesso explícito no menu.
-- **Cadastros:** permite criar, editar e excluir registros administrativos simplificados.
-- **Persistência local:** vendas, estoque e registros operacionais são separados por conta e continuam disponíveis após recarregar ou fechar o navegador.
-
-A demonstração usa registros fictícios, sempre identificados como demonstração. Uma conta nova começa sem vendas e sem cadastros operacionais de exemplo, para não misturar dados fictícios com os dados informados pela empresa.
-
-### Integração com o backend
-
-Quem entra com um usuário do TRAMA usa a API e o banco de dados. A demonstração e as contas criadas no navegador continuam locais e não chamam a API. No Docker a integração já vem ligada; fora dele, configure o `apps/web/.env`:
-
-```env
-VITE_API_URL=http://localhost:8080
-```
-
-| Tela | Endpoints |
+| Frente | Integrantes |
 |---|---|
-| Login | `POST /api/auth/login` (o perfil e a confecção saem do token JWT) |
-| Visão Geral, Tendências por Categoria, Relatórios | `GET /api/vendas` |
-| Dashboard de Indicadores | `GET /api/indicadores` |
-| Análise de Tendências | `GET /api/indicadores/tendencias` |
-| Dados de Vendas e Lançamento de Vendas | `GET`, `POST`, `PUT` e `DELETE /api/vendas`, `GET` e `POST /api/importacoes` |
-| Gerenciamento de Categorias | `GET`, `POST` e `DELETE /api/categorias` |
-| Gerenciamento de Confecções | `GET`, `POST` e `DELETE /api/confeccoes` |
-| Simulador de Impacto da Concorrência | `POST /api/cenarios/simular`, `GET` e `POST /api/cenarios` |
-
-Estoque, Produção, Vendas e Pedidos, Financeiro, Clientes e Fornecedores, Cadastros, Agenda, Equipe, Configurações, Cenário da Concorrência e Simulador de Cenários Comparativos não têm serviço na API: o que é digitado neles fica só no navegador, e a tela avisa. A Comparação de Produtos não aparece para usuários da API, porque o banco guarda o total mensal por categoria e confecção.
-
-A sessão da API termina quando o token vence ou é recusado, e a tela volta para o login. Com a API fora do ar, o login informa que não conseguiu se conectar.
-
-### Pacotes de entrega
-
-A equipe do Front entregou várias versões do projeto como arquivos `.zip`. Eles foram descompactados em [`Front-end/pacotes/`](Front-end/pacotes), um pacote por pasta, para que o conteúdo possa ser lido e comparado no GitHub. **Nenhum pacote foi copiado por cima do código em uso**: cada um é uma versão paralela, com funcionalidades que os outros não têm, e a integração ao app em `Front-end/Frontend` ainda precisa ser feita pela equipe.
-
-| Pasta | Autor | Data | Conteúdo | O que só existe nele |
-|---|---|---|---|---|
-| [`entrega-06-07-08`](Front-end/pacotes/entrega-06-07-08) | Júlio Cesar | 09/11 | Back-end e Front-end | `services/authService.ts` |
-| [`trama-develop`](Front-end/pacotes/trama-develop) | Maria Nicolle | 22/11 | Front-end | Relatórios, comparação de mercado, organização e configurações |
-| [`monorepo-v0.2.0-dev.4`](Front-end/pacotes/monorepo-v0.2.0-dev.4) | Maria Nicolle | 23/11 | Front-end, Back-end e Banco de Dados | Relatórios e cenários mensais, gestão de categorias e equipe; no Back-end, equipe, convites e filtros salvos (29 arquivos). O Banco deste pacote não tem as DB-01/DB-03, o Docker nem o SQLite |
-
-Os arquivos são os mesmos dos `.zip`, sem os comentários no código, como no resto do repositório. Os pacotes `front-05-06-marketplace` (painel do artesão e catálogo) e `us02-rest` (serviços de produtos, artesãos e cotações) foram retirados em 24/11/2026, porque são funções de marketplace, fora do escopo do TRAMA. Eles continuam no histórico da branch `front-end/develop`.
-
-### Limites desta versão
-
-Esta versão já permite criar conta local, entrar, cadastrar vendas e manter os registros no mesmo navegador. Para uso real por várias pessoas, acesso de equipe com permissões efetivas, recuperação de senha, banco compartilhado, backup e sincronização, ainda é necessário implementar/conectar o backend Spring Boot e a autenticação no servidor. A tela Equipe e Permissões e os cadastros operacionais existentes são CRUD local simplificado, não controle de acesso corporativo.
-
-### Atualização visual e perfil da conta
-
-Esta versão incorpora a identidade visual enviada para o TRAMA:
-
-- `apps/web/public/images/trama-logo.png`: logo em PNG com fundo transparente, usada no cabeçalho institucional, no menu lateral da plataforma e no rodapé. A primeira dobra do site voltou à composição centralizada da versão original, com título, apresentação e botões de entrada.
-- `apps/web/public/images/agreste-header.jpg`: faixa panorâmica regional usada no topo do site.
-- A primeira dobra do site mantém a composição original; as seções institucionais seguem responsivas e a área interna ganhou ícones e agrupamento visual nos módulos, sem remover funcionalidades.
-- O cabeçalho da área de gestão agora possui um menu de conta com acesso a **Meu perfil**, **Configurações** e **Sair da conta**.
-- Em **Meu perfil**, o usuário pode editar nome, e-mail, empresa e cidade. A edição é persistida na conta local e reflete imediatamente na sessão.
-
-#### Aplicar a atualização sem reinstalar as dependências
-
-Se você já instalou as dependências desta versão, extraia o pacote de correção sobre a pasta do projeto que contém o `package.json`, mantendo a estrutura `apps/web/...` e aceitando substituir os arquivos. Depois, execute:
-
-```powershell
-npm.cmd run dev --prefix apps/web
-```
-
-Não é necessário executar `npm install` novamente, pois esta atualização não acrescenta dependências.
-
-## Banco de Dados
-
-Os comandos desta seção são executados dentro da pasta `Banco-de-Dados/`.
-
-### Modelo conceitual
-
-No modelo conceitual não aparecem chaves estrangeiras: elas surgem como colunas só no modelo lógico.
-
-```mermaid
-erDiagram
-    CIDADE ||--o{ CONFECCAO : localiza
-    CONFECCAO |o--o{ USUARIO : possui
-    CONFECCAO ||--o{ LANCAMENTO_MENSAL : informa
-    CATEGORIA ||--o{ LANCAMENTO_MENSAL : classifica
-    IMPORTACAO |o--o{ LANCAMENTO_MENSAL : origina
-    USUARIO ||--o{ IMPORTACAO : realiza
-    USUARIO ||--o{ CENARIO_CONCORRENCIA : cria
-    USUARIO ||--o{ RELATORIO : gera
-    CATEGORIA |o--o{ CENARIO_CONCORRENCIA : simula
-    CENARIO_CONCORRENCIA |o--o{ RELATORIO : fundamenta
-    RELATORIO ||--|{ ITEM_RELATORIO : possui
-    CATEGORIA |o--o{ ITEM_RELATORIO : agrupa
-    CIDADE |o--o{ ITEM_RELATORIO : compara
-    CONFECCAO ||--o{ ENTREVISTA : responde
-    CATEGORIA |o--o{ ENTREVISTA : "é percebida em"
-    LANCAMENTO_MENSAL ||--o{ HISTORICO_LANCAMENTO : registra
-    USUARIO |o--o{ HISTORICO_LANCAMENTO : altera
-```
-
-#### Entidades e atributos
-
-| Entidade | Identificador | Demais atributos |
-|---|---|---|
-| **Cidade** | id_cidade | nome (Toritama, Caruaru ou Santa Cruz do Capibaribe), uf (PE) |
-| **Confecção** | id_confeccao | nome, cnpj (opcional), porte (micro, pequena, média), tipo (confecção, facção) |
-| **Usuário** | id_usuario | nome, email, senha_hash, perfil (ADMIN, EMPRESARIO) |
-| **Categoria** | id_categoria | nome (até 50 caracteres) |
-| **Lançamento mensal** | id_lancamento | mes_referencia, quantidade, faturamento, origem (MANUAL, IMPORTACAO), fonte_dado (ENTREVISTA, QUESTIONARIO, FONTE_SECUNDARIA), nome_fonte, status (ATIVO, CANCELADO) |
-| **Importação** | id_importacao | nome_arquivo, data_importacao, qtd_linhas, status (CONCLUIDA, ERRO) |
-| **Cenário de concorrência** | id_cenario | nome, percentual_impacto, descricao (opcional) |
-| **Entrevista** | id_entrevista | data, resumo, achou_algo_novo (sim, não) |
-| **Relatório** | id_relatorio | tipo (REGIONAL, CATEGORIA_PERIODO, TENDENCIA, CENARIO), periodo_inicio, periodo_fim, limiar_tendencia, data_geracao |
-| **Item de relatório** | id_item | quantidade, faturamento, variacao_percentual, tendencia (ALTA, QUEDA, ESTAVEL) |
-| **Histórico de lançamento** | id_historico | acao (UPDATE, DELETE), origem (MANUAL, IMPORTACAO), mes_referencia, quantidade_antiga, faturamento_antigo, status_antigo, quantidade_nova, faturamento_novo, status_novo (os novos ficam vazios no DELETE), data_alteracao |
-
-### Modelo lógico
-
-```mermaid
-erDiagram
-    cidade               ||--o{ confeccao            : localiza
-    confeccao            |o--o{ usuario              : possui
-    confeccao            ||--o{ lancamento_mensal    : informa
-    categoria            ||--o{ lancamento_mensal    : classifica
-    importacao           |o--o{ lancamento_mensal    : origina
-    usuario              ||--o{ importacao           : realiza
-    usuario              ||--o{ cenario_concorrencia : cria
-    usuario              ||--o{ relatorio            : gera
-    categoria            |o--o{ cenario_concorrencia : simula
-    cenario_concorrencia |o--o{ relatorio            : fundamenta
-    relatorio            ||--|{ item_relatorio       : possui
-    categoria            |o--o{ item_relatorio       : agrupa
-    cidade               |o--o{ item_relatorio       : compara
-    confeccao            ||--o{ entrevista           : responde
-    categoria            |o--o{ entrevista           : "é percebida em"
-    lancamento_mensal    ||..o{ historico_lancamento : registra
-    usuario              |o..o{ historico_lancamento : altera
-
-    cidade {
-        int     id_cidade PK
-        varchar nome UK "Toritama | Caruaru | Santa Cruz do Capibaribe"
-        char    uf "PE"
-    }
-    confeccao {
-        int     id_confeccao PK
-        varchar nome
-        varchar cnpj UK "opcional"
-        varchar porte "MICRO | PEQUENA | MEDIA"
-        varchar tipo "CONFECCAO | FACCAO"
-        int     id_cidade FK
-    }
-    usuario {
-        int     id_usuario PK
-        varchar nome
-        varchar email UK
-        varchar senha_hash
-        varchar perfil "ADMIN | EMPRESARIO"
-        int     id_confeccao FK "NULL se ADMIN"
-    }
-    categoria {
-        int     id_categoria PK
-        varchar nome UK "até 50 caracteres"
-    }
-    importacao {
-        int       id_importacao PK
-        varchar   nome_arquivo
-        datetime  data_importacao
-        int       qtd_linhas
-        varchar   imp_status "CONCLUIDA | ERRO"
-        int       id_usuario FK
-    }
-    lancamento_mensal {
-        int     id_lancamento PK
-        date    mes_referencia "dia 1 do mês"
-        int     quantidade
-        decimal faturamento
-        varchar origem "MANUAL | IMPORTACAO"
-        varchar fonte_dado "ENTREVISTA | QUESTIONARIO | FONTE_SECUNDARIA"
-        varchar nome_fonte "nome da fonte (RF04)"
-        varchar lanc_status "ATIVO | CANCELADO"
-        int     id_confeccao FK
-        int     id_categoria FK
-        int     id_importacao FK "NULL se MANUAL"
-    }
-    cenario_concorrencia {
-        int     id_cenario PK
-        varchar nome
-        decimal percentual_impacto "0 a 100"
-        varchar descricao "opcional"
-        int     id_usuario FK
-        int     id_categoria FK "NULL = todas"
-    }
-    relatorio {
-        int       id_relatorio PK
-        varchar   tipo "REGIONAL | CATEGORIA_PERIODO | TENDENCIA | CENARIO"
-        date      periodo_inicio
-        date      periodo_fim
-        decimal   limiar_tendencia
-        datetime  data_geracao
-        int       id_usuario FK
-        int       id_cenario FK "obrigatório se CENARIO"
-    }
-    item_relatorio {
-        int     id_item PK
-        int     quantidade
-        decimal faturamento
-        decimal variacao_percentual
-        varchar tendencia "ALTA | QUEDA | ESTAVEL"
-        int     id_relatorio FK
-        int     id_categoria FK "opcional"
-        int     id_cidade FK "opcional, usado no REGIONAL"
-    }
-    entrevista {
-        int     id_entrevista PK
-        date    data
-        text    resumo
-        varchar achou_algo_novo "SIM | NAO"
-        int     id_confeccao FK
-        int     id_categoria_percebida FK "opcional"
-    }
-    historico_lancamento {
-        int       id_historico PK
-        int       id_lancamento "sem FK"
-        varchar   acao "UPDATE | DELETE"
-        varchar   origem "MANUAL | IMPORTACAO"
-        date      mes_referencia
-        int       id_confeccao "sem FK"
-        int       id_categoria "sem FK"
-        int       quantidade_antiga
-        decimal   faturamento_antigo
-        varchar   status_antigo
-        int       quantidade_nova "NULL se DELETE"
-        decimal   faturamento_novo "NULL se DELETE"
-        varchar   status_novo "NULL se DELETE"
-        int       id_usuario "sem FK, quem alterou"
-        datetime  data_alteracao
-    }
-```
-
-`historico_lancamento` implementa a entidade Histórico de lançamento e é preenchida pelos triggers. As linhas tracejadas indicam que `id_lancamento` e `id_usuario` **não são FK**: o registro do histórico precisa continuar existindo depois que o lançamento (ou o usuário) é excluído, e uma FK impediria isso. Pelo mesmo motivo a tabela guarda uma cópia de `origem`, `mes_referencia`, `id_confeccao` e `id_categoria`: depois de um DELETE, o lançamento não existe mais para consultar esses dados. Essa repetição é proposital — o histórico é um retrato do lançamento no momento da alteração, não um dado que deva acompanhar mudanças futuras.
-
-**Legenda da cardinalidade:** `||` = exatamente 1 · `|o` = 0 ou 1 · `o{` = 0 ou N · `|{` = 1 ou N
-
-### Relacionamentos e cardinalidades
-
-| Entidade A | Relacionamento | Entidade B |
-|---|---|---|
-| Cidade (0,N) | localiza | Confecção (1,1) |
-| Confecção (0,N) | possui | Usuário (0,1) |
-| Confecção (0,N) | informa | Lançamento mensal (1,1) |
-| Categoria (0,N) | classifica | Lançamento mensal (1,1) |
-| Importação (0,N) | origina | Lançamento mensal (0,1) |
-| Usuário (0,N) | realiza | Importação (1,1) |
-| Usuário (0,N) | cria | Cenário de concorrência (1,1) |
-| Usuário (0,N) | gera | Relatório (1,1) |
-| Categoria (0,N) | simula | Cenário de concorrência (0,1) |
-| Cenário de concorrência (0,N) | fundamenta | Relatório (0,1) |
-| Relatório (1,N) | possui | Item de relatório (1,1) |
-| Categoria (0,N) | agrupa | Item de relatório (0,1) |
-| Cidade (0,N) | compara | Item de relatório (0,1) |
-| Confecção (0,N) | responde | Entrevista (1,1) |
-| Categoria (0,N) | é percebida em | Entrevista (0,1) |
-| Lançamento mensal (0,N) | registra | Histórico de lançamento (1,1) |
-| Usuário (0,N) | altera | Histórico de lançamento (0,1) |
-
-#### Justificativa das cardinalidades opcionais
-
-Cada participação (0,1) do modelo existe por causa de uma regra do [minimundo](Banco-de-Dados/docs/minimundo.md):
-
-| Relacionamento | Por que é (0,1) | Regra | Garantia no banco |
-|---|---|---|---|
-| Confecção → Usuário | O ADMIN não pertence a nenhuma confecção | RN02 | `id_confeccao` aceita NULL; `CHECK chk_usuario_perfil_confeccao` garante a combinação |
-| Importação → Lançamento mensal | O lançamento pode ser digitado à mão (origem MANUAL) | — | `id_importacao` aceita NULL; `origem` guarda MANUAL ou IMPORTACAO |
-| Categoria → Cenário de concorrência | Um cenário sem categoria vale para todas | RN06 | FK aceita NULL |
-| Cenário de concorrência → Relatório | Só o relatório do tipo CENARIO usa cenário | RN07 | `id_cenario` aceita NULL; tipo validado pelo sistema |
-| Categoria → Item de relatório | O relatório REGIONAL agrupa por cidade, não por categoria | RN07 | `id_categoria` aceita NULL; cidade ou categoria validado pelo sistema |
-| Cidade → Item de relatório | Só o relatório REGIONAL compara cidades | RN07 | `id_cidade` aceita NULL |
-| Categoria → Entrevista | O empresário pode não saber ou não responder qual categoria vende mais | RN09 | FK aceita NULL |
-
-**Relatório (1,N) → Item de relatório (RN10):** a exigência de pelo menos um item não pode ser garantida por FK, porque o relatório é gravado antes dos itens. Quem garante é a transação de geração do relatório (`transacoes.sql`): se nenhum item for gerado, ela faz `ROLLBACK`.
-
-### Chaves estrangeiras (modelo lógico)
-
-Em um relacionamento 1:N, a FK fica no lado N. Se a cardinalidade desse lado é (1,1), a FK é `NOT NULL`; se é (0,1), ela aceita `NULL`.
-
-| Tabela (lado N) | FK | Referencia | Obrigatória? |
-|---|---|---|---|
-| confeccao | id_cidade | cidade | Sim |
-| usuario | id_confeccao | confeccao | Não (só para perfil EMPRESARIO) |
-| lancamento_mensal | id_confeccao | confeccao | Sim |
-| lancamento_mensal | id_categoria | categoria | Sim |
-| lancamento_mensal | id_importacao | importacao | Não (só para origem IMPORTACAO) |
-| importacao | id_usuario | usuario | Sim |
-| cenario_concorrencia | id_usuario | usuario | Sim |
-| cenario_concorrencia | id_categoria | categoria | Não |
-| relatorio | id_usuario | usuario | Sim |
-| relatorio | id_cenario | cenario_concorrencia | Não (só para tipo CENARIO) |
-| item_relatorio | id_relatorio | relatorio | Sim |
-| item_relatorio | id_categoria | categoria | Não |
-| item_relatorio | id_cidade | cidade | Não (só no relatório REGIONAL) |
-| entrevista | id_confeccao | confeccao | Sim |
-| entrevista | id_categoria_percebida | categoria | Não |
-
-### Regras do minimundo e onde são garantidas
-
-A numeração segue o [minimundo](Banco-de-Dados/docs/minimundo.md).
-
-| # | Regra | Implementação |
-|---|---|---|
-| RN01 | Cada confecção fica em uma única cidade; CNPJ opcional, mas sem repetição | `id_cidade NOT NULL`; `cnpj` aceita NULL e é `UNIQUE` |
-| RN02 | ADMIN não tem confecção; EMPRESARIO tem exatamente uma | `CHECK chk_usuario_perfil_confeccao` |
-| RN03 | Um lançamento por confecção, categoria e mês | `UNIQUE (id_confeccao, id_categoria, mes_referencia)` |
-| RN04 | Lançamento cancelado fica fora dos indicadores e relatórios | Procedure `cancelar_lancamento` muda o status sem apagar; as consultas filtram `lanc_status = 'ATIVO'` |
-| RN05 | Linha inválida na planilha: nada da importação é gravado | Transação em `transacoes.sql` |
-| RN06 | Impacto entre 0 e 100; cenário sem categoria vale para todas | `id_categoria` opcional; `CHECK chk_cenario_impacto` (0 a 100) |
-| RN07 | Relatório CENARIO exige cenário; o REGIONAL compara as cidades do polo | `id_cidade` com FK para `cidade`; cenário obrigatório validado pelo sistema |
-| RN08 | Tendência: ALTA se a variação for **≥ +5%**, QUEDA se for **≤ −5%**, ESTAVEL entre os dois (limites inclusivos) | Calculada ao gerar o relatório; `limiar_tendencia` guarda os 5% usados |
-| RN09 | Entrevista registra a categoria que o empresário *acha* que mais vende | `id_categoria_percebida` aceita NULL |
-| RN10 | Todo relatório tem pelo menos um item | Transação em `transacoes.sql` faz `ROLLBACK` se nenhum item for gerado |
-| RN12 | O sistema atende só Toritama, Caruaru e Santa Cruz do Capibaribe, em PE (RF02) | `CHECK chk_cidade_agreste` e `UNIQUE` no nome da cidade |
-| RN13 | Todo lançamento informa a fonte do dado: entrevista, questionário ou fonte secundária (RF04) | `fonte_dado NOT NULL` com `CHECK chk_lanc_fonte` e `nome_fonte NOT NULL` |
-| RN11 | Toda alteração ou exclusão de lançamento fica no histórico | Triggers `trg_historico_lancamento_update` e `trg_historico_lancamento_delete`; relatórios em `auditoria.sql` |
-
-### Procedures
-
-| Procedure | Parâmetros | O que faz |
-|---|---|---|
-| `inserir_lancamento` | mês, quantidade, faturamento, confecção, categoria, fonte do dado | Grava um lançamento MANUAL e ATIVO; qualquer dia do mês vira dia 1 |
-| `atualizar_lancamento` | id do lançamento, quantidade, faturamento, id do usuário | Corrige quantidade e faturamento |
-| `cancelar_lancamento` | id do lançamento, id do usuário | Muda o status para CANCELADO, sem apagar (RN04) |
-| `excluir_lancamento` | id do lançamento, id do usuário | Apaga o lançamento de vez |
-
-O id do usuário é quem está fazendo a alteração. A procedure guarda esse id em `@id_usuario` antes de mexer no lançamento, o trigger copia para o histórico, e no fim a procedure limpa a variável. Alterações feitas direto com `UPDATE` ou `DELETE`, sem passar pelas procedures, ficam no histórico como "Nao identificado".
-
-### Triggers
-
-| Trigger | Quando dispara | O que grava em `historico_lancamento` |
-|---|---|---|
-| `trg_historico_lancamento_update` | Depois de um UPDATE em `lancamento_mensal` | Ação `UPDATE`, origem, mês, confecção, categoria, os valores de antes (`OLD`) e de depois (`NEW`) e o usuário de `@id_usuario` |
-| `trg_historico_lancamento_delete` | Depois de um DELETE em `lancamento_mensal` | Ação `DELETE`, os dados e valores do lançamento apagado e o usuário |
-
-Cancelar um lançamento também vai para o histórico, porque o cancelamento é um UPDATE no status.
-
-### Auditoria do histórico
-
-O `auditoria.sql` traz a view e as procedures para monitorar as alterações em lançamentos (RF06). Todas as procedures recebem o período e a origem: `'MANUAL'` para acompanhar só os lançamentos digitados à mão, `'IMPORTACAO'` para os que vieram de planilha, ou `NULL` para todos.
-
-| Objeto | Parâmetros | O que mostra |
-|---|---|---|
-| `vw_historico_lancamento` (view) | — | Histórico com nomes de confecção, cidade, categoria e usuário, e a diferença de quantidade e faturamento entre antes e depois |
-| `relatorio_historico_periodo` | início, fim, origem | Todas as alterações do período, da mais recente para a mais antiga |
-| `relatorio_alteracoes_por_usuario` | início, fim, origem | Quantas correções, cancelamentos e exclusões cada usuário fez, e o impacto no faturamento |
-| `relatorio_alteracoes_por_confeccao` | início, fim, origem | Quantas alterações cada confecção teve, quantos lançamentos foram mexidos e o impacto no faturamento |
-
-O **impacto no faturamento** é quanto as alterações mudaram o faturamento que entra nos indicadores: numa correção, a diferença entre o valor novo e o antigo; num cancelamento ou exclusão, o valor antigo inteiro, negativo, porque o lançamento sai dos indicadores (RN04).
-
-```sql
-CALL relatorio_alteracoes_por_usuario('2026-10-01', '2026-10-31', 'MANUAL');
-```
-
-### Transações
-
-| # | Situação | Resultado |
-|---|---|---|
-| 1 | Importação de planilha sem erros | `COMMIT`: a importação e as linhas são gravadas juntas |
-| 2 | Importação com uma linha inválida | `ROLLBACK`: nada da importação é gravado (RN05); depois só a tentativa é registrada com status ERRO |
-| 3 | Geração de relatório com um item digitado errado | `ROLLBACK TO SAVEPOINT`: desfaz só o item errado e mantém os anteriores, depois `COMMIT` |
-| 4 | Relatório sem nenhum item | `ROLLBACK`: todo relatório precisa de pelo menos um item (RN10) |
-
-### Consultas
-
-O `consultas.sql` traz 10 consultas que juntam as tabelas com `INNER JOIN` e `LEFT JOIN` e usam `COUNT`, `AVG`, `MAX` e `MIN` com `GROUP BY`. Entre elas:
-
-- confecções com cidade e UF;
-- lançamentos ativos por cidade e faturamento médio por categoria;
-- usuários que nunca fizeram importação (`LEFT JOIN`);
-- relatórios com o cenário usado e a quantidade de itens;
-- histórico de alterações gravado pelos triggers.
-
-### Índices (RNF01)
-
-O RNF01 pede resposta em até 3 segundos com 10.000 vendas. Além das chaves primárias, dos `UNIQUE` e dos índices que o MySQL cria para cada FK, o `schema.sql` cria:
-
-| Índice | Tabela | Colunas | Para quê |
-|---|---|---|---|
-| `idx_lancamento_mes_categoria` | lancamento_mensal | mes_referencia, id_categoria, id_confeccao, lanc_status, quantidade, faturamento | Agregação de faturamento por período e categoria (RF05/RF06) |
-| `idx_lancamento_confeccao` | lancamento_mensal | id_confeccao | Filtro por confecção e, pela junção com `confeccao`, por cidade |
-| `idx_historico_lancamento` | historico_lancamento | id_lancamento, data_alteracao | Histórico de um lançamento (RN11); `id_lancamento` não é FK, então não tinha índice |
-| `idx_historico_data` | historico_lancamento | data_alteracao, origem | Relatórios de auditoria por período e origem (`auditoria.sql`) |
-| `idx_cenario_usuario_nome` | cenario_concorrencia | id_usuario, nome | Cenários salvos do usuário, consultados por nome (RF08) |
-| `idx_relatorio_usuario_data` | relatorio | id_usuario, data_geracao | Relatórios do usuário, do mais recente ao mais antigo |
-
-`idx_lancamento_mes_categoria` começa por `(mes_referencia, id_categoria)` e termina com as colunas que a consulta filtra e soma. Assim ele **cobre** a consulta: o MySQL lê só o índice, sem voltar à tabela. Sem essas colunas, a agregação de um período longo (12 meses) caía em *full table scan* (`type = ALL` no `EXPLAIN`), porque buscar cada linha pelo índice saía mais caro que ler a tabela inteira.
-
-O `teste_desempenho.sql` gera 10.000 lançamentos dentro de uma transação, roda as consultas de faturamento por categoria (RF05) e de tendência (RF06), mostra o `EXPLAIN` das agregações por período e desfaz tudo com `ROLLBACK`. Em um MySQL 8.0 local, com 10.000 vendas:
-
-| Agregação por período | Sem os índices | Com os índices |
-|---|---|---|
-| 12 meses, por categoria | `ALL` (full table scan), 27 ms | `range` em `idx_lancamento_mes_categoria`, 24 ms |
-| 2 meses, por categoria | `ALL` (full table scan), 9 ms | `range` em `idx_lancamento_mes_categoria`, 4 ms |
-
-As agregações do `consultas.sql` (por cidade, categoria e mês) também usam índice (`type = ref`), sem *full table scan*. Com esse volume tudo fica muito abaixo dos 3 segundos; os índices tiram o *full table scan* e mantêm a margem quando o número de vendas crescer.
-
-### Arquivos
-
-| Arquivo | Conteúdo |
-|---|---|
-| [docker-compose.yml](Banco-de-Dados/docker-compose.yml) | MySQL 8.0 em container que carrega o `banco_completo.sql` na primeira subida |
-| [minimundo.md](Banco-de-Dados/docs/minimundo.md) | Minimundo: contexto, usuários, regras de negócio e requisitos |
-| [banco_completo.sql](Banco-de-Dados/database/banco_completo.sql) | Todos os arquivos abaixo em um único script, na ordem certa; recria o banco do zero |
-| [schema.sql](Banco-de-Dados/database/schema.sql) | Criação do banco, das 10 tabelas, da tabela de auditoria `historico_lancamento` e dos índices do RNF01 |
-| [inserts.sql](Banco-de-Dados/database/inserts.sql) | Dados de exemplo para todas as tabelas |
-| [procedures.sql](Banco-de-Dados/database/procedures.sql) | Procedures para inserir, atualizar, cancelar e excluir lançamentos |
-| [triggers.sql](Banco-de-Dados/database/triggers.sql) | Triggers que gravam no histórico os UPDATE e DELETE de lançamentos, com testes |
-| [auditoria.sql](Banco-de-Dados/database/auditoria.sql) | View e procedures de relatório do histórico de lançamentos |
-| [transacoes.sql](Banco-de-Dados/database/transacoes.sql) | Transações de importação e de geração de relatório (`COMMIT`, `ROLLBACK`, `SAVEPOINT`) |
-| [selects.sql](Banco-de-Dados/database/selects.sql) | Consulta de todos os registros de cada tabela |
-| [consultas.sql](Banco-de-Dados/database/consultas.sql) | Consultas com `INNER JOIN`, `LEFT JOIN`, `GROUP BY`, `COUNT`, `AVG`, `MAX` e `MIN` |
-| [teste_desempenho.sql](Banco-de-Dados/database/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não fica no `banco_completo.sql` e não altera os dados |
-| [seed_demonstracao_projetaí.sql](Banco-de-Dados/database/seed_demonstracao_projetaí.sql) | Massa de dados fictícia do polo têxtil para o ProjetAÍ e a view `vw_serie_polo_regional` |
-| [teste_demonstracao_projetai.sql](Banco-de-Dados/database/teste_demonstracao_projetai.sql) | 12 casos de teste da massa de demonstração; não altera os dados |
-| [schema_sqlite.sql](Banco-de-Dados/database/schema_sqlite.sql) | Versão SQLite3 do `schema.sql`, com os triggers e a view |
-| [gerar_sqlite.py](Banco-de-Dados/database/gerar_sqlite.py) | Gera o `extensao.db` a partir do `schema_sqlite.sql` e do `inserts.sql` |
-| [extensao.db](Banco-de-Dados/database/extensao.db) | Banco SQLite pronto, com os dados de exemplo |
-
-### Como executar
-
-#### Com Docker (recomendado para o back-end e o front-end)
-
-Precisa só do [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e aberto. Na pasta do repositório:
-
-```bash
-docker compose up -d
-```
-
-Na primeira vez, o Docker baixa a imagem `mysql:8.0` e roda o `database/banco_completo.sql` automaticamente: cria as tabelas, procedures, triggers, índices e os dados de exemplo. Leva por volta de um minuto. Para saber se terminou:
-
-```bash
-docker compose ps
-```
-
-Quando a coluna `STATUS` mostrar `healthy`, o banco está pronto. O healthcheck só fica `healthy` depois que a carga inicial terminou e a tabela `lancamento_mensal` responde.
-
-| Configuração | Valor |
-|---|---|
-| Host | `localhost` |
-| Porta | `3307` |
-| Banco | `confeccoes` |
-| Usuário / senha | `trama` / `trama` |
-| Usuário root / senha | `root` / `root` |
-| URL JDBC (Spring Boot) | `jdbc:mysql://localhost:3307/confeccoes` |
-
-A porta é `3307`, e não `3306`, para não dar conflito com um MySQL já instalado no computador. Para usar outra porta, defina `MYSQL_PORT` antes de subir (no Git Bash: `MYSQL_PORT=3306 docker compose up -d`). Essas credenciais são só para desenvolvimento.
-
-Para conferir as tabelas e os dados pelo terminal:
-
-```bash
-docker compose exec mysql mysql -utrama -ptrama confeccoes -e "SHOW TABLES; SELECT COUNT(*) FROM lancamento_mensal;"
-```
-
-Pelo **MySQL Workbench** ou DBeaver, crie uma conexão com os dados da tabela acima.
-
-| Comando | O que faz |
-|---|---|
-| `docker compose stop` | Para o banco e mantém os dados |
-| `docker compose start` | Sobe de novo com os dados que já estavam lá |
-| `docker compose logs -f mysql` | Mostra o log do MySQL (útil se o status não ficar `healthy`) |
-| `docker compose down -v` | Apaga o container **e os dados**; o próximo `up -d` recarrega o `banco_completo.sql` do zero |
-
-O `banco_completo.sql` só roda quando o volume de dados está vazio. Depois de mudar algum script SQL, use `docker compose down -v` e `docker compose up -d` para recarregar.
-
-A cada push e Pull Request, o GitHub Actions ([`.github/workflows/banco-de-dados.yml`](.github/workflows/banco-de-dados.yml)) roda `docker compose up -d`, espera o banco ficar `healthy` e confere que as 11 tabelas existem com dados, além das 2 views, das 7 procedures e dos 2 triggers. O resultado aparece na aba **Actions** do repositório e como ✅ ou ❌ no commit e no Pull Request. Assim, uma mudança nos scripts que quebre a carga inicial é descoberta antes de chegar à `develop`.
-
-#### Com MySQL instalado
-
-O jeito mais simples é rodar o script completo, que apaga e recria o banco `confeccoes` com tudo:
-
-```bash
-mysql -u root -p < database/banco_completo.sql
-```
-
-Se preferir rodar por partes, use os arquivos nesta ordem, porque cada um depende do anterior:
-
-```bash
-mysql -u root -p < database/schema.sql
-mysql -u root -p < database/inserts.sql
-mysql -u root -p < database/procedures.sql
-mysql -u root -p < database/triggers.sql
-mysql -u root -p < database/auditoria.sql
-mysql -u root -p < database/transacoes.sql
-mysql -u root -p < database/selects.sql
-mysql -u root -p < database/consultas.sql
-```
-
-Para conferir o desempenho (RNF01), rode depois de criar o banco:
-
-```bash
-mysql -u root -p < database/teste_desempenho.sql
-```
-
-Para recomeçar do zero, apague o banco antes com `DROP DATABASE confeccoes;`.
-
-Pelo **MySQL Workbench**: abra cada arquivo em *File → Open SQL Script* e execute (⚡), na mesma ordem.
-
-### Massa de demonstração (ProjetAÍ)
-
-Depois de subir o banco, rode a carga e confira (na pasta `Banco-de-Dados`):
-
-```bash
-docker compose exec -T mysql mysql -utrama -ptrama --default-character-set=utf8mb4 confeccoes < database/seed_demonstracao_projetaí.sql
-docker compose exec -T mysql mysql -utrama -ptrama confeccoes < database/teste_demonstracao_projetai.sql
-```
-
-São **dados fictícios**: 12 confecções de Caruaru, Toritama e Santa Cruz do Capibaribe (ids 9001 a 9012, nome iniciado por `Demo`, sem CNPJ) e 408 lançamentos, de novembro/2024 a outubro/2026. Há picos em maio/junho e em novembro/dezembro e, na comparação dos últimos 12 meses com os 12 anteriores, categorias em alta (Jeans e Fitness), em queda (Moda Masculina e Praia) e estáveis (Moda Feminina e Moda Infantil).
-
-A carga cria a `vw_serie_polo_regional`, com faturamento, itens e variação mês a mês por município. Rodar de novo não duplica nada e, se algo falhar, ela desfaz tudo.
-
-### Backup e restauração
-
-O backup usa o `mysqldump` e guarda as tabelas, os dados, as views, as procedures e os triggers. Os arquivos ficam na pasta `backups/`, que está no `.gitignore` para não irem para o GitHub.
-
-#### Com Docker
-
-Os comandos rodam o `mysqldump` **dentro** do container e depois copiam o arquivo. Assim o backup sai em UTF-8 em qualquer terminal (o `>` do PowerShell gravaria o arquivo em outra codificação e quebraria os acentos).
-
-Fazer o backup:
-
-```bash
-docker compose exec mysql sh -c "mysqldump -uroot -proot --databases confeccoes --add-drop-database --routines --triggers --set-gtid-purged=OFF > /tmp/backup.sql"
-docker compose cp mysql:/tmp/backup.sql backups/backup_confeccoes.sql
-```
-
-Restaurar um backup (apaga o banco atual e recria igual ao backup):
-
-```bash
-docker compose cp backups/backup_confeccoes.sql mysql:/tmp/backup.sql
-docker compose exec mysql sh -c "mysql -uroot -proot < /tmp/backup.sql"
-```
-
-#### Com MySQL instalado
-
-No **Git Bash**, na pasta do repositório:
-
-```bash
-mysqldump -u root -p --databases confeccoes --add-drop-database --routines --triggers --set-gtid-purged=OFF --result-file=backups/backup_confeccoes.sql
-mysql -u root -p < backups/backup_confeccoes.sql
-```
-
-O primeiro comando faz o backup e o segundo restaura. O `--result-file` grava o arquivo direto em UTF-8, sem depender do terminal.
-
-#### Voltar ao estado inicial
-
-Para descartar tudo e voltar aos dados de exemplo do repositório:
-
-| Ambiente | Comando |
-|---|---|
-| Docker | `docker compose down -v` e depois `docker compose up -d` |
-| MySQL instalado | `mysql -u root -p < database/banco_completo.sql` |
-| SQLite | `python database/gerar_sqlite.py` |
-
-#### Conferir a integridade depois de restaurar
-
-```sql
-USE confeccoes;
-SELECT COUNT(*) FROM lancamento_mensal;
-SELECT COUNT(*) FROM historico_lancamento;
-SHOW PROCEDURE STATUS WHERE Db = 'confeccoes';
-SHOW TRIGGERS FROM confeccoes;
-CHECK TABLE cidade, confeccao, usuario, categoria, lancamento_mensal;
-```
-
-As contagens devem bater com as do banco de onde o backup saiu, e o `CHECK TABLE` deve mostrar `OK` em todas as linhas.
-### Usuários de demonstração
-
-Os usuários dos dados de exemplo entram na API com a senha `TramaDemo2026`, guardada em BCrypt com um sal por usuário. O e-mail de cada um está no `inserts.sql`: o `admin@confeccoes.com` é ADMIN e os demais são EMPRESARIO.
-
-**Só para desenvolvimento e demonstração.** A senha é pública: não use estes usuários em um banco exposto na internet. Para atualizar um banco já criado, sem apagar dados, rode `database/migracoes/V0_5_1__senhas_bcrypt.sql`, que só muda as senhas antigas de exemplo.
-
-As outras migrações de `database/migracoes/` também servem só para bancos já criados, e cada uma roda uma única vez, na ordem da versão: `V0_4_0__origem_dado_nome_fonte.sql` (v0.3.x para v0.4.0, renomeia `fonte_dado` para `origem_dado` e cria `nome_fonte`) e `V0_5_0__fonte_dado.sql` (volta o nome para `fonte_dado`). Depois da `V0_4_0`, rode de novo `database/procedures.sql` e o trecho de views de `database/schema.sql`. Bancos novos, criados pelo `docker compose` ou pelo `banco_completo.sql`, já nascem com a estrutura atual.
-
-### Banco local em SQLite (`extensao.db`)
-
-Para quem precisa de um banco local sem instalar MySQL nem Docker, o repositório traz uma versão SQLite3 do mesmo modelo: as 11 tabelas, todas as chaves primárias e estrangeiras, os `UNIQUE`, os `CHECK`, os dois triggers do histórico de lançamento e as views `vw_lancamentos` e `vw_historico_lancamento`, com os mesmos dados de exemplo do `inserts.sql`.
-
-O arquivo pronto é o [`database/extensao.db`](Banco-de-Dados/database/extensao.db). Para gerar de novo (depois de mudar o `schema_sqlite.sql` ou o `inserts.sql`), na raiz do repositório:
-
-```bash
-python database/gerar_sqlite.py
-```
-
-O script apaga o `extensao.db` antigo, roda o `schema_sqlite.sql`, carrega o `inserts.sql` (ignorando só a linha `USE confeccoes;`, que é do MySQL) e confere as chaves estrangeiras e a integridade do arquivo. Precisa só do Python 3, que já vem com o SQLite.
-
-Se tiver o [`sqlite3`](https://sqlite.org/download.html) de linha de comando, o mesmo resultado sai com:
-
-```bash
-sqlite3 database/extensao.db < database/schema_sqlite.sql
-```
-
-```bash
-sed '/^USE /d' database/inserts.sql | sqlite3 database/extensao.db
-```
-
-#### Diferenças em relação ao MySQL
-
-| MySQL (`schema.sql`) | SQLite (`schema_sqlite.sql`) |
-|---|---|
-| `INT AUTO_INCREMENT PRIMARY KEY` | `INTEGER PRIMARY KEY AUTOINCREMENT` |
-| `VARCHAR(n)`, `CHAR(2)` | `TEXT` (o SQLite não limita tamanho; o limite de 50 caracteres da categoria virou `CHECK (length(nome) <= 50)`) |
-| `DECIMAL(12,2)` | `NUMERIC` |
-| `DATE`, `DATETIME` | `TEXT` em ISO 8601 (`AAAA-MM-DD` e `AAAA-MM-DD HH:MM:SS`), validado por `CHECK` |
-| `DAY(mes_referencia) = 1` | `strftime('%d', mes_referencia) = '01'` |
-| Procedures (`procedures.sql`, `auditoria.sql`) | Não existem no SQLite: inserir, atualizar, cancelar e excluir lançamentos e os relatórios de auditoria ficam com o back-end (a view `vw_historico_lancamento` existe) |
-| `@id_usuario` no histórico | O SQLite não tem variáveis de sessão: os triggers gravam `id_usuario` vazio e o back-end preenche logo depois da alteração, na mesma transação: `UPDATE historico_lancamento SET id_usuario = ? WHERE id_historico = (SELECT MAX(id_historico) FROM historico_lancamento WHERE id_lancamento = ?)` (`last_insert_rowid()` não serve, porque não enxerga os inserts feitos pelos triggers) |
-
-`NUMERIC` guarda os valores como número de ponto flutuante quando têm casas decimais, então somas de faturamento podem ter diferenças de centavos em casas muito distantes. Para desenvolvimento local isso não atrapalha; o MySQL continua sendo o banco oficial.
-
-#### Usando no back-end
-
-O SQLite **só aplica as chaves estrangeiras quando a conexão liga isso**, e precisa ser em toda conexão. Sem isso, o banco aceita lançamentos de confecções que não existem.
-
-No Spring Boot, com o driver `org.xerial:sqlite-jdbc`:
-
-```properties
-spring.datasource.url=jdbc:sqlite:../Banco-de-Dados/database/extensao.db?foreign_keys=on
-spring.datasource.driver-class-name=org.sqlite.JDBC
-```
-
-Ajuste o caminho para onde o `extensao.db` estiver no seu computador. Em qualquer outro cliente, rode `PRAGMA foreign_keys = ON;` logo depois de abrir a conexão. Para olhar as tabelas e os dados, o [DB Browser for SQLite](https://sqlitebrowser.org/) abre o arquivo direto.
+| Front-end | Maria Nicolle, Júlio Cesar Braga e Gyovanna Gabrielly |
+| Back-end | Ester Reis e Gabriela Olegário |
+| Banco de Dados | Jamile Keiller e Júlia Cássia |
+
+Senac Recife, Análise e Desenvolvimento de Sistemas, 2026.

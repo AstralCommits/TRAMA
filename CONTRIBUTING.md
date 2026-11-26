@@ -1,6 +1,6 @@
 # Como contribuir com o TRAMA
 
-Guia de trabalho da equipe AstralCommits. Vale para todas as pastas do repositório (`Back-end/`, `Front-end/`, `Banco-de-Dados/` e `Novas-Funcionalidades/`).
+Guia de trabalho da equipe AstralCommits. Vale para todas as pastas do repositório (`backend/`, `frontend/`, `database/` e `docs/`).
 
 ## Fluxo de trabalho (GitFlow)
 

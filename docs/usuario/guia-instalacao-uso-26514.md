@@ -2,7 +2,7 @@
 
 | Campo | Informação |
 |---|---|
-| Versão | 1.0 — 09/11/2026 (capturas de tela entram após a integração de 16/11) |
+| Versão | 1.1 — 26/11/2026 (instalação pelo repositório único TRAMA); 1.0 — 09/11/2026 |
 | Público | Parte A: quem vai instalar e rodar (equipe, professores, banca). Parte B: quem vai usar (ADMIN e EMPRESARIO) |
 
 ---
@@ -13,48 +13,55 @@
 
 | Ferramenta | Versão | Para quê |
 |---|---|---|
-| Git | qualquer recente | Baixar os repositórios |
-| Docker Desktop | 4.x | Subir o MySQL 8 |
-| JDK | 21 | Rodar a API |
-| Node.js | 22 ou superior | Rodar o Front-end |
+| Git | qualquer recente | Baixar o repositório |
+| Docker Desktop | 4.x | Subir banco, API e front juntos |
+| JDK | 21 | Rodar a API sem Docker (opcional) |
+| Node.js | 22.22 ou superior | Rodar o front sem Docker (opcional) |
 
 Portas livres: **3307** (MySQL), **8080** (API), **3000** (Front-end).
 
 ### A.2 Baixar o código
 
 ```bash
-mkdir trama && cd trama
-git clone https://github.com/AstralCommits/Banco-de-Dados.git
-git clone https://github.com/AstralCommits/Back-end.git
-git clone https://github.com/AstralCommits/Front-end.git
+git clone https://github.com/AstralCommits/TRAMA.git
+cd TRAMA
 ```
 
-### A.3 Subir o banco
+### A.3 Subir tudo com Docker
 
 ```bash
-cd Banco-de-Dados
-docker compose up -d --wait
+docker compose up --build -d --wait
 ```
 
-Na primeira vez o Docker baixa a imagem e carrega `database/banco_completo.sql` (tabelas, procedures, triggers, índices e dados de exemplo). Para recomeçar do zero: `docker compose down -v` e `docker compose up -d`.
+Na primeira vez o Docker baixa as imagens, carrega `database/schema/banco_completo.sql` (tabelas, procedures, triggers, índices e dados de exemplo) e a massa de demonstração `database/seeds/seed_demonstracao_projetai.sql`, compila a API e o front. Depois:
 
-### A.4 Subir a API
+| Serviço | Endereço |
+|---|---|
+| Front-end | `http://localhost:3000` |
+| API | `http://localhost:8080` (saúde em `/api/health`) |
+| Documentação da API | `http://localhost:8080/swagger-ui.html` |
+
+Para recomeçar do zero: `docker compose down -v` e `docker compose up -d`.
+
+### A.4 Rodar a API sem Docker (opcional)
+
+Com o banco no ar (`docker compose up -d banco`), na pasta `backend`:
 
 Linux/macOS:
 
 ```bash
-cd ../Back-end/Backend
+cd backend
 export SPRING_PROFILES_ACTIVE=dev
 export DB_URL="jdbc:mysql://localhost:3307/confeccoes?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Recife"
 export DB_USERNAME=trama DB_PASSWORD=trama
 export TRAMA_JWT_SECRET="troque-por-uma-frase-longa-de-32-caracteres-ou-mais"
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 Windows (PowerShell):
 
 ```powershell
-cd ..\Back-end\Backend
+cd backend
 $env:SPRING_PROFILES_ACTIVE="dev"
 $env:DB_URL="jdbc:mysql://localhost:3307/confeccoes?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Recife"
 $env:DB_USERNAME="trama"; $env:DB_PASSWORD="trama"
@@ -62,16 +69,14 @@ $env:TRAMA_JWT_SECRET="troque-por-uma-frase-longa-de-32-caracteres-ou-mais"
 .\mvnw.cmd spring-boot:run
 ```
 
-Sem Docker: omita as variáveis `DB_*` e use o perfil `local` (H2 em memória).
+Sem o MySQL: omita as variáveis `DB_*` e use o perfil `local` (H2 em memória).
 
-Conferir: `http://localhost:8080/api/health` → `{"status":"UP", ...}`. Documentação da API: `http://localhost:8080/swagger-ui.html` (quando o Swagger for incluído).
+Conferir: `http://localhost:8080/api/health` → `{"status":"UP", ...}`.
 
-### A.5 Subir o Front-end
+### A.5 Rodar o front sem Docker (opcional)
 
 ```bash
-cd ../../Front-end
-git checkout develop
-cd Frontend/apps/web
+cd frontend
 cp .env.example .env          # Windows: Copy-Item .env.example .env
 # no .env: VITE_API_URL=http://localhost:8080
 npm install
@@ -84,7 +89,7 @@ Abrir `http://localhost:3000`.
 
 | Sintoma | Causa provável | Solução |
 |---|---|---|
-| API para com "Schema-validation: missing column" | Banco criado antes da v0.4.0 | `docker compose down -v && docker compose up -d` ou rodar `database/migracoes/V0_4_0__origem_dado_nome_fonte.sql` |
+| API para com "Schema-validation: missing column" | Banco criado antes da v0.4.0 | `docker compose down -v && docker compose up -d` ou rodar `database/migrations/V0_4_0__origem_dado_nome_fonte.sql` |
 | API: "Communications link failure" | Porta errada | Conferir `DB_URL` com porta **3307** |
 | Telas com "Não foi possível conectar à API" | API parada ou `.env` sem `VITE_API_URL` | Subir a API; conferir o `.env` e reiniciar `npm run dev` |
 | Toda chamada responde 401 | Sessão expirada | Sair e entrar de novo |

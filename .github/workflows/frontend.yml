@@ -3,15 +3,15 @@ name: Front-end CI
 on:
   pull_request:
     paths:
-      - "Front-end/**"
-      - ".github/workflows/front-end.yml"
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
   push:
     branches:
       - main
       - develop
     paths:
-      - "Front-end/**"
-      - ".github/workflows/front-end.yml"
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,21 +23,21 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Front-end/Frontend
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: Front-end/Frontend/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
       - name: Instalar dependências
         run: npm ci
       - name: Lint
-        run: npm run lint --prefix apps/web
+        run: npm run lint
       - name: Typecheck
-        run: npm run typecheck --prefix apps/web
+        run: npm run typecheck
       - name: Testes (Vitest)
-        run: npm test --prefix apps/web
+        run: npm test
       - name: Build
-        run: npm run build --prefix apps/web
+        run: npm run build

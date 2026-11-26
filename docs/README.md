@@ -15,3 +15,10 @@ Acompanhamento:
 
 - [Auditoria de 09/11/2026](auditoria/2026-11-09-auditoria.md) e [issues propostas](auditoria/issues-propostas.md)
 - [Cronograma até 23/11/2026](cronograma/cronograma-2026-11.md)
+
+Por frente:
+
+- [Back-end](backend): etapa 1, branches e comentários das issues
+- [Front-end](frontend): relatório de implementação e testes, publicação e pacotes de entrega antigos
+- [Histórico](historico): notas das entregas que já foram integradas
+- [Apresentação](apresentacao/ROTEIRO_APRESENTACAO.md): roteiro do ProjetAÍ e CSV da demonstração
