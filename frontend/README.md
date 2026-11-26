@@ -39,16 +39,16 @@ Para subir banco, API e front juntos, use o `docker compose` da [raiz do reposit
 | `npm run typecheck` | Gera os tipos das rotas e confere o TypeScript |
 | `npm test` | Testes com o Vitest |
 | `npm run build` | Build de produção |
+| `npm run api:types` | Gera `src/types/api.gen.ts` a partir do contrato [`docs/api/openapi.json`](../docs/api/openapi.json) |
 
-O workflow [`frontend.yml`](../.github/workflows/frontend.yml) roda os quatro em todo Pull Request que altera esta pasta.
+O workflow [`frontend.yml`](../.github/workflows/frontend.yml) roda os quatro em todo Pull Request que altera esta pasta e confere se os tipos gerados estão iguais ao contrato.
 
 ## Como entrar
 
-- **Cadastrar-se:** cria uma conta com nome, e-mail, confecção, cidade e senha.
-- **Entrar:** com um usuário do TRAMA, usa a API e o banco. Com uma conta criada no navegador, os dados ficam só nele.
-- **Entrar na demonstração:** abre a Confecção Fio do Agreste com dados fictícios.
+- **Entrar:** com um usuário do TRAMA, pela API. O front pede o token em `POST /api/auth/login` e os dados do usuário em `GET /api/auth/me`. Os usuários são criados pelo administrador.
+- **Entrar na demonstração:** abre a Confecção Fio do Agreste com dados fictícios, guardados só no navegador.
 
-As contas locais guardam a senha com PBKDF2 e salt (Web Crypto). Isso permite testar o fluxo, mas não substitui a autenticação no servidor.
+Não existem mais contas criadas no navegador. Na primeira abertura depois da atualização, o front apaga as contas e senhas antigas que tinham ficado no `localStorage`.
 
 ## Módulos da área de gestão
 
@@ -60,15 +60,17 @@ As contas locais guardam a senha com PBKDF2 e salt (Web Crypto). Isso permite te
 | Dados de Vendas e Lançamento de Vendas | API (`/api/vendas` e `/api/importacoes`) |
 | Gerenciamento de Categorias e de Confecções | API (`/api/categorias` e `/api/confeccoes`) |
 | Simulador de Impacto da Concorrência | API (`/api/cenarios`) |
-| Estoque, Produção, Vendas e Pedidos, Financeiro, Clientes e Fornecedores, Cadastros, Agenda, Equipe, Configurações, Cenário da Concorrência e Simulador de Cenários Comparativos | Só no navegador (a tela avisa) |
+| Estoque, Produção, Vendas e Pedidos, Financeiro, Clientes e Fornecedores, Cadastros, Agenda, Equipe, Configurações, Cenário da Concorrência, Simulador de Cenários Comparativos e Comparação de Produtos | Só na demonstração |
 
-Na Análise de Tendências, uma variação de +5% ou mais conta como alta, de −5% ou menos como queda, e o que fica no meio como estável. A Comparação de Produtos não aparece para usuários da API, porque o banco guarda o total mensal por categoria e confecção.
+Quem entra pela API vê só os módulos da SRS, todos ligados ao banco. O empresário não vê os cadastros de categorias e confecções. A regra fica em [`src/lib/modules.ts`](src/lib/modules.ts).
+
+Na Análise de Tendências, uma variação de +5% ou mais conta como alta, de −5% ou menos como queda, e o que fica no meio como estável.
 
 A sessão da API termina quando o token vence ou é recusado, e a tela volta para o login.
 
 ## Limites desta versão
 
-Recuperação de senha, permissões de equipe de verdade e sincronização entre dispositivos ainda não existem. As telas que funcionam só no navegador são um CRUD local simplificado.
+Recuperação de senha e cadastro de usuários pela tela ainda não existem: o administrador cria os usuários no banco. Os módulos que existem só na demonstração são um CRUD local simplificado.
 
 ## Estrutura
 

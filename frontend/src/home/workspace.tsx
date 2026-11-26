@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BarChart3, CalendarDays, ChartNoAxesCombined, ChevronDown, ClipboardList, Factory, GitCompare, Home, LayoutDashboard, Menu, Package, Receipt, Scissors, Settings2, ShieldCheck, ShoppingBag, SlidersHorizontal, Sprout, Store, TrendingUp, UserRound, Users, Wallet, LogOut, type LucideIcon } from 'lucide-react';
-import { modules, products, initialSales, filtered, type Sale, type Filters } from '@/data/demo';
+import { products, initialSales, filtered, type Sale, type Filters } from '@/data/demo';
 import { Analytics } from '@/home/analytics';
 import { Sales } from '@/home/sales';
 import { Operations } from '@/home/operations';
@@ -10,6 +10,7 @@ import { usePersistentState } from '@/hooks/use-persistent-state';
 import { useApiData } from '@/hooks/use-api-data';
 import { isApiUser, type TramaUser } from '@/lib/auth.client';
 import { ProfileDialog } from '@/home/profile-dialog';
+import { sectionOf, visibleModules } from '@/lib/modules';
 import { NewFeatures } from '@/home/new-features';
 import { ApiSaleEntry, ApiSales } from '@/home/api-sales';
 import { ApiCategories, ApiConfections } from '@/home/api-registers';
@@ -39,17 +40,6 @@ const moduleIcons: Record<string, LucideIcon> = {
   'Gerenciamento de Confecções': Factory,
   'Lançamento de Vendas': Receipt,
 };
-
-const sectionLabels: Record<number, string> = {
-  0: 'VISÃO DO NEGÓCIO',
-  1: 'INDICADORES',
-  3: 'ANÁLISE COMERCIAL',
-  8: 'GESTÃO DA OPERAÇÃO',
-  14: 'ADMINISTRAÇÃO',
-};
-
-const ADMIN_MODULES = ['Gerenciamento de Categorias', 'Gerenciamento de Confecções', 'Lançamento de Vendas'];
-const LOCAL_MODULES = ['Cenário da Concorrência', 'Simulador de Cenários Comparativos', 'Estoque', 'Produção', 'Vendas e Pedidos', 'Financeiro', 'Clientes e Fornecedores', 'Cadastros', 'Agenda e Notificações', 'Equipe e Permissões', 'Configurações'];
 
 function periodLabel(year: number, month: number) {
   return `${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][month - 1]} de ${year}`;
@@ -141,10 +131,11 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
       </button>
       <span className="workspace-label">{user.company.toLocaleUpperCase('pt-BR')}</span>
       <nav aria-label="Módulos da plataforma">
-        {modules.filter((item) => !ADMIN_MODULES.includes(item) || isAdmin || (apiMode && item === 'Lançamento de Vendas')).map((item, index) => {
+        {visibleModules(apiMode, isAdmin).map((item, index, list) => {
           const Icon = moduleIcons[item] || LayoutDashboard;
+          const section = sectionOf(item);
           return <div className="workspace-nav-item" key={item}>
-            {sectionLabels[index] && <span className="workspace-label">{sectionLabels[index]}</span>}
+            {(index === 0 || sectionOf(list[index - 1]) !== section) && <span className="workspace-label">{section}</span>}
             <button className={item === mode ? 'active' : ''} aria-current={item === mode ? 'page' : undefined} onClick={() => { setMode(item); setMenu(false); setNotice(''); }}>
               <span className="nav-icon"><Icon size={16} strokeWidth={1.8} /></span>
               <span className="nav-label">{item}</span>
@@ -161,7 +152,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
           <button className="mobile-toggle" aria-label="Abrir módulos" aria-expanded={menu} onClick={() => setMenu(!menu)}><Menu /></button>
           <span className="workspace-company-icon"><Scissors size={17} /></span>
           <span className="workspace-company-name">{user.company}</span>
-          <span className="badge">{user.isDemo ? 'DEMONSTRAÇÃO' : apiMode ? 'BANCO CONECTADO' : 'CONTA LOCAL'}</span>
+          <span className="badge">{user.isDemo ? 'DEMONSTRAÇÃO' : 'BANCO CONECTADO'}</span>
         </div>
         <div className="profile-menu-wrap">
           <button
@@ -178,7 +169,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
           {profileMenuOpen && <div className="profile-dropdown" role="menu">
             <div className="profile-dropdown-heading"><strong>{user.name}</strong><span>{user.email}</span><small>{user.company}</small></div>
             <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setProfileOpen(true); }}><UserRound size={16} /> Meu perfil</button>
-            <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setMode('Configurações'); }}><Settings2 size={16} /> Configurações</button>
+            {!apiMode && <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setMode('Configurações'); }}><Settings2 size={16} /> Configurações</button>}
             <button type="button" role="menuitem" className="profile-dropdown-exit" onClick={() => { setProfileMenuOpen(false); exit(); }}><LogOut size={16} /> Sair da conta</button>
           </div>}
         </div>
@@ -192,8 +183,8 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
           {user.isDemo
             ? <><b>Ambiente de demonstração.</b> A Confecção Fio do Agreste e os registros iniciais são fictícios. Você pode testar cadastros e vendas; suas alterações ficam salvas neste navegador.</>
             : apiMode
-              ? <><b>{user.role} · {user.company}.</b> {LOCAL_MODULES.includes(mode) ? 'Este módulo ainda não tem serviço na API: o que for digitado aqui fica só neste navegador.' : 'Dados lidos e gravados no banco do TRAMA pela API.'}</>
-            : <><b>Conta de {user.company}.</b> Seus cadastros e vendas são salvos neste navegador e separados por conta. Para acesso compartilhado entre dispositivos, backup central e autenticação de produção, conecte o backend.</>}
+              ? <><b>{user.role} · {user.company}.</b> Dados lidos e gravados no banco do TRAMA pela API.</>
+            : null}
         </div>
 
         {!salesReady ? <section className="panel">Carregando os dados salvos desta conta…</section> : <>
@@ -211,7 +202,6 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
 
           {mode === 'Dashboard de Indicadores' && <DashboardIndicators sales={sales} defaultCity={user.city} useApi={apiMode} />}
           {mode === 'Análise de Tendências' && <TrendAnalysis sales={sales} defaultCity={user.city} useApi={apiMode} />}
-          {mode === 'Comparação de Produtos' && apiMode && <section className="panel"><h3>Comparação por produto indisponível</h3><p>O banco do TRAMA guarda o total mensal por categoria e confecção, sem produto individual. Use Tendências por Categoria para comparar categorias.</p></section>}
 
           {mode === 'Tendências por Categoria' || (mode === 'Comparação de Produtos' && !apiMode) ? (
             <>
@@ -230,9 +220,9 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
           {apiMode && mode === 'Gerenciamento de Confecções' && <ApiConfections data={api} />}
           {apiMode && mode === 'Lançamento de Vendas' && <ApiSaleEntry data={api} />}
           {!apiMode && ['Simulador de Impacto da Concorrência','Gerenciamento de Categorias','Gerenciamento de Confecções','Lançamento de Vendas'].includes(mode) && <NewFeatures mode={mode} sales={sales} setSales={setSales} storageKey={storageBase} isAdmin={isAdmin} />}
-          {mode === 'Estoque' && <Inventory storageKey={`${storageBase}:inventory`} demoMode={user.isDemo} />}
+          {!apiMode && mode === 'Estoque' && <Inventory storageKey={`${storageBase}:inventory`} demoMode={user.isDemo} />}
 
-          {['Cenário da Concorrência', 'Simulador de Cenários Comparativos', 'Produção', 'Vendas e Pedidos', 'Financeiro', 'Clientes e Fornecedores', 'Relatórios e Indicadores', 'Agenda e Notificações', 'Equipe e Permissões', 'Configurações', 'Cadastros'].includes(mode) && (
+          {!apiMode && ['Cenário da Concorrência', 'Simulador de Cenários Comparativos', 'Produção', 'Vendas e Pedidos', 'Financeiro', 'Clientes e Fornecedores', 'Relatórios e Indicadores', 'Agenda e Notificações', 'Equipe e Permissões', 'Configurações', 'Cadastros'].includes(mode) && (
             <Operations
               mode={mode}
               sales={sales}
@@ -241,7 +231,7 @@ export function Workspace({ user, exit, onUserUpdated }: { user: TramaUser; exit
             />
           )}
         </>}
-        <div className="dashboard-foot"><span>TRAMA · Feita para quem faz.</span><span>{user.isDemo ? 'Dados de demonstração, editáveis neste navegador.' : apiMode ? 'Dados do banco TRAMA, pela API.' : 'Dados desta conta salvos neste navegador.'}</span></div>
+        <div className="dashboard-foot"><span>TRAMA · Feita para quem faz.</span><span>{user.isDemo ? 'Dados de demonstração, editáveis neste navegador.' : 'Dados do banco TRAMA, pela API.'}</span></div>
       </div>
     </div>
     {profileOpen && <ProfileDialog user={user} onClose={() => setProfileOpen(false)} onSaved={onUserUpdated} />}
