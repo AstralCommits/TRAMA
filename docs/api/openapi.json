@@ -66,6 +66,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "idCategoria", "nome" ],
         "type" : "object"
       },
       "CenarioRequest" : {
@@ -117,6 +118,7 @@
             "type" : "number"
           }
         },
+        "required" : [ "idCenario", "nome", "percentualImpacto" ],
         "type" : "object"
       },
       "CidadeResponse" : {
@@ -132,6 +134,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "idCidade", "nome", "uf" ],
         "type" : "object"
       },
       "ConfeccaoDoUsuario" : {
@@ -215,6 +218,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "cidade", "idCidade", "idConfeccao", "nome", "porte", "tipo", "uf" ],
         "type" : "object"
       },
       "ImportacaoResponse" : {
@@ -243,6 +247,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "dataImportacao", "idImportacao", "nomeArquivo", "status" ],
         "type" : "object"
       },
       "IndicadorResponseDTO" : {
@@ -331,6 +336,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "token" ],
         "type" : "object"
       },
       "SimulacaoCenarioRequest" : {
@@ -365,6 +371,7 @@
             "type" : "number"
           }
         },
+        "required" : [ "diferencaPercentual", "diferencaReais", "faturamentoHipotetico", "faturamentoReal" ],
         "type" : "object"
       },
       "UsuarioLogadoResponse" : {
@@ -477,6 +484,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "categoria", "confeccao", "faturamento", "idCategoria", "idConfeccao", "idLancamento", "mesAno", "nomeFonte", "origem", "origemDado", "quantidade", "status" ],
         "type" : "object"
       }
     },
