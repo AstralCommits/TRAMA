@@ -20,6 +20,6 @@ logging:
 trama:
   jwt:
     secret: ${TRAMA_JWT_SECRET:trama-local-development-only-secret-change-before-use-2026}
-  local:
-    admin-email: ${TRAMA_LOCAL_ADMIN_EMAIL:}
-    admin-password: ${TRAMA_LOCAL_ADMIN_PASSWORD:}
+  admin-inicial:
+    email: ${TRAMA_LOCAL_ADMIN_EMAIL:}
+    senha: ${TRAMA_LOCAL_ADMIN_PASSWORD:}

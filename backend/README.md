@@ -68,6 +68,17 @@ $env:TRAMA_JWT_SECRET="troque-por-uma-frase-longa-de-32-caracteres-ou-mais"
 
 Para subir banco, API e front juntos, use o `docker compose` da [raiz do repositório](../README.md#como-rodar).
 
+### Perfis
+
+| Perfil | Uso |
+|---|---|
+| `local` (padrão) | H2 em memória, com cidades, categorias e um admin opcional (`TRAMA_LOCAL_ADMIN_EMAIL` e `TRAMA_LOCAL_ADMIN_PASSWORD`) |
+| `dev` | MySQL do `docker compose` de desenvolvimento |
+| `prod` | MySQL de produção, logs em JSON, Actuator na porta 8081, Swagger desligado e admin inicial por `TRAMA_ADMIN_EMAIL` e `TRAMA_ADMIN_PASSWORD` |
+| `test` | testes automatizados, com H2 |
+
+Toda resposta leva o cabeçalho `X-Request-Id`, que também vai para o log. Saúde e métricas ficam em `/actuator/health` e `/actuator/prometheus`. Veja [Ambientes e operação](../docs/operacao/ambientes.md).
+
 ## Testes e qualidade
 
 ```bash

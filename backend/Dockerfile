@@ -10,5 +10,6 @@ WORKDIR /app
 RUN useradd --system --uid 1001 trama
 COPY --from=build /app/target/*.jar app.jar
 USER trama
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+EXPOSE 8080 8081
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
