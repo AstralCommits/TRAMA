@@ -63,7 +63,7 @@ O front conversa com a API por REST, com um token JWT. A API é a única parte q
 | Front-end | React 19, React Router 8, Vite 8, Tailwind CSS, TypeScript, Vitest |
 | Back-end | Java 21, Spring Boot 3.3 (Web, Data JPA, Validation, Security), JWT, SpringDoc OpenAPI, JaCoCo |
 | Banco de dados | MySQL 8 (procedures, triggers, views), SQLite como alternativa local |
-| Infraestrutura | Docker Compose, GitHub Actions, SonarQube (opcional) |
+| Infraestrutura | Docker Compose, GitHub Actions, GitHub Container Registry, CodeQL, Dependabot, Spring Boot Actuator e Prometheus |
 
 ## Estrutura do repositório
 
@@ -74,7 +74,8 @@ TRAMA/
 ├── database/           scripts MySQL, SQLite e backup     → database/README.md
 ├── docs/               requisitos, arquitetura, testes, segurança e histórico
 ├── .github/            CI, CODEOWNERS e modelos de issue e de Pull Request
-├── docker-compose.yml  sobe banco, API e front juntos
+├── docker-compose.yml  sobe banco, API e front juntos para desenvolvimento
+├── docker-compose.prod.yml  produção, com as imagens publicadas
 ├── .env.example        senhas e porta do banco para o docker compose
 ├── CHANGELOG.md        mudanças de cada versão
 ├── CONTRIBUTING.md     fluxo de trabalho da equipe
@@ -121,6 +122,10 @@ Os usuários para entrar no sistema estão no [README do banco](database/README.
 
 O Back-end também roda sozinho, com um banco H2 em memória, e o Front-end roda sozinho no modo demonstração.
 
+### Produção
+
+As imagens da API e do front são publicadas no GitHub Container Registry a cada tag de versão, e o servidor sobe com o [`docker-compose.prod.yml`](docker-compose.prod.yml). O passo a passo, as variáveis, os logs e o monitoramento estão em [Ambientes e operação](docs/operacao/ambientes.md).
+
 ## Documentação
 
 A documentação segue as normas ISO/IEC/IEEE adotadas na disciplina e fica em [`docs/`](docs/README.md):
@@ -133,6 +138,8 @@ A documentação segue as normas ISO/IEC/IEEE adotadas na disciplina e fica em [
 | ISO/IEC/IEEE 29119 | [Plano de testes](docs/testes/plano-testes-29119.md) |
 | ISO/IEC 12207 | [Ciclo de vida](docs/processo/ciclo-de-vida-12207.md) |
 | ISO/IEC 27001 | [Segurança da informação](docs/seguranca/seguranca-informacao-27001.md) |
+
+Operação: [ambientes, publicação, logs e monitoramento](docs/operacao/ambientes.md). Contrato da API: [`docs/api/openapi.json`](docs/api/openapi.json).
 
 Acompanhamento: [auditoria de 09/11](docs/auditoria/2026-11-09-auditoria.md), [cronograma](docs/cronograma/cronograma-2026-11.md) e [roteiro da apresentação](docs/apresentacao/ROTEIRO_APRESENTACAO.md).
 
