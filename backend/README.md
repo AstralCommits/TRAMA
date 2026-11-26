@@ -92,10 +92,9 @@ Toda resposta leva o cabeçalho `X-Request-Id`, que também vai para o log. Saú
 
 ## Banco de dados
 
-O schema oficial é o da pasta [`database/`](../database). A pasta [`database/`](database) daqui guarda só referências para o mapeamento JPA:
+A estrutura do MySQL é controlada pelo Flyway. As migrações ficam em [`src/main/resources/db/migration`](src/main/resources/db/migration), e a API aplica as que faltam toda vez que sobe nos perfis `dev` e `prod`. Depois disso, o Hibernate só valida as entidades (`ddl-auto: validate`).
 
-- `schema_reference.sql`: as tabelas principais como a API espera. Não rode sobre um banco que já existe.
-- `migrations/V0_4_0__perfil_empresario_e_impacto.sql`: só para bancos antigos que ainda usam o perfil `CONFECCAO`.
+Toda mudança de estrutura é uma migração nova (`V8__...sql`, `V9__...sql`), e uma migração já aplicada nunca é editada. Depois de criar uma, rode `python database/scripts/gerar_schema.py` na raiz para atualizar o `database/schema.sql` e o `database/banco_completo.sql`. Os perfis `local` e `test` usam H2, sem Flyway. O `MigracoesMySqlTest` aplica as migrações num MySQL 8 real, pelo Testcontainers, e confere as entidades e os triggers. Sem Docker, esse teste é pulado.
 
 ## Estrutura
 
@@ -103,7 +102,7 @@ O schema oficial é o da pasta [`database/`](../database). A pasta [`database/`]
 backend/
 ├── src/main/java/br/com/trama/   código da API (controllers, services, repositories, security, config)
 ├── src/test/java/br/com/trama/   testes de integração
-├── database/                     referências de schema e migrações da API
+├── src/main/resources/db/migration/   migrações do Flyway, a estrutura oficial do banco
 ├── api-examples.http             exemplos de chamadas
 ├── Dockerfile                    imagem usada pelo docker compose
 └── pom.xml
