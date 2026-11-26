@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { Route } from './+types/home';
-import { seo } from '@/lib/seo';
+import { seo } from '@/utils/seo';
 import { banner } from '@/data/demo';
-import { Institutional } from '@/home/institutional';
-import { DemoEntry } from '@/home/demo-entry';
-import { Workspace } from '@/home/workspace';
-import { SESSION_EXPIRED_EVENT } from '@/lib/apiToken';
-import { clearSession, getSession, isApiUser, type TramaUser } from '@/lib/auth.client';
+import { Institutional } from '@/pages/institutional';
+import { DemoEntry } from '@/pages/demo-entry';
+import { Workspace } from '@/layouts/workspace';
+import { SESSION_EXPIRED_EVENT } from '@/services/apiToken';
+import { clearSession, getSession, isApiUser, type TramaUser } from '@/services/auth.client';
 
 export function meta({ matches, location }: Route.MetaArgs) {
   return seo({ matches, location }, {

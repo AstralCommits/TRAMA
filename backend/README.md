@@ -100,13 +100,24 @@ Toda mudança de estrutura é uma migração nova (`V8__...sql`, `V9__...sql`), 
 
 ```
 backend/
-├── src/main/java/br/com/trama/   código da API (controllers, services, repositories, security, config)
-├── src/test/java/br/com/trama/   testes de integração
+├── src/main/java/br/com/trama/
+│   ├── controller/   recebem as requisições e definem as rotas da API (@RestController e @RequestMapping)
+│   ├── dto/          dados de entrada e saída, validados com Bean Validation (@Valid, @NotNull, @Size)
+│   ├── service/      regras de negócio
+│   ├── repository/   acesso ao banco com Spring Data JPA
+│   ├── model/        entidades JPA e enums
+│   ├── security/     autenticação JWT e respostas 401 e 403
+│   ├── config/       segurança, CORS, OpenAPI e o filtro de X-Request-Id
+│   ├── error/        tratamento de erros no padrão Problem Details
+│   └── validation/   validações próprias, como a recusa de HTML nos textos
 ├── src/main/resources/db/migration/   migrações do Flyway, a estrutura oficial do banco
+├── src/test/java/br/com/trama/        testes unitários e de integração
 ├── api-examples.http             exemplos de chamadas
 ├── Dockerfile                    imagem usada pelo docker compose
 └── pom.xml
 ```
+
+No Spring, as rotas ficam nos próprios controllers, e a validação da entrada fica nos DTOs. Por isso não existem pastas `routes/` e `schemas/` separadas, como em projetos Node.
 
 ## Mais informações
 
