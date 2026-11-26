@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "frontend/**"
+      - "docs/api/openapi.json"
       - ".github/workflows/frontend.yml"
   push:
     branches:
@@ -11,6 +12,7 @@ on:
       - develop
     paths:
       - "frontend/**"
+      - "docs/api/openapi.json"
       - ".github/workflows/frontend.yml"
   workflow_dispatch:
 
@@ -33,6 +35,10 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Instalar dependências
         run: npm ci
+      - name: Conferir os tipos gerados do contrato da API
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/types/api.gen.ts
       - name: Lint
         run: npm run lint
       - name: Typecheck
