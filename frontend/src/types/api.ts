@@ -13,6 +13,7 @@ export type Cenario = Schemas['CenarioResponse'];
 export type CenarioInput = Schemas['CenarioRequest'];
 export type Simulacao = Schemas['SimulacaoCenarioResponse'];
 export type UsuarioLogado = Schemas['UsuarioLogadoResponse'];
+export type CadastroInput = Schemas['CadastroRequest'];
 
 export type Porte = Confeccao['porte'];
 export type TipoConfeccao = Confeccao['tipo'];

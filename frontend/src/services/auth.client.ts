@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { clearApiToken, hasValidApiToken } from '@/services/apiToken';
 import { getApiErrorMessage, isApiConfigured } from '@/services/api';
-import { getUsuarioLogado, loginApi } from '@/services/authService';
+import { cadastroApi, getUsuarioLogado, loginApi } from '@/services/authService';
+import type { Porte, TipoConfeccao } from '@/types/api';
 
 export type TramaUser = {
   id: string;
@@ -102,8 +103,28 @@ export async function registerAccount(input: {
   password: string;
   company: string;
   city: string;
+  porte?: Porte;
+  tipo?: TipoConfeccao;
 }): Promise<TramaUser> {
   const email = input.email.trim().toLowerCase();
+  if (isApiConfigured()) {
+    try {
+      await cadastroApi({
+        nome: input.name.trim(),
+        email,
+        senha: input.password,
+        nomeConfeccao: input.company.trim(),
+        porte: input.porte ?? 'MICRO',
+        tipo: input.tipo ?? 'CONFECCAO',
+        cidade: input.city,
+      });
+      return await sessaoDaApi();
+    } catch (error) {
+      clearApiToken();
+      if (!axios.isAxiosError(error)) throw error;
+      throw new Error(getApiErrorMessage(error));
+    }
+  }
   const accounts = readAccounts();
   if (accounts.some((account) => account.user.email === email)) {
     throw new Error('Já existe uma conta cadastrada com este e-mail. Entre ou utilize outro endereço.');
@@ -135,6 +156,10 @@ export async function registerAccount(input: {
 
 async function authenticateWithApi(email: string, password: string): Promise<TramaUser> {
   await loginApi(email, password);
+  return sessaoDaApi();
+}
+
+async function sessaoDaApi(): Promise<TramaUser> {
   const usuario = await getUsuarioLogado();
   const user: TramaUser = {
     id: `api-${usuario.idUsuario}`,

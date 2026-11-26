@@ -23,6 +23,8 @@ trama:
   jwt:
     secret: ${TRAMA_JWT_SECRET:}
     expiration-ms: ${TRAMA_JWT_EXPIRATION_MS:86400000}
+  cadastro:
+    max-por-hora: ${TRAMA_CADASTRO_MAX_POR_HORA:5}
   login:
     max-tentativas: ${TRAMA_LOGIN_MAX_TENTATIVAS:5}
     bloqueio-minutos: ${TRAMA_LOGIN_BLOQUEIO_MINUTOS:15}
