@@ -27,6 +27,25 @@ trama:
     max-tentativas: ${TRAMA_LOGIN_MAX_TENTATIVAS:5}
     bloqueio-minutos: ${TRAMA_LOGIN_BLOQUEIO_MINUTOS:15}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: TRAMA
+    version: '@project.version@'
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

@@ -68,6 +68,11 @@ public class ApiExceptionHandler {
         return response(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ProblemDetail> handleRotaInexistente(Exception ex, HttpServletRequest request) {
+        return response(HttpStatus.NOT_FOUND, "Recurso não encontrado.", request);
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleUnreadable(HttpMessageNotReadableException ex,
                                                             HttpServletRequest request) {

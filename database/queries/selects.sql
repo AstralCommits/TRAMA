@@ -1,5 +1,5 @@
 USE confeccoes;
- 
+
 SELECT * FROM cidade;
 SELECT * FROM confeccao;
 SELECT * FROM usuario;
@@ -18,7 +18,7 @@ SELECT
     (SELECT COUNT(*) FROM categoria)         AS total_categorias,
     (SELECT COUNT(*) FROM lancamento_mensal) AS total_lancamentos,
     (SELECT COUNT(*) FROM entrevista)        AS total_entrevistas;
- 
+
 SELECT
     SUM(faturamento) AS faturamento_total,
     SUM(CASE WHEN lanc_status = 'ATIVO' THEN faturamento END) AS faturamento_ativo,
@@ -30,7 +30,7 @@ SELECT
     MAX(quantidade)  AS maior_quantidade,
     MIN(quantidade)  AS menor_quantidade
 FROM lancamento_mensal;
- 
+
 SELECT 'confeccao.porte' AS campo, porte AS valor, COUNT(*) AS qtd FROM confeccao GROUP BY porte
 UNION ALL
 SELECT 'confeccao.tipo', tipo, COUNT(*) FROM confeccao GROUP BY tipo
@@ -50,17 +50,17 @@ UNION ALL
 SELECT 'entrevista sem categoria', COUNT(*) FROM entrevista WHERE id_categoria_percebida IS NULL
 UNION ALL
 SELECT 'lancamento sem importacao', COUNT(*) FROM lancamento_mensal WHERE id_importacao IS NULL;
- 
+
 SELECT * FROM cenario_concorrencia
 WHERE percentual_impacto > 10
 ORDER BY percentual_impacto DESC;
- 
+
 SELECT * FROM confeccao WHERE nome LIKE 'Moda%';
- 
+
 SELECT * FROM confeccao
 WHERE id_cidade IN (SELECT id_cidade FROM cidade WHERE uf = 'PE');
- 
+
 SELECT * FROM lancamento_mensal
 WHERE mes_referencia BETWEEN '2026-01-01' AND '2026-02-01';
- 
+
 SELECT DISTINCT uf FROM cidade ORDER BY uf;

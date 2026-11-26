@@ -22,3 +22,8 @@ Por frente:
 - [Front-end](frontend): relatório de implementação e testes, publicação e pacotes de entrega antigos
 - [Histórico](historico): notas das entregas que já foram integradas
 - [Apresentação](apresentacao/ROTEIRO_APRESENTACAO.md): roteiro do ProjetAÍ e CSV da demonstração
+
+Operação e contrato:
+
+- [Ambientes, publicação, logs e monitoramento](operacao/ambientes.md)
+- [Contrato da API (OpenAPI)](api/openapi.json), gerado e conferido pelos testes

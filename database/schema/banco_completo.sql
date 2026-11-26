@@ -69,7 +69,7 @@ CREATE TABLE lancamento_mensal (
     id_confeccao INT NOT NULL,
     id_categoria INT NOT NULL,
     id_importacao INT NULL,
-    
+
     UNIQUE (id_confeccao, id_categoria, mes_referencia),
     FOREIGN KEY (id_confeccao) REFERENCES confeccao (id_confeccao),
     FOREIGN KEY (id_categoria) REFERENCES categoria (id_categoria),

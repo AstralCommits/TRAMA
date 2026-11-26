@@ -16,6 +16,22 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 - Contrato da API versionado em `docs/api/openapi.json`, com teste no back e tipos gerados no front (`npm run api:types`), conferidos no CI.
 - Quem entra pela API vê só os módulos da SRS, todos ligados ao banco; os módulos locais ficam na demonstração e nas contas locais.
 
+### Automação e publicação
+
+- Imagens da API e do front montadas no CI e publicadas no GitHub Container Registry a cada tag `v*`.
+- `docker-compose.prod.yml` e `.env.prod.example` para produção: segredos obrigatórios, banco sem dados de exemplo, healthchecks e rotação de logs.
+- Perfil `prod` na API: logs em JSON, Actuator com health e métricas do Prometheus na porta interna 8081, Swagger desligado e admin inicial por variável de ambiente.
+- `X-Request-Id` em todas as respostas e nos logs.
+- CodeQL para Java e TypeScript e Dependabot para npm, Maven, Docker e Actions.
+- Imagem do front sem dependências de desenvolvimento e rodando sem root.
+- Guia de ambientes, publicação, logs e monitoramento em `docs/operacao/ambientes.md`.
+
+### Corrigido
+
+- Rota inexistente respondia 500; agora responde 404.
+- `procedures.sql` e `triggers.sql` não rodavam sozinhos no cliente `mysql` por causa de espaços nas linhas em branco antes do `DELIMITER`.
+- Os testes que ficavam no fim de `triggers.sql` e `auditoria.sql` foram para `database/tests/`, e os arquivos de `schema/` passaram a criar só estrutura.
+
 ### Alterado
 
 - Pastas renomeadas para o padrão em minúsculas: `Back-end/` virou `backend/`, `Front-end/` virou `frontend/` e `Banco-de-Dados/` virou `database/`.

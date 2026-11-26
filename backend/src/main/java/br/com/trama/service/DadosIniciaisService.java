@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-@Profile({"local", "test"})
+@Profile({"local", "test", "prod"})
 public class DadosIniciaisService {
     @Bean
     CommandLineRunner garantirDadosDeReferencia(
@@ -24,8 +24,8 @@ public class DadosIniciaisService {
             CategoriaRepository categoriaRepository,
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
-            @Value("${trama.local.admin-email:}") String adminEmail,
-            @Value("${trama.local.admin-password:}") String adminPassword) {
+            @Value("${trama.admin-inicial.email:}") String adminEmail,
+            @Value("${trama.admin-inicial.senha:}") String adminPassword) {
         return args -> {
             List<String> cidades = List.of("Toritama", "Caruaru", "Santa Cruz do Capibaribe");
             for (String nome : cidades) {
@@ -45,7 +45,7 @@ public class DadosIniciaisService {
                     && adminPassword != null && !adminPassword.isBlank()
                     && usuarioRepository.findByEmailIgnoreCase(adminEmail).isEmpty()) {
                 Usuario admin = new Usuario();
-                admin.setNome("Administrador local");
+                admin.setNome("Administrador");
                 admin.setEmail(adminEmail.trim());
                 admin.setSenhaHash(passwordEncoder.encode(adminPassword));
                 admin.setPerfil(PerfilUsuario.ADMIN);

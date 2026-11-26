@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+server:
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+
+springdoc:
+  api-docs:
+    enabled: ${TRAMA_API_DOCS:false}
+  swagger-ui:
+    enabled: ${TRAMA_API_DOCS:false}
+
+trama:
+  jwt:
+    secret: ${TRAMA_JWT_SECRET}
+  admin-inicial:
+    email: ${TRAMA_ADMIN_EMAIL:}
+    senha: ${TRAMA_ADMIN_PASSWORD:}
