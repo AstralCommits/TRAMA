@@ -18,6 +18,8 @@ logging:
     org.hibernate.SQL: warn
 
 trama:
-  local:
-    admin-email: ${TRAMA_LOCAL_ADMIN_EMAIL:}
-    admin-password: ${TRAMA_LOCAL_ADMIN_PASSWORD:}
+  jwt:
+    secret: ${TRAMA_JWT_SECRET:trama-local-development-only-secret-change-before-use-2026}
+  admin-inicial:
+    email: ${TRAMA_LOCAL_ADMIN_EMAIL:}
+    senha: ${TRAMA_LOCAL_ADMIN_PASSWORD:}

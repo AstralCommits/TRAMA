@@ -1,8 +1,7 @@
 import axios from 'axios';
-import { clearApiToken, hasValidApiToken, readApiClaims } from '@/lib/apiToken';
+import { clearApiToken, hasValidApiToken } from '@/lib/apiToken';
 import { getApiErrorMessage, isApiConfigured } from '@/services/api';
-import { loginApi } from '@/services/authService';
-import { listConfeccoes } from '@/services/cadastrosService';
+import { getUsuarioLogado, loginApi } from '@/services/authService';
 
 export type TramaUser = {
   id: string;
@@ -135,18 +134,15 @@ export async function registerAccount(input: {
 }
 
 async function authenticateWithApi(email: string, password: string): Promise<TramaUser> {
-  const claims = readApiClaims(await loginApi(email, password));
-  if (!claims) throw new Error('A API retornou um token de acesso inválido.');
-  const admin = claims.perfil === 'ADMIN';
-  const confeccao = admin ? undefined : (await listConfeccoes())[0];
-  const alias = claims.sub.split('@')[0];
+  await loginApi(email, password);
+  const usuario = await getUsuarioLogado();
   const user: TramaUser = {
-    id: `api-${claims.sub}`,
-    name: alias.charAt(0).toUpperCase() + alias.slice(1),
-    email: claims.sub,
-    company: confeccao?.nome ?? 'Polo Têxtil do Agreste',
-    city: confeccao?.cidade ?? '',
-    role: admin ? 'Administrador' : 'Empresário',
+    id: `api-${usuario.idUsuario}`,
+    name: usuario.nome,
+    email: usuario.email,
+    company: usuario.confeccao?.nome ?? 'Polo Têxtil do Agreste',
+    city: usuario.confeccao?.cidade ?? '',
+    role: usuario.perfil === 'ADMIN' ? 'Administrador' : 'Empresário',
     isDemo: false,
     createdAt: new Date().toISOString(),
     source: 'api',

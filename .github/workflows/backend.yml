@@ -8,6 +8,7 @@ on:
       - develop
     paths:
       - "backend/**"
+      - "docs/api/openapi.json"
       - ".github/workflows/backend.yml"
   workflow_dispatch:
 

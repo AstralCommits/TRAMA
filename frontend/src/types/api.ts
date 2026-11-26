@@ -1,3 +1,5 @@
+import type { components } from './api.gen';
+
 export type Porte = 'MICRO' | 'PEQUENA' | 'MEDIA';
 export type TipoConfeccao = 'CONFECCAO' | 'FACCAO';
 export type OrigemDado = 'ENTREVISTA' | 'QUESTIONARIO' | 'FONTE_SECUNDARIA';
@@ -69,3 +71,5 @@ export type Simulacao = {
   diferencaReais: number;
   diferencaPercentual: number;
 };
+
+export type UsuarioLogado = components['schemas']['UsuarioLogadoResponse'];

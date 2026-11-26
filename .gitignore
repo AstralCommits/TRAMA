@@ -5,8 +5,9 @@ build/
 target/
 *.class
 .env
-.env.local
+.env.*
 !.env.example
+!.env.prod.example
 *.log
 .DS_Store
 Thumbs.db

@@ -100,16 +100,34 @@ describe('token e sessão', () => {
 });
 
 describe('login pela API', () => {
-  it('ADMIN entra como Administrador', async () => {
-    api.defaults.adapter = respond(() => ({ data: { token: token({ sub: 'admin@x.com', perfil: 'ADMIN', exp: future }) } }));
-    expect(await authenticateAccount('Admin@x.com', 's')).toMatchObject({ role: 'Administrador', source: 'api', name: 'Admin' });
+  it('ADMIN entra como Administrador com o nome vindo da API', async () => {
+    api.defaults.adapter = respond((config) => config.url === '/api/auth/login'
+      ? { data: { token: token({ sub: 'admin@x.com', perfil: 'ADMIN', exp: future }) } }
+      : { data: { idUsuario: 1, nome: 'Admin Geral', email: 'admin@x.com', perfil: 'ADMIN', confeccao: null } });
+    expect(await authenticateAccount('Admin@x.com', 's')).toMatchObject({ role: 'Administrador', source: 'api', name: 'Admin Geral', id: 'api-1' });
   });
 
-  it('EMPRESARIO entra com a própria confecção', async () => {
-    api.defaults.adapter = respond((config) => config.url === '/api/auth/login'
-      ? { data: { token: token({ sub: 'ana@x.com', perfil: 'EMPRESARIO', idConfeccao: 2, exp: future }) } }
-      : { data: [confeccao] });
+  it('EMPRESARIO entra com a confecção informada pela API', async () => {
+    const urls: string[] = [];
+    api.defaults.adapter = respond((config) => {
+      urls.push(String(config.url));
+      return config.url === '/api/auth/login'
+        ? { data: { token: token({ sub: 'ana@x.com', perfil: 'EMPRESARIO', idConfeccao: 2, exp: future }) } }
+        : { data: { idUsuario: 5, nome: 'Ana', email: 'ana@x.com', perfil: 'EMPRESARIO', confeccao: { idConfeccao: 2, nome: 'Estilo Agreste', cidade: 'Caruaru', uf: 'PE' } } };
+    });
     expect(await authenticateAccount('ana@x.com', 's')).toMatchObject({ role: 'Empresário', company: 'Estilo Agreste', city: 'Caruaru' });
+    expect(urls).toEqual(['/api/auth/login', '/api/auth/me']);
+  });
+
+  it('mostra a mensagem da API quando o login é bloqueado', async () => {
+    api.defaults.adapter = respond(() => ({ status: 429, data: { detail: 'Muitas tentativas de login sem sucesso.' } }));
+    await expect(authenticateAccount('ana@x.com', 'x')).rejects.toThrow('Muitas tentativas de login sem sucesso.');
+    expect(getApiToken()).toBeNull();
+  });
+
+  it('sem a API configurada, procura só as contas deste navegador', async () => {
+    import.meta.env.VITE_API_URL = '';
+    await expect(authenticateAccount('ana@x.com', 'x')).rejects.toThrow('E-mail ou senha incorretos.');
   });
 
   it('separa senha errada de API fora do ar', async () => {

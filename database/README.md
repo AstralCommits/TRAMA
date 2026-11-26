@@ -353,12 +353,14 @@ O banco sobe pelo [`docker-compose.yml`](../docker-compose.yml) da raiz (serviç
 | `schema/` | [banco_completo.sql](schema/banco_completo.sql) | Schema, dados de exemplo, procedures, triggers, auditoria e transações em um único script, na ordem certa; recria o banco do zero |
 | `schema/` | [schema.sql](schema/schema.sql) | Criação do banco, das 10 tabelas, da tabela de auditoria `historico_lancamento` e dos índices do RNF01 |
 | `schema/` | [procedures.sql](schema/procedures.sql) | Procedures para inserir, atualizar, cancelar e excluir lançamentos |
-| `schema/` | [triggers.sql](schema/triggers.sql) | Triggers que gravam no histórico os UPDATE e DELETE de lançamentos, com testes |
+| `schema/` | [triggers.sql](schema/triggers.sql) | Triggers que gravam no histórico os UPDATE e DELETE de lançamentos |
 | `schema/` | [auditoria.sql](schema/auditoria.sql) | View e procedures de relatório do histórico de lançamentos |
 | `seeds/` | [inserts.sql](seeds/inserts.sql) | Dados de exemplo para todas as tabelas |
 | `seeds/` | [seed_demonstracao_projetai.sql](seeds/seed_demonstracao_projetai.sql) | Massa de dados fictícia do polo têxtil para o ProjetAÍ e a view `vw_serie_polo_regional` |
 | `tests/` | [teste_demonstracao_projetai.sql](tests/teste_demonstracao_projetai.sql) | 12 casos de teste da massa de demonstração; não altera os dados |
 | `tests/` | [teste_desempenho.sql](tests/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não fica no `banco_completo.sql` e não altera os dados |
+| `tests/` | [teste_triggers.sql](tests/teste_triggers.sql) | Insere, altera, cancela e exclui um lançamento e mostra o histórico gravado pelos triggers; precisa dos dados de exemplo |
+| `tests/` | [teste_auditoria.sql](tests/teste_auditoria.sql) | Chama a view e as procedures de relatório do histórico |
 | `queries/` | [consultas.sql](queries/consultas.sql) | Consultas com `INNER JOIN`, `LEFT JOIN`, `GROUP BY`, `COUNT`, `AVG`, `MAX` e `MIN` |
 | `queries/` | [selects.sql](queries/selects.sql) | Consulta de todos os registros de cada tabela |
 | `queries/` | [transacoes.sql](queries/transacoes.sql) | Transações de importação e de geração de relatório (`COMMIT`, `ROLLBACK`, `SAVEPOINT`) |
@@ -435,11 +437,15 @@ mysql -u root -p < database/queries/selects.sql
 mysql -u root -p < database/queries/consultas.sql
 ```
 
-Para conferir o desempenho (RNF01), rode depois de criar o banco:
+Para conferir os triggers, a auditoria e o desempenho (RNF01), rode depois de criar o banco:
 
 ```bash
+mysql -u root -p confeccoes < database/tests/teste_triggers.sql
+mysql -u root -p confeccoes < database/tests/teste_auditoria.sql
 mysql -u root -p < database/tests/teste_desempenho.sql
 ```
+
+Os arquivos de `schema/` só criam estrutura, sem dados nem testes. É com eles que o banco de produção nasce (veja [Ambientes e operação](../docs/operacao/ambientes.md)).
 
 Para recomeçar do zero, apague o banco antes com `DROP DATABASE confeccoes;`.
 

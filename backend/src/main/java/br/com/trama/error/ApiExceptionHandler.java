@@ -6,7 +6,10 @@ import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,17 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ProblemDetail> handleTooManyRequests(TooManyRequestsException ex,
+                                                               HttpServletRequest request) {
+        long segundos = Math.max(1, ex.getRetryAfter().toSeconds());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(segundos))
+                .body(build(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), request));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException ex,
                                                             HttpServletRequest request) {
@@ -52,6 +66,11 @@ public class ApiExceptionHandler {
     public ResponseEntity<ProblemDetail> handleNotFound(ResourceNotFoundException ex,
                                                          HttpServletRequest request) {
         return response(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ProblemDetail> handleRotaInexistente(Exception ex, HttpServletRequest request) {
+        return response(HttpStatus.NOT_FOUND, "Recurso não encontrado.", request);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -134,6 +153,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex, HttpServletRequest request) {
+        log.error("Erro inesperado em {} {}", request.getMethod(), request.getRequestURI(), ex);
         return response(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Ocorreu um erro interno. Consulte o log do servidor.", request);
     }

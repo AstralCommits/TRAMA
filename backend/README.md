@@ -15,7 +15,7 @@ API REST do [TRAMA](../README.md) em Spring Boot. Os comandos deste documento ro
 
 | Recurso | Endpoints |
 |---|---|
-| Autenticação | `POST /api/auth/login` (o perfil e a confecção vão no token JWT) |
+| Autenticação | `POST /api/auth/login` (devolve o token JWT) e `GET /api/auth/me` (nome, perfil e confecção do usuário logado) |
 | Vendas (lançamentos mensais) | `GET`, `POST`, `PUT` e `DELETE /api/vendas` |
 | Importação de CSV | `GET` e `POST /api/importacoes` |
 | Indicadores e tendências | `GET /api/indicadores` e `GET /api/indicadores/tendencias` |
@@ -27,6 +27,8 @@ API REST do [TRAMA](../README.md) em Spring Boot. Os comandos deste documento ro
 Regras principais:
 
 - há dois perfis, `ADMIN` e `EMPRESARIO`, e cada empresário só vê os dados da própria confecção;
+- depois de 5 senhas erradas seguidas para o mesmo e-mail, o login fica bloqueado por 15 minutos e responde `429` com `Retry-After` (`TRAMA_LOGIN_MAX_TENTATIVAS` e `TRAMA_LOGIN_BLOQUEIO_MINUTOS` mudam os limites);
+- fora do perfil `local`, a API só sobe com `TRAMA_JWT_SECRET` definido, com pelo menos 32 caracteres;
 - o impacto de um cenário vai de 0 a 100;
 - os erros seguem o padrão Problem Details (RFC 7807);
 - a importação de CSV valida cada linha e roda numa transação única;
@@ -66,6 +68,17 @@ $env:TRAMA_JWT_SECRET="troque-por-uma-frase-longa-de-32-caracteres-ou-mais"
 
 Para subir banco, API e front juntos, use o `docker compose` da [raiz do repositório](../README.md#como-rodar).
 
+### Perfis
+
+| Perfil | Uso |
+|---|---|
+| `local` (padrão) | H2 em memória, com cidades, categorias e um admin opcional (`TRAMA_LOCAL_ADMIN_EMAIL` e `TRAMA_LOCAL_ADMIN_PASSWORD`) |
+| `dev` | MySQL do `docker compose` de desenvolvimento |
+| `prod` | MySQL de produção, logs em JSON, Actuator na porta 8081, Swagger desligado e admin inicial por `TRAMA_ADMIN_EMAIL` e `TRAMA_ADMIN_PASSWORD` |
+| `test` | testes automatizados, com H2 |
+
+Toda resposta leva o cabeçalho `X-Request-Id`, que também vai para o log. Saúde e métricas ficam em `/actuator/health` e `/actuator/prometheus`. Veja [Ambientes e operação](../docs/operacao/ambientes.md).
+
 ## Testes e qualidade
 
 ```bash
@@ -74,6 +87,7 @@ Para subir banco, API e front juntos, use o `docker compose` da [raiz do reposit
 
 - Os testes de integração ficam em `src/test/java/br/com/trama` e usam o perfil `test`, com H2 no modo MySQL.
 - O relatório de cobertura do JaCoCo fica em `target/site/jacoco/`.
+- O contrato da API fica versionado em [`docs/api/openapi.json`](../docs/api/openapi.json). O `ContratoOpenApiTest` falha quando a API muda e o arquivo não. Para atualizar, rode `./mvnw test -Dtest=ContratoOpenApiTest -Dtrama.contrato.atualizar=true` e, no front, `npm run api:types`.
 - O workflow [`backend.yml`](../.github/workflows/backend.yml) compila e testa o Back-end em todo Pull Request que altera esta pasta. Quando `SONAR_TOKEN` e `SONAR_HOST_URL` estão configurados, ele também envia a análise ao SonarQube.
 
 ## Banco de dados
