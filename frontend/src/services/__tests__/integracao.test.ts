@@ -43,7 +43,7 @@ const venda: Venda = {
   idLancamento: 7, mesAno: '2026-03', quantidade: 3, faturamento: 100, origem: 'IMPORTACAO', origemDado: 'ENTREVISTA',
   nomeFonte: 'Coleta', status: 'ATIVO', idConfeccao: 2, confeccao: 'Estilo Agreste', idCategoria: 1, categoria: 'Moda Feminina',
 };
-const confeccao: Confeccao = { idConfeccao: 2, nome: 'Estilo Agreste', porte: 'PEQUENA', tipo: 'CONFECCAO', cidade: 'Caruaru', uf: 'PE' };
+const confeccao: Confeccao = { idConfeccao: 2, nome: 'Estilo Agreste', porte: 'PEQUENA', tipo: 'CONFECCAO', idCidade: 2, cidade: 'Caruaru', uf: 'PE' };
 const apiUser: TramaUser = {
   id: 'api-ana@x.com', name: 'Ana', email: 'ana@x.com', company: 'Estilo Agreste', city: 'Caruaru',
   role: 'Empresário', isDemo: false, createdAt: '2026-11-24', source: 'api',

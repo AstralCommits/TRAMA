@@ -1,7 +1,5 @@
-import type { Cenario, Simulacao } from '@/types/api';
+import type { Cenario, CenarioInput, Simulacao } from '@/types/api';
 import { api } from './api';
-
-type CenarioInput = { nome: string; categoriaId?: number; percentualImpacto: number };
 
 export async function simularCenario(
   percentualImpacto: number,
