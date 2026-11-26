@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AxiosAdapter } from 'axios';
 import { api } from '@/services/api';
-import { clearApiToken, getApiToken, setApiToken } from '@/lib/apiToken';
+import { clearApiToken, getApiToken, setApiToken } from '@/services/apiToken';
 import { toApiParams, toMesAno } from '@/services/indicadoresService';
 import { fromApi } from '@/services/tendenciasService';
 

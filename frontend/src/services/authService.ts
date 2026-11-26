@@ -1,4 +1,4 @@
-import { setApiToken } from '@/lib/apiToken';
+import { setApiToken } from '@/services/apiToken';
 import type { UsuarioLogado } from '@/types/api';
 import { api } from './api';
 

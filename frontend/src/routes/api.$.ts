@@ -1,4 +1,4 @@
-import { apiError, withApi } from '@/lib/api.server';
+import { apiError, withApi } from '@/utils/api.server';
 
 const notFound = withApi(async () => apiError(404, 'Route not found'));
 
