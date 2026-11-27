@@ -40,6 +40,7 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 - CodeQL para Java e TypeScript e Dependabot para npm, Maven, Docker e Actions.
 - Imagem do front sem dependências de desenvolvimento e rodando sem root.
 - Guia de ambientes, publicação, logs e monitoramento em `docs/operacao/ambientes.md`.
+- Proxy Caddy no `docker-compose.prod.yml`: um único domínio com HTTPS automático, `/api` para a API e o resto para o front; só as portas 80 e 443 ficam expostas. `TRAMA_DOMINIO` substitui `TRAMA_WEB_URL`, `API_PORT` e `WEB_PORT`.
 
 ### Corrigido
 
