@@ -13,6 +13,7 @@
             "type" : "string"
           },
           "email" : {
+            "format" : "email",
             "maxLength" : 120,
             "minLength" : 0,
             "type" : "string"
@@ -362,6 +363,7 @@
       "LoginRequest" : {
         "properties" : {
           "email" : {
+            "format" : "email",
             "maxLength" : 120,
             "minLength" : 0,
             "type" : "string"
@@ -458,6 +460,7 @@
             "type" : "integer"
           },
           "mesAno" : {
+            "minLength" : 1,
             "pattern" : "^\\d{4}-(0[1-9]|1[0-2])$",
             "type" : "string"
           },
@@ -477,6 +480,7 @@
           },
           "quantidade" : {
             "format" : "int32",
+            "minimum" : 0,
             "type" : "integer"
           }
         },

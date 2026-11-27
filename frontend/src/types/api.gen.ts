@@ -275,6 +275,7 @@ export interface components {
         CadastroRequest: {
             cidade: string;
             cnpj?: string;
+            /** Format: email */
             email: string;
             nome: string;
             nomeConfeccao: string;
@@ -399,6 +400,7 @@ export interface components {
             variacaoPercentual?: number;
         };
         LoginRequest: {
+            /** Format: email */
             email: string;
             senha: string;
         };
