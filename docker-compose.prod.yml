@@ -16,12 +16,8 @@ services:
       MYSQL_USER: trama
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no .env}
       TZ: America/Recife
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci --log-bin-trust-function-creators=1
     volumes:
-      - ./database/schema/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./database/schema/procedures.sql:/docker-entrypoint-initdb.d/02-procedures.sql:ro
-      - ./database/schema/triggers.sql:/docker-entrypoint-initdb.d/03-triggers.sql:ro
-      - ./database/schema/auditoria.sql:/docker-entrypoint-initdb.d/04-auditoria.sql:ro
       - trama_mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -utrama -p$$MYSQL_PASSWORD --silent"]
