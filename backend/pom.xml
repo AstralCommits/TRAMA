@@ -23,7 +23,7 @@
         <jjwt.version>0.12.5</jjwt.version>
         <springdoc.version>2.6.0</springdoc.version>
         <commons-csv.version>1.11.0</commons-csv.version>
-        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <jacoco.version>0.8.12</jacoco.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
