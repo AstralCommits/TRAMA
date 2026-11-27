@@ -386,6 +386,39 @@
         "required" : [ "token" ],
         "type" : "object"
       },
+      "ProblemDetail" : {
+        "properties" : {
+          "detail" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "instance" : {
+            "format" : "uri",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "properties" : {
+            "additionalProperties" : {
+              "type" : "object"
+            },
+            "nullable" : true,
+            "type" : "object"
+          },
+          "status" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "title" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "type" : {
+            "format" : "uri",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "SimulacaoCenarioRequest" : {
         "properties" : {
           "categoriaId" : {
@@ -1011,11 +1044,32 @@
     },
     "/api/importacoes" : {
       "get" : {
+        "description" : "Lista as importações realizadas pelo usuário autenticado. Administradores podem consultar todas.",
         "operationId" : "listar_1",
         "responses" : {
           "200" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Histórico de importações" : {
+                    "description" : "Histórico de importações",
+                    "value" : [ {
+                      "dataImportacao" : "2025-03-31T14:30:00",
+                      "idImportacao" : 15,
+                      "idUsuario" : 3,
+                      "nomeArquivo" : "vendas_marco_2025.csv",
+                      "qtdLinhas" : 2,
+                      "status" : "CONCLUIDA"
+                    }, {
+                      "dataImportacao" : "2025-04-30T10:15:00",
+                      "idImportacao" : 16,
+                      "idUsuario" : 3,
+                      "nomeArquivo" : "vendas_abril_2025.csv",
+                      "qtdLinhas" : 0,
+                      "status" : "ERRO"
+                    } ]
+                  }
+                },
                 "schema" : {
                   "items" : {
                     "$ref" : "#/components/schemas/ImportacaoResponse"
@@ -1024,13 +1078,24 @@
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Importações retornadas com sucesso."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
           }
         },
-        "summary" : "Lista as importações do usuário autenticado",
+        "summary" : "Listar importações",
         "tags" : [ "Importações" ]
       },
       "post" : {
+        "description" : "Importa lançamentos mensais a partir de um arquivo CSV.\nO arquivo deve utilizar UTF-8 e conter os cabeçalhos obrigatórios:\nmesAno (ou mesReferencia), quantidade, faturamento (ou valor),\nidConfeccao, idCategoria, origemDado e nomeFonte.\n\nO separador pode ser vírgula ou ponto e vírgula.\nOs identificadores de confecção e categoria devem existir no sistema.\nA origem da importação é definida pelo próprio sistema.\n",
         "operationId" : "importar",
         "requestBody" : {
           "content" : {
@@ -1038,6 +1103,7 @@
               "schema" : {
                 "properties" : {
                   "arquivo" : {
+                    "description" : "Arquivo CSV em UTF-8.\n\nExemplo de conteúdo:\nmesAno;quantidade;faturamento;idConfeccao;idCategoria;origemDado;nomeFonte\n2025-03;120;15000.00;1;1;ENTREVISTA;Entrevista com lojistas de Caruaru\n2025-03;80;9600.00;1;2;QUESTIONARIO;Questionário com comerciantes\n\nSubstitua os IDs pelos identificadores existentes no seu banco de dados.\n",
                     "format" : "binary",
                     "type" : "string"
                   }
@@ -1049,25 +1115,94 @@
           }
         },
         "responses" : {
-          "200" : {
+          "201" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Importação concluída" : {
+                    "description" : "Importação concluída",
+                    "value" : {
+                      "dataImportacao" : "2025-03-31T14:30:00",
+                      "idImportacao" : 15,
+                      "idUsuario" : 3,
+                      "nomeArquivo" : "vendas_marco_2025.csv",
+                      "qtdLinhas" : 2,
+                      "status" : "CONCLUIDA"
+                    }
+                  }
+                },
                 "schema" : {
                   "$ref" : "#/components/schemas/ImportacaoResponse"
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Arquivo importado com sucesso."
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "examples" : {
+                  "Arquivo inválido" : {
+                    "description" : "Arquivo inválido",
+                    "value" : {
+                      "detail" : "O arquivo CSV não possui os cabeçalhos obrigatórios.",
+                      "instance" : "/api/importacoes",
+                      "status" : 400,
+                      "timestamp" : "2025-03-31T14:30:00",
+                      "title" : "Bad Request",
+                      "type" : "about:blank"
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Arquivo inválido, cabeçalhos ausentes ou dados incorretos."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário sem permissão para importar os dados."
+          },
+          "413" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Arquivo maior que o limite permitido de 10 MB."
           }
         },
-        "summary" : "Importa lançamentos mensais por arquivo CSV",
+        "summary" : "Importar lançamentos por CSV",
         "tags" : [ "Importações" ]
       }
     },
     "/api/indicadores" : {
       "get" : {
+        "description" : "Retorna os indicadores de vendas de um período, incluindo faturamento,\nquantidade de peças, ticket médio, comparação com o período anterior\ne desempenho por categoria.\n\nOs períodos devem utilizar o formato AAAA-MM.\n",
         "operationId" : "buscarIndicadores",
         "parameters" : [ {
+          "description" : "Mês inicial da consulta no formato AAAA-MM.",
+          "example" : "2025-02",
           "in" : "query",
           "name" : "inicio",
           "required" : true,
@@ -1075,6 +1210,8 @@
             "type" : "string"
           }
         }, {
+          "description" : "Mês final da consulta no formato AAAA-MM.",
+          "example" : "2025-02",
           "in" : "query",
           "name" : "fim",
           "required" : true,
@@ -1082,6 +1219,8 @@
             "type" : "string"
           }
         }, {
+          "description" : "Identificador opcional da categoria.",
+          "example" : 1,
           "in" : "query",
           "name" : "categoriaId",
           "required" : false,
@@ -1090,6 +1229,8 @@
             "type" : "integer"
           }
         }, {
+          "description" : "Cidade utilizada como filtro.",
+          "example" : "Toritama",
           "in" : "query",
           "name" : "cidade",
           "required" : false,
@@ -1100,22 +1241,99 @@
         "responses" : {
           "200" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Indicadores de fevereiro de 2025" : {
+                    "description" : "Indicadores de fevereiro de 2025",
+                    "value" : {
+                      "categoriaLider" : {
+                        "categoria" : "Jeans",
+                        "faturamento" : 1200.0
+                      },
+                      "categorias" : [ {
+                        "categoria" : "Jeans",
+                        "classificacao" : "ALTA",
+                        "faturamento" : 1200.0,
+                        "faturamentoAnterior" : 1000.0,
+                        "idCategoria" : 1,
+                        "pecasVendidas" : 12,
+                        "pecasVendidasAnterior" : 10,
+                        "variacaoPercentual" : 20.0
+                      }, {
+                        "categoria" : "Infantil",
+                        "classificacao" : "ESTAVEL",
+                        "faturamento" : 510.0,
+                        "faturamentoAnterior" : 500.0,
+                        "idCategoria" : 2,
+                        "pecasVendidas" : 5,
+                        "pecasVendidasAnterior" : 5,
+                        "variacaoPercentual" : 2.0
+                      }, {
+                        "categoria" : "Praia",
+                        "classificacao" : "QUEDA",
+                        "faturamento" : 800.0,
+                        "faturamentoAnterior" : 1000.0,
+                        "idCategoria" : 3,
+                        "pecasVendidas" : 8,
+                        "pecasVendidasAnterior" : 10,
+                        "variacaoPercentual" : -20.0
+                      } ],
+                      "cidade" : "Toritama",
+                      "faturamentoMedio" : 836.67,
+                      "faturamentoTotal" : 2510.0,
+                      "faturamentoTotalAnterior" : 2500.0,
+                      "fim" : "2025-02",
+                      "fimAnterior" : "2025-01",
+                      "inicio" : "2025-02",
+                      "inicioAnterior" : "2025-01",
+                      "pecasVendidas" : 25,
+                      "pecasVendidasAnterior" : 25,
+                      "quantidadeLancamentos" : 3,
+                      "quantidadeTotal" : 25,
+                      "ticketMedio" : 100.4,
+                      "variacaoPercentual" : 0.4
+                    }
+                  }
+                },
                 "schema" : {
                   "$ref" : "#/components/schemas/IndicadorResponseDTO"
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Indicadores calculados com sucesso."
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Período inválido ou data final anterior à inicial."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
           }
         },
-        "tags" : [ "indicador-controller" ]
+        "summary" : "Consultar indicadores de vendas",
+        "tags" : [ "Indicadores" ]
       }
     },
     "/api/indicadores/tendencias" : {
       "get" : {
+        "description" : "Retorna a evolução das categorias no período selecionado,\ncomparando faturamento e quantidade de peças com o período anterior.\n\nClassificações possíveis: ALTA, QUEDA, ESTAVEL e SEM_BASE.\n",
         "operationId" : "buscarTendencias",
         "parameters" : [ {
+          "description" : "Mês inicial da consulta no formato AAAA-MM.",
+          "example" : "2025-02",
           "in" : "query",
           "name" : "inicio",
           "required" : true,
@@ -1123,6 +1341,8 @@
             "type" : "string"
           }
         }, {
+          "description" : "Mês final da consulta no formato AAAA-MM.",
+          "example" : "2025-02",
           "in" : "query",
           "name" : "fim",
           "required" : true,
@@ -1130,6 +1350,8 @@
             "type" : "string"
           }
         }, {
+          "description" : "Cidade utilizada como filtro.",
+          "example" : "Toritama",
           "in" : "query",
           "name" : "cidade",
           "required" : false,
@@ -1140,7 +1362,40 @@
         "responses" : {
           "200" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Tendências de fevereiro de 2025" : {
+                    "description" : "Tendências de fevereiro de 2025",
+                    "value" : [ {
+                      "categoria" : "Jeans",
+                      "classificacao" : "ALTA",
+                      "faturamento" : 1200.0,
+                      "faturamentoAnterior" : 1000.0,
+                      "idCategoria" : 1,
+                      "pecasVendidas" : 12,
+                      "pecasVendidasAnterior" : 10,
+                      "variacaoPercentual" : 20.0
+                    }, {
+                      "categoria" : "Infantil",
+                      "classificacao" : "ESTAVEL",
+                      "faturamento" : 510.0,
+                      "faturamentoAnterior" : 500.0,
+                      "idCategoria" : 2,
+                      "pecasVendidas" : 5,
+                      "pecasVendidasAnterior" : 5,
+                      "variacaoPercentual" : 2.0
+                    }, {
+                      "categoria" : "Praia",
+                      "classificacao" : "QUEDA",
+                      "faturamento" : 800.0,
+                      "faturamentoAnterior" : 1000.0,
+                      "idCategoria" : 3,
+                      "pecasVendidas" : 8,
+                      "pecasVendidasAnterior" : 10,
+                      "variacaoPercentual" : -20.0
+                    } ]
+                  }
+                },
                 "schema" : {
                   "items" : {
                     "$ref" : "#/components/schemas/CategoriaIndicadorDTO"
@@ -1149,16 +1404,40 @@
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Tendências calculadas com sucesso."
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Período inválido."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
           }
         },
-        "tags" : [ "indicador-controller" ]
+        "summary" : "Consultar tendências por categoria",
+        "tags" : [ "Indicadores" ]
       }
     },
     "/api/vendas" : {
       "get" : {
+        "description" : "Lista os lançamentos de vendas, permitindo filtrar por categoria, confecção e mês.",
         "operationId" : "listar",
         "parameters" : [ {
+          "description" : "Filtrar pelo identificador da categoria.",
+          "example" : 1,
           "in" : "query",
           "name" : "categoria",
           "required" : false,
@@ -1167,6 +1446,8 @@
             "type" : "integer"
           }
         }, {
+          "description" : "Filtrar pelo identificador da confecção.",
+          "example" : 1,
           "in" : "query",
           "name" : "confeccao",
           "required" : false,
@@ -1175,6 +1456,8 @@
             "type" : "integer"
           }
         }, {
+          "description" : "Filtrar pelo mês de referência no formato AAAA-MM.",
+          "example" : "2025-03",
           "in" : "query",
           "name" : "mesAno",
           "required" : false,
@@ -1185,7 +1468,26 @@
         "responses" : {
           "200" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Lista de vendas" : {
+                    "description" : "Lista de vendas",
+                    "value" : [ {
+                      "categoria" : "Jeans",
+                      "confeccao" : "Confecção Exemplo",
+                      "faturamento" : 15000.0,
+                      "idCategoria" : 1,
+                      "idConfeccao" : 1,
+                      "idLancamento" : 101,
+                      "mesAno" : "2025-03",
+                      "nomeFonte" : "Entrevista com lojistas da feira de Caruaru",
+                      "origem" : "MANUAL",
+                      "origemDado" : "ENTREVISTA",
+                      "quantidade" : 120,
+                      "status" : "ATIVO"
+                    } ]
+                  }
+                },
                 "schema" : {
                   "items" : {
                     "$ref" : "#/components/schemas/VendaResponse"
@@ -1194,42 +1496,123 @@
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Lista de vendas retornada com sucesso."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
           }
         },
-        "tags" : [ "venda-controller" ]
+        "summary" : "Listar vendas",
+        "tags" : [ "Vendas" ]
       },
       "post" : {
+        "description" : "Registra um lançamento mensal de vendas para uma confecção e categoria.",
         "operationId" : "criar",
         "requestBody" : {
           "content" : {
             "application/json" : {
+              "examples" : {
+                "Nova venda" : {
+                  "description" : "Nova venda",
+                  "value" : {
+                    "faturamento" : 15000.0,
+                    "idCategoria" : 1,
+                    "idConfeccao" : 1,
+                    "mesAno" : "2025-03",
+                    "nomeFonte" : "Entrevista com lojistas da feira de Caruaru",
+                    "origem" : "MANUAL",
+                    "origemDado" : "ENTREVISTA",
+                    "quantidade" : 120
+                  }
+                }
+              },
               "schema" : {
                 "$ref" : "#/components/schemas/VendaRequest"
               }
             }
           },
+          "description" : "Dados necessários para cadastrar uma venda.",
           "required" : true
         },
         "responses" : {
-          "200" : {
+          "201" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Venda cadastrada" : {
+                    "description" : "Venda cadastrada",
+                    "value" : {
+                      "categoria" : "Jeans",
+                      "confeccao" : "Confecção Exemplo",
+                      "faturamento" : 15000.0,
+                      "idCategoria" : 1,
+                      "idConfeccao" : 1,
+                      "idLancamento" : 101,
+                      "mesAno" : "2025-03",
+                      "nomeFonte" : "Entrevista com lojistas da feira de Caruaru",
+                      "origem" : "MANUAL",
+                      "origemDado" : "ENTREVISTA",
+                      "quantidade" : 120,
+                      "status" : "ATIVO"
+                    }
+                  }
+                },
                 "schema" : {
                   "$ref" : "#/components/schemas/VendaResponse"
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Venda cadastrada com sucesso."
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Dados inválidos."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário sem permissão."
           }
         },
-        "tags" : [ "venda-controller" ]
+        "summary" : "Cadastrar venda",
+        "tags" : [ "Vendas" ]
       }
     },
     "/api/vendas/{id}" : {
       "delete" : {
+        "description" : "Cancela um lançamento de venda existente.",
         "operationId" : "cancelar",
         "parameters" : [ {
+          "description" : "Identificador do lançamento a cancelar.",
+          "example" : 101,
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -1239,15 +1622,49 @@
           }
         } ],
         "responses" : {
-          "200" : {
-            "description" : "OK"
+          "204" : {
+            "description" : "Venda cancelada com sucesso. Não há conteúdo na resposta."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário sem permissão."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Venda não encontrada."
           }
         },
-        "tags" : [ "venda-controller" ]
+        "summary" : "Cancelar venda",
+        "tags" : [ "Vendas" ]
       },
       "get" : {
+        "description" : "Retorna os detalhes de um lançamento de venda específico.",
         "operationId" : "buscar",
         "parameters" : [ {
+          "description" : "Identificador do lançamento.",
+          "example" : 101,
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -1259,20 +1676,63 @@
         "responses" : {
           "200" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Venda encontrada" : {
+                    "description" : "Venda encontrada",
+                    "value" : {
+                      "categoria" : "Jeans",
+                      "confeccao" : "Confecção Exemplo",
+                      "faturamento" : 15000.0,
+                      "idCategoria" : 1,
+                      "idConfeccao" : 1,
+                      "idLancamento" : 101,
+                      "mesAno" : "2025-03",
+                      "nomeFonte" : "Entrevista com lojistas da feira de Caruaru",
+                      "origem" : "MANUAL",
+                      "origemDado" : "ENTREVISTA",
+                      "quantidade" : 120,
+                      "status" : "ATIVO"
+                    }
+                  }
+                },
                 "schema" : {
                   "$ref" : "#/components/schemas/VendaResponse"
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Venda encontrada com sucesso."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Venda não encontrada."
           }
         },
-        "tags" : [ "venda-controller" ]
+        "summary" : "Buscar venda por ID",
+        "tags" : [ "Vendas" ]
       },
       "put" : {
+        "description" : "Atualiza os dados de um lançamento de venda existente.",
         "operationId" : "atualizar",
         "parameters" : [ {
+          "description" : "Identificador do lançamento.",
+          "example" : 101,
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -1284,30 +1744,116 @@
         "requestBody" : {
           "content" : {
             "application/json" : {
+              "examples" : {
+                "Atualização de venda" : {
+                  "description" : "Atualização de venda",
+                  "value" : {
+                    "faturamento" : 18000.0,
+                    "idCategoria" : 1,
+                    "idConfeccao" : 1,
+                    "mesAno" : "2025-03",
+                    "nomeFonte" : "Entrevista atualizada com lojistas de Caruaru",
+                    "origem" : "MANUAL",
+                    "origemDado" : "ENTREVISTA",
+                    "quantidade" : 150
+                  }
+                }
+              },
               "schema" : {
                 "$ref" : "#/components/schemas/VendaRequest"
               }
             }
           },
+          "description" : "Novos dados da venda.",
           "required" : true
         },
         "responses" : {
           "200" : {
             "content" : {
-              "*/*" : {
+              "application/json" : {
+                "examples" : {
+                  "Venda atualizada" : {
+                    "description" : "Venda atualizada",
+                    "value" : {
+                      "categoria" : "Jeans",
+                      "confeccao" : "Confecção Exemplo",
+                      "faturamento" : 18000.0,
+                      "idCategoria" : 1,
+                      "idConfeccao" : 1,
+                      "idLancamento" : 101,
+                      "mesAno" : "2025-03",
+                      "nomeFonte" : "Entrevista atualizada com lojistas de Caruaru",
+                      "origem" : "MANUAL",
+                      "origemDado" : "ENTREVISTA",
+                      "quantidade" : 150,
+                      "status" : "ATIVO"
+                    }
+                  }
+                },
                 "schema" : {
                   "$ref" : "#/components/schemas/VendaResponse"
                 }
               }
             },
-            "description" : "OK"
+            "description" : "Venda atualizada com sucesso."
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Dados inválidos."
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário não autenticado."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Usuário sem permissão."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Venda não encontrada."
           }
         },
-        "tags" : [ "venda-controller" ]
+        "summary" : "Atualizar venda",
+        "tags" : [ "Vendas" ]
       }
     }
   },
   "security" : [ {
     "bearerAuth" : [ ]
+  } ],
+  "tags" : [ {
+    "description" : "Importação e consulta de lançamentos mensais por arquivos CSV.",
+    "name" : "Importações"
+  }, {
+    "description" : "Gerenciamento de lançamentos mensais de vendas.",
+    "name" : "Vendas"
+  }, {
+    "description" : "Consulta de indicadores de vendas e tendências por categoria.",
+    "name" : "Indicadores"
   } ]
 }
