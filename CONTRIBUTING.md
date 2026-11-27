@@ -6,6 +6,18 @@ Guia de trabalho da equipe AstralCommits. Vale para todas as pastas do repositó
 
 O repositório tem duas branches fixas. A `main` é protegida: nada entra nela sem Pull Request, sem a aprovação de pelo menos uma pessoa da equipe e sem o CI passando. Na `develop`, quem tem acesso de escrita pode dar push direto; só não é permitido apagar a branch nem reescrever o histórico (force-push).
 
+Checks que precisam passar para o merge na `main`:
+
+| Workflow | Check |
+| --- | --- |
+| Back-end CI | `Build e testes (Java 21)` |
+| Front-end CI | `Lint, typecheck e build` |
+| Banco de Dados CI | `Schema, dados e demonstração (MySQL 8)` |
+| CodeQL | `Análise de segurança (java-kotlin)` e `Análise de segurança (javascript-typescript)` |
+| Imagens Docker | `Imagem trama-api` e `Imagem trama-web` |
+
+Todos esses workflows rodam em qualquer Pull Request, sem filtro de pasta. Se um workflow novo virar obrigatório, ele também precisa rodar em todo PR, senão o check nunca aparece e o merge fica bloqueado.
+
 | Branch | Para quê |
 |---|---|
 | `develop` | branch padrão. Recebe as features e correções e é onde a equipe testa tudo junto antes de lançar |

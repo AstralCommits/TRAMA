@@ -1,12 +1,9 @@
 name: Imagens Docker
 
 on:
+  # Sem filtro de caminhos: "Imagem trama-api" e "Imagem trama-web" são checks
+  # obrigatórios na proteção da main, e um check que não roda deixa o PR travado.
   pull_request:
-    paths:
-      - "backend/**"
-      - "frontend/**"
-      - "docker-compose*.yml"
-      - ".github/workflows/docker.yml"
   push:
     tags:
       - "v*"
