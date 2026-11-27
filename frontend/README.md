@@ -7,7 +7,7 @@ A aplicação junta o site institucional e a área de gestão. O site é a porta
 ## Tecnologias
 
 - React 19 e React Router 8 (com renderização no servidor)
-- Vite 8 e Tailwind CSS 3
+- Vite 8 e Tailwind CSS 4
 - TypeScript
 - Vitest para os testes e oxlint para o lint
 
@@ -92,7 +92,7 @@ frontend/
 ├── .env.example        modelo de configuração
 ├── Dockerfile          imagem usada pelo docker compose
 ├── package.json
-└── vite.config.ts      junto com react-router.config.ts, vitest.config.ts e tailwind.config.js
+└── vite.config.ts      junto com react-router.config.ts e vitest.config.ts
 ```
 
 ## Mais informações

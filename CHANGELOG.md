@@ -20,6 +20,7 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 
 ### Organização do front-end
 
+- Front-end migrado para o Tailwind CSS 4, com o plugin `@tailwindcss/vite`; o tema passou do `tailwind.config.js` para o `src/index.css`.
 - `home/` virou `pages/`, a área de gestão (`workspace.tsx`) foi para `layouts/`, os componentes do shadcn foram para `components/ui/`, a sessão e o token foram para `services/`, e as funções auxiliares de `lib/` foram para `utils/`.
 - Saiu o `horizons-preview-scripts.tsx`, que não fazia nada.
 
