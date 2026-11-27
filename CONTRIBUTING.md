@@ -66,3 +66,12 @@ Quem revisa confere:
 ## Como rodar o projeto
 
 Veja a seção [Como rodar o projeto completo](README.md#como-rodar-o-projeto-completo) do README.
+
+## Mudanças no banco de dados
+
+A estrutura do MySQL é controlada pelo Flyway, em `backend/src/main/resources/db/migration`.
+
+1. Crie uma migração nova com o próximo número, por exemplo `V8__adiciona_coluna_x.sql`. Nunca edite uma migração que já está na `main`.
+2. Rode `python database/scripts/gerar_schema.py` para atualizar o `database/schema.sql` e o `database/banco_completo.sql`.
+3. Ajuste as entidades JPA, se precisar, e rode os testes do back com o Docker aberto, para o `MigracoesMySqlTest` rodar.
+4. Se a mudança alterar a API, atualize o contrato (`docs/api/openapi.json`) e os tipos do front (`npm run api:types`).

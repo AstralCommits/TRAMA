@@ -7,7 +7,7 @@ import {
 	onCookiePreferencesRequested,
 	rejectOptionalCookies,
 	saveConsent,
-} from '@/lib/cookie-consent';
+} from '@/utils/cookie-consent';
 
 export type CookieChoices = {
 	analytics: boolean;

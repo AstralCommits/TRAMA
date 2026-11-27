@@ -7,9 +7,9 @@ Como o TRAMA roda em cada ambiente, como uma versão é publicada e como acompan
 | Ambiente | Como sobe | Banco | Perfil da API | Dados |
 |---|---|---|---|---|
 | Desenvolvimento local | `./mvnw spring-boot:run` e `npm run dev` | H2 em memória | `local` | cidades, categorias e, se configurado, um admin local |
-| Desenvolvimento com Docker | `docker compose up --build` | MySQL 8 no container | `dev` | dados de exemplo e massa de demonstração |
+| Desenvolvimento com Docker | `docker compose up --build` | MySQL 8 no container, com a estrutura criada pelo Flyway | `dev` | dados de exemplo e massa de demonstração, carregados pelo serviço `seed` |
 | CI | GitHub Actions | H2 (back) e MySQL no container (banco) | `test` | criados pelos testes |
-| Produção | `docker compose -f docker-compose.prod.yml up -d` | MySQL 8 com volume próprio | `prod` | só a estrutura; cidades, categorias e o primeiro admin são criados pela API |
+| Produção | `docker compose -f docker-compose.prod.yml up -d` | MySQL 8 com volume próprio | `prod` | só a estrutura, criada pelo Flyway; cidades, categorias e o primeiro admin são criados pela API |
 
 O perfil `prod` não carrega os dados de exemplo nem os usuários de demonstração, que têm senha pública.
 
@@ -83,7 +83,7 @@ sed -i 's/^TRAMA_VERSION=.*/TRAMA_VERSION=1.0.0/' .env
 docker compose -f docker-compose.prod.yml up -d --wait
 ```
 
-Antes de atualizar, faça um backup do banco (veja [Backup automatizado](../../database/README.md#backup-automatizado-e-recuperação-db-07)). As mudanças de estrutura do banco ficam em [`database/migrations`](../../database/migrations) e são aplicadas antes de subir a versão nova.
+Antes de atualizar, faça um backup do banco (veja [Backup automatizado](../../database/README.md#backup-automatizado-e-recuperação-db-07)). As mudanças de estrutura do banco são migrações do Flyway, em [`backend/src/main/resources/db/migration`](../../backend/src/main/resources/db/migration), e a API aplica as que faltam quando a versão nova sobe.
 
 ## Logs
 

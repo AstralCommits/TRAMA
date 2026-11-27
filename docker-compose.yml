@@ -7,15 +7,13 @@ services:
       MYSQL_USER: trama
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-trama}
       TZ: America/Recife
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci --log-bin-trust-function-creators=1
     ports:
       - "${MYSQL_PORT:-3307}:3306"
     volumes:
-      - ./database/schema/banco_completo.sql:/docker-entrypoint-initdb.d/01-banco.sql:ro
-      - ./database/seeds/seed_demonstracao_projetai.sql:/docker-entrypoint-initdb.d/02-demonstracao.sql:ro
       - trama_mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysql", "-h", "127.0.0.1", "-utrama", "-p${MYSQL_PASSWORD:-trama}", "-e", "SELECT 1 FROM confeccoes.lancamento_mensal LIMIT 1"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-utrama", "-p${MYSQL_PASSWORD:-trama}", "--silent"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -43,14 +41,35 @@ services:
       retries: 30
       start_period: 20s
 
+  seed:
+    image: mysql:8.0
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      MYSQL_PWD: ${MYSQL_PASSWORD:-trama}
+    volumes:
+      - ./database:/database:ro
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        if [ "$$(mysql -h banco -utrama -N -e 'SELECT COUNT(*) FROM confeccoes.confeccao')" = "0" ]; then
+          for arquivo in seeds/inserts.sql tests/teste_triggers.sql queries/transacoes.sql seeds/seed_demonstracao_projetai.sql; do
+            mysql -h banco -utrama --default-character-set=utf8mb4 confeccoes < /database/$$arquivo > /dev/null || exit 1
+          done &&
+          echo "Dados de exemplo e demonstração carregados."
+        else
+          echo "O banco já tem dados; seed ignorado."
+        fi
+
   web:
     build:
       context: ./frontend
       args:
         VITE_API_URL: http://localhost:8080
     depends_on:
-      api:
-        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
     ports:
       - "3000:3000"
 

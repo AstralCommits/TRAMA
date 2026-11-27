@@ -1,5 +1,5 @@
 import type { Route } from './+types/sitemap.xml';
-import { siteOrigin } from '@/lib/site-origin.server';
+import { siteOrigin } from '@/utils/site-origin.server';
 
 type SitemapEntry = {
 	path: string;

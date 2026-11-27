@@ -334,57 +334,70 @@ As agregações do `consultas.sql` (por cidade, categoria e mês) também usam �
 
 ## Arquivos
 
+A estrutura oficial do banco são as migrações do Flyway, em [`backend/src/main/resources/db/migration`](../backend/src/main/resources/db/migration). A API aplica as migrações que faltam toda vez que sobe com MySQL, e cada mudança fica registrada na tabela `flyway_schema_history`.
+
+| Migração | O que cria |
+|---|---|
+| `V1__cria_cidades_confeccoes_e_categorias.sql` | `cidade`, `confeccao` e `categoria` |
+| `V2__cria_usuarios.sql` | `usuario` |
+| `V3__cria_vendas_e_importacoes.sql` | `importacao`, `lancamento_mensal`, os índices do RNF01 e as views `vw_lancamentos` e `vw_vendas_polo_regional` |
+| `V4__cria_cenarios_relatorios_e_entrevistas.sql` | `cenario_concorrencia`, `relatorio`, `item_relatorio` e `entrevista` |
+| `V5__cria_historico_de_vendas.sql` | `historico_lancamento` |
+| `V6__cria_procedures_de_lancamento.sql` | procedures para inserir, atualizar, cancelar e excluir lançamentos |
+| `V7__cria_triggers_e_auditoria_do_historico.sql` | triggers de histórico, a view `vw_historico_lancamento` e as procedures de relatório |
+
+Esta pasta guarda o resto:
+
 ```
 database/
-├── schema/       estrutura do banco: tabelas, procedures, triggers e auditoria
-├── seeds/        dados de exemplo e massa de demonstração
-├── migrations/   atualizações para bancos já criados
-├── tests/        casos de teste e teste de desempenho
-├── queries/      consultas, selects e transações de exemplo
-├── sqlite/       versão SQLite e o gerador do extensao.db
-├── scripts/      backup e teste de restauração
-└── backups/      saída dos backups (não versionada)
+├── schema.sql          estrutura completa, gerada a partir das migrações
+├── banco_completo.sql  estrutura, dados de exemplo, testes, transações e consultas, também gerado
+├── seeds/              dados de exemplo e massa de demonstração
+├── tests/              casos de teste, testes dos triggers e da auditoria e teste de desempenho
+├── queries/            consultas, selects e transações de exemplo
+├── sqlite/             versão SQLite e o gerador do extensao.db
+├── scripts/            backup, teste de restauração e o gerador do schema.sql
+└── backups/            saída dos backups (não versionada)
 ```
 
-O banco sobe pelo [`docker-compose.yml`](../docker-compose.yml) da raiz (serviço `banco`), que carrega o `banco_completo.sql` e a massa de demonstração na primeira subida. O minimundo fica em [docs/database/minimundo.md](../docs/database/minimundo.md).
+O `schema.sql` e o `banco_completo.sql` não são editados à mão: o [`scripts/gerar_schema.py`](scripts/gerar_schema.py) monta os dois a partir das migrações, e o CI falha se eles estiverem diferentes. O minimundo fica em [docs/database/minimundo.md](../docs/database/minimundo.md).
 
 | Pasta | Arquivo | Conteúdo |
 |---|---|---|
-| `schema/` | [banco_completo.sql](schema/banco_completo.sql) | Schema, dados de exemplo, procedures, triggers, auditoria e transações em um único script, na ordem certa; recria o banco do zero |
-| `schema/` | [schema.sql](schema/schema.sql) | Criação do banco, das 10 tabelas, da tabela de auditoria `historico_lancamento` e dos índices do RNF01 |
-| `schema/` | [procedures.sql](schema/procedures.sql) | Procedures para inserir, atualizar, cancelar e excluir lançamentos |
-| `schema/` | [triggers.sql](schema/triggers.sql) | Triggers que gravam no histórico os UPDATE e DELETE de lançamentos |
-| `schema/` | [auditoria.sql](schema/auditoria.sql) | View e procedures de relatório do histórico de lançamentos |
+| raiz | [schema.sql](schema.sql) | As 7 migrações em sequência; recria só a estrutura |
+| raiz | [banco_completo.sql](banco_completo.sql) | Estrutura, dados de exemplo, testes dos triggers e da auditoria, transações, selects e consultas em um único script; recria o banco do zero |
 | `seeds/` | [inserts.sql](seeds/inserts.sql) | Dados de exemplo para todas as tabelas |
 | `seeds/` | [seed_demonstracao_projetai.sql](seeds/seed_demonstracao_projetai.sql) | Massa de dados fictícia do polo têxtil para o ProjetAÍ e a view `vw_serie_polo_regional` |
 | `tests/` | [teste_demonstracao_projetai.sql](tests/teste_demonstracao_projetai.sql) | 12 casos de teste da massa de demonstração; não altera os dados |
-| `tests/` | [teste_desempenho.sql](tests/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não fica no `banco_completo.sql` e não altera os dados |
 | `tests/` | [teste_triggers.sql](tests/teste_triggers.sql) | Insere, altera, cancela e exclui um lançamento e mostra o histórico gravado pelos triggers; precisa dos dados de exemplo |
 | `tests/` | [teste_auditoria.sql](tests/teste_auditoria.sql) | Chama a view e as procedures de relatório do histórico |
+| `tests/` | [teste_desempenho.sql](tests/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não altera os dados |
 | `queries/` | [consultas.sql](queries/consultas.sql) | Consultas com `INNER JOIN`, `LEFT JOIN`, `GROUP BY`, `COUNT`, `AVG`, `MAX` e `MIN` |
 | `queries/` | [selects.sql](queries/selects.sql) | Consulta de todos os registros de cada tabela |
 | `queries/` | [transacoes.sql](queries/transacoes.sql) | Transações de importação e de geração de relatório (`COMMIT`, `ROLLBACK`, `SAVEPOINT`) |
-| `sqlite/` | [schema_sqlite.sql](sqlite/schema_sqlite.sql) | Versão SQLite3 do `schema.sql`, com os triggers e a view |
+| `sqlite/` | [schema_sqlite.sql](sqlite/schema_sqlite.sql) | Versão SQLite3 da estrutura, com os triggers e a view |
 | `sqlite/` | [gerar_sqlite.py](sqlite/gerar_sqlite.py) | Gera o `extensao.db` a partir do `schema_sqlite.sql` e do `seeds/inserts.sql` |
 | `sqlite/` | [extensao.db](sqlite/extensao.db) | Banco SQLite pronto, com os dados de exemplo |
+
+### Como mudar a estrutura
+
+1. Crie a próxima migração em `backend/src/main/resources/db/migration`, por exemplo `V8__adiciona_coluna_x.sql`. Uma migração já aplicada nunca é editada: toda mudança vira um arquivo novo.
+2. Regere os scripts da pasta: `python database/scripts/gerar_schema.py`.
+3. Se a mudança afetar a API, atualize as entidades JPA. O teste `MigracoesMySqlTest` aplica as migrações num MySQL de verdade e confere as entidades.
+4. Se a estrutura vale também para o SQLite, atualize o `sqlite/schema_sqlite.sql`.
 
 ## Como executar
 
 ### Com Docker (recomendado para o back-end e o front-end)
 
-Precisa só do [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e aberto. Para subir só o banco, na raiz do repositório:
+Precisa só do [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e aberto. Para subir o banco já com os dados, na raiz do repositório:
 
 ```bash
-docker compose up -d banco
+docker compose up -d --wait api
+docker compose run --rm seed
 ```
 
-Na primeira vez, o Docker baixa a imagem `mysql:8.0` e roda o `database/schema/banco_completo.sql` e o `database/seeds/seed_demonstracao_projetai.sql` automaticamente: cria as tabelas, procedures, triggers, índices, os dados de exemplo e a massa de demonstração. Leva por volta de um minuto. Para saber se terminou:
-
-```bash
-docker compose ps
-```
-
-Quando a coluna `STATUS` mostrar `healthy`, o banco está pronto. O healthcheck só fica `healthy` depois que a carga inicial terminou e a tabela `lancamento_mensal` responde.
+A API aplica as migrações do Flyway no MySQL, e o serviço `seed` carrega os dados de exemplo, os testes dos triggers, as transações e a massa de demonstração. O `seed` só carrega quando o banco ainda não tem dados. O `docker compose up --build`, que sobe tudo, já faz esses dois passos.
 
 | Configuração | Valor |
 |---|---|
@@ -407,53 +420,46 @@ Pelo **MySQL Workbench** ou DBeaver, crie uma conexão com os dados da tabela ac
 
 | Comando | O que faz |
 |---|---|
-| `docker compose stop` | Para o banco e mantém os dados |
+| `docker compose stop` | Para os containers e mantém os dados |
 | `docker compose start` | Sobe de novo com os dados que já estavam lá |
-| `docker compose logs -f banco` | Mostra o log do MySQL (útil se o status não ficar `healthy`) |
-| `docker compose down -v` | Apaga o container **e os dados**; o próximo `up -d` recarrega o `banco_completo.sql` do zero |
+| `docker compose logs -f banco api` | Mostra o log do MySQL e da API, com as migrações aplicadas |
+| `docker compose down -v` | Apaga os containers **e os dados**; o próximo `up` recria a estrutura e carrega os dados de novo |
 
-O `banco_completo.sql` só roda quando o volume de dados está vazio. Depois de mudar algum script SQL, use `docker compose down -v` e `docker compose up -d banco` para recarregar.
+Um banco criado antes do Flyway não tem a tabela `flyway_schema_history`, e a API não sobe com ele. Recrie com `docker compose down -v`.
 
-A cada push e Pull Request, o GitHub Actions ([`.github/workflows/database.yml`](../.github/workflows/database.yml)) roda `docker compose up -d banco`, espera o banco ficar `healthy` e confere que as 11 tabelas existem com dados, além das 2 views, das 7 procedures, dos 2 triggers e dos 12 casos de teste da massa de demonstração. O resultado aparece na aba **Actions** do repositório e como ✅ ou ❌ no commit e no Pull Request. Assim, uma mudança nos scripts que quebre a carga inicial é descoberta antes de chegar à `develop`.
+A cada push e Pull Request, o GitHub Actions ([`.github/workflows/database.yml`](../.github/workflows/database.yml)) confere se o `schema.sql` e o `banco_completo.sql` estão iguais às migrações, sobe a API para aplicar o Flyway, roda o `seed` e confere as 11 tabelas com dados, as views, as 7 procedures, os 2 triggers e os 12 casos de teste da massa de demonstração.
 
 ### Com MySQL instalado
 
 O jeito mais simples é rodar o script completo, que apaga e recria o banco `confeccoes` com tudo:
 
 ```bash
-mysql -u root -p < database/schema/banco_completo.sql
+mysql -u root -p < database/banco_completo.sql
 ```
 
-Se preferir rodar por partes, use os arquivos nesta ordem, porque cada um depende do anterior:
+Se preferir rodar por partes:
 
 ```bash
-mysql -u root -p < database/schema/schema.sql
-mysql -u root -p < database/seeds/inserts.sql
-mysql -u root -p < database/schema/procedures.sql
-mysql -u root -p < database/schema/triggers.sql
-mysql -u root -p < database/schema/auditoria.sql
-mysql -u root -p < database/queries/transacoes.sql
-mysql -u root -p < database/queries/selects.sql
-mysql -u root -p < database/queries/consultas.sql
-```
-
-Para conferir os triggers, a auditoria e o desempenho (RNF01), rode depois de criar o banco:
-
-```bash
+mysql -u root -p < database/schema.sql
+mysql -u root -p confeccoes < database/seeds/inserts.sql
 mysql -u root -p confeccoes < database/tests/teste_triggers.sql
 mysql -u root -p confeccoes < database/tests/teste_auditoria.sql
+mysql -u root -p confeccoes < database/queries/transacoes.sql
+mysql -u root -p confeccoes < database/queries/selects.sql
+mysql -u root -p confeccoes < database/queries/consultas.sql
+```
+
+Para conferir o desempenho (RNF01), rode depois de criar o banco:
+
+```bash
 mysql -u root -p < database/tests/teste_desempenho.sql
 ```
 
-Os arquivos de `schema/` só criam estrutura, sem dados nem testes. É com eles que o banco de produção nasce (veja [Ambientes e operação](../docs/operacao/ambientes.md)).
-
-Para recomeçar do zero, apague o banco antes com `DROP DATABASE confeccoes;`.
-
-Pelo **MySQL Workbench**: abra cada arquivo em *File → Open SQL Script* e execute (⚡), na mesma ordem.
+Um banco criado por esses scripts não tem o histórico do Flyway. Para a API usar esse banco, crie o banco vazio e deixe a própria API aplicar as migrações, ou use o Docker.
 
 ## Massa de demonstração (ProjetAÍ)
 
-O `docker compose` da raiz já carrega a massa quando cria o banco. Com um MySQL instalado, ou num banco criado antes, rode a carga e confira (na raiz do repositório):
+O serviço `seed` do `docker compose` já carrega a massa quando o banco está vazio. Com um MySQL instalado, ou num banco criado antes, rode a carga e confira (na raiz do repositório):
 
 ```bash
 docker compose exec -T banco mysql -utrama -ptrama --default-character-set=utf8mb4 confeccoes < database/seeds/seed_demonstracao_projetai.sql
@@ -504,7 +510,7 @@ Para descartar tudo e voltar aos dados de exemplo do repositório:
 | Ambiente | Comando |
 |---|---|
 | Docker | `docker compose down -v` e depois `docker compose up -d banco` |
-| MySQL instalado | `mysql -u root -p < database/schema/banco_completo.sql` |
+| MySQL instalado | `mysql -u root -p < database/banco_completo.sql` |
 | SQLite | `python database/sqlite/gerar_sqlite.py` |
 
 ### Conferir a integridade depois de restaurar
@@ -523,9 +529,9 @@ As contagens devem bater com as do banco de onde o backup saiu, e o `CHECK TABLE
 
 Os usuários dos dados de exemplo entram na API com a senha `TramaDemo2026`, guardada em BCrypt com um sal por usuário. O e-mail de cada um está no `inserts.sql`: o `admin@confeccoes.com` é ADMIN e os demais são EMPRESARIO.
 
-**Só para desenvolvimento e demonstração.** A senha é pública: não use estes usuários em um banco exposto na internet. Para atualizar um banco já criado, sem apagar dados, rode `database/migrations/V0_5_1__senhas_bcrypt.sql`, que só muda as senhas antigas de exemplo.
+**Só para desenvolvimento e demonstração.** A senha é pública: não use estes usuários em um banco exposto na internet. Em produção, o banco nasce só com a estrutura, e o primeiro administrador vem das variáveis `TRAMA_ADMIN_EMAIL` e `TRAMA_ADMIN_PASSWORD` (veja [Ambientes e operação](../docs/operacao/ambientes.md)).
 
-As outras migrações de `database/migrations/` também servem só para bancos já criados, e cada uma roda uma única vez, na ordem da versão: `V0_4_0__origem_dado_nome_fonte.sql` (v0.3.x para v0.4.0, renomeia `fonte_dado` para `origem_dado` e cria `nome_fonte`) e `V0_5_0__fonte_dado.sql` (volta o nome para `fonte_dado`). Depois da `V0_4_0`, rode de novo `database/schema/procedures.sql` e o trecho de views de `database/schema/schema.sql`. Bancos novos, criados pelo `docker compose` ou pelo `banco_completo.sql`, já nascem com a estrutura atual.
+As atualizações manuais de bancos anteriores ao Flyway (v0.4.0 a v0.5.1) saíram do repositório e continuam no histórico do Git. Bancos novos nascem com a estrutura atual pelas migrações.
 
 ## Banco local em SQLite (`extensao.db`)
 

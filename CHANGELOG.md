@@ -16,6 +16,19 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 - Contrato da API versionado em `docs/api/openapi.json`, com teste no back e tipos gerados no front (`npm run api:types`), conferidos no CI.
 - Quem entra pela API vê só os módulos da SRS, todos ligados ao banco; os módulos locais ficam na demonstração e nas contas locais.
 
+### Organização do front-end
+
+- `home/` virou `pages/`, a área de gestão (`workspace.tsx`) foi para `layouts/`, os componentes do shadcn foram para `components/ui/`, a sessão e o token foram para `services/`, e as funções auxiliares de `lib/` foram para `utils/`.
+- Saiu o `horizons-preview-scripts.tsx`, que não fazia nada.
+
+### Banco de dados
+
+- Flyway passa a controlar a estrutura do MySQL: as migrações `V1` a `V7` em `backend/src/main/resources/db/migration` são a fonte oficial, aplicadas pela API nos perfis `dev` e `prod`.
+- `database/schema.sql` e `database/banco_completo.sql` passam a ser gerados a partir das migrações (`database/scripts/gerar_schema.py`), e o CI confere se estão em dia.
+- No desenvolvimento com Docker, os dados de exemplo e a demonstração são carregados pelo serviço `seed`, depois das migrações.
+- `MigracoesMySqlTest` aplica as migrações num MySQL 8 real (Testcontainers) e confere as entidades e os triggers.
+- Saíram `database/schema/`, as atualizações manuais `database/migrations/` (v0.4.0 a v0.5.1) e `backend/database/`, que repetiam a estrutura.
+
 ### Automação e publicação
 
 - Imagens da API e do front montadas no CI e publicadas no GitHub Container Registry a cada tag `v*`.

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AxiosAdapter, InternalAxiosRequestConfig } from 'axios';
 import { total } from '@/data/demo';
-import { getApiToken, hasValidApiToken, readApiClaims, SESSION_EXPIRED_EVENT, setApiToken } from '@/lib/apiToken';
-import { authenticateAccount, getSession, saveSession, type TramaUser } from '@/lib/auth.client';
+import { getApiToken, hasValidApiToken, readApiClaims, SESSION_EXPIRED_EVENT, setApiToken } from '@/services/apiToken';
+import { authenticateAccount, getSession, saveSession, type TramaUser } from '@/services/auth.client';
 import { api, getApiErrorMessage } from '@/services/api';
 import { importCsv } from '@/services/importacoesService';
 import { createVenda, toSale, updateVenda } from '@/services/vendasService';
