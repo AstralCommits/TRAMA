@@ -13,8 +13,23 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 ### Integração
 
 - `GET /api/auth/me` devolve nome, perfil e confecção do usuário logado; o front deixou de deduzir a confecção pela primeira da lista.
+- `POST /api/auth/cadastro`: o Cadastrar-se cria a confecção e o usuário EMPRESARIO no banco e já entra logado, com limite de 5 cadastros por hora por conexão; sem a API, a conta continua no navegador. `GET /api/cidades` passou a ser público para a tela de cadastro.
 - Contrato da API versionado em `docs/api/openapi.json`, com teste no back e tipos gerados no front (`npm run api:types`), conferidos no CI.
+- Todos os tipos da API no front vêm do contrato: os campos que a API sempre devolve são marcados como obrigatórios nos DTOs, e `src/types/api.ts` só dá nomes aos tipos gerados.
 - Quem entra pela API vê só os módulos da SRS, todos ligados ao banco; os módulos locais ficam na demonstração e nas contas locais.
+
+### Organização do front-end
+
+- `home/` virou `pages/`, a área de gestão (`workspace.tsx`) foi para `layouts/`, os componentes do shadcn foram para `components/ui/`, a sessão e o token foram para `services/`, e as funções auxiliares de `lib/` foram para `utils/`.
+- Saiu o `horizons-preview-scripts.tsx`, que não fazia nada.
+
+### Banco de dados
+
+- Flyway passa a controlar a estrutura do MySQL: as migrações `V1` a `V7` em `backend/src/main/resources/db/migration` são a fonte oficial, aplicadas pela API nos perfis `dev` e `prod`.
+- `database/schema.sql` e `database/banco_completo.sql` passam a ser gerados a partir das migrações (`database/scripts/gerar_schema.py`), e o CI confere se estão em dia.
+- No desenvolvimento com Docker, os dados de exemplo e a demonstração são carregados pelo serviço `seed`, depois das migrações.
+- `MigracoesMySqlTest` aplica as migrações num MySQL 8 real (Testcontainers) e confere as entidades e os triggers.
+- Saíram `database/schema/`, as atualizações manuais `database/migrations/` (v0.4.0 a v0.5.1) e `backend/database/`, que repetiam a estrutura.
 
 ### Automação e publicação
 
@@ -25,6 +40,8 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 - CodeQL para Java e TypeScript e Dependabot para npm, Maven, Docker e Actions.
 - Imagem do front sem dependências de desenvolvimento e rodando sem root.
 - Guia de ambientes, publicação, logs e monitoramento em `docs/operacao/ambientes.md`.
+- Proxy Caddy no `docker-compose.prod.yml`: um único domínio com HTTPS automático, `/api` para a API e o resto para o front; só as portas 80 e 443 ficam expostas, e a API e o front passam a escutar só em `127.0.0.1` no servidor. O CORS usa `https://<TRAMA_DOMINIO>`, a menos que `TRAMA_WEB_URL` seja definido.
+- Demonstração pública com os dados de exemplo: `docker-compose.demo.yml` e `deploy/demo/subir.sh` (perfil `dev`, senhas aleatórias no `.env`, Caddy opcional com `--proxy`), o bloco `deploy/demo/Caddyfile.externo` para um Caddy que já exista e os scripts de `deploy/demo/windows` para rodar sem Docker num Windows Server.
 
 ### Corrigido
 

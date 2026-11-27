@@ -45,7 +45,7 @@ O workflow [`frontend.yml`](../.github/workflows/frontend.yml) roda os quatro em
 
 ## Como entrar
 
-- **Cadastrar-se:** cria uma conta com nome, e-mail, confecção, cidade e senha.
+- **Cadastrar-se:** cria uma conta com nome, e-mail, confecção, porte, tipo, cidade e senha. Com a API configurada, a conta e a confecção vão para o banco (`POST /api/auth/cadastro`) e a pessoa já entra como empresária; só aparecem as cidades aceitas pelo banco. Sem a API, a conta fica neste navegador.
 - **Entrar:** com um usuário do TRAMA, usa a API e o banco: o front pede o token em `POST /api/auth/login` e os dados do usuário em `GET /api/auth/me`. Com uma conta criada no navegador, os dados ficam só nele.
 - **Entrar na demonstração:** abre a Confecção Fio do Agreste com dados fictícios.
 
@@ -63,7 +63,7 @@ As contas locais guardam a senha com PBKDF2 e salt (Web Crypto). Isso permite te
 | Simulador de Impacto da Concorrência | API (`/api/cenarios`) |
 | Estoque, Produção, Vendas e Pedidos, Financeiro, Clientes e Fornecedores, Cadastros, Agenda, Equipe, Configurações, Cenário da Concorrência, Simulador de Cenários Comparativos e Comparação de Produtos | Só no navegador (demonstração e contas locais) |
 
-Quem entra pela API vê só os módulos da SRS, todos ligados ao banco. O empresário não vê os cadastros de categorias e confecções. A demonstração e as contas locais veem todos os módulos. A regra fica em [`src/lib/modules.ts`](src/lib/modules.ts).
+Quem entra pela API vê só os módulos da SRS, todos ligados ao banco. O empresário não vê os cadastros de categorias e confecções. A demonstração e as contas locais veem todos os módulos. A regra fica em [`src/utils/modules.ts`](src/utils/modules.ts).
 
 Na Análise de Tendências, uma variação de +5% ou mais conta como alta, de −5% ou menos como queda, e o que fica no meio como estável.
 
@@ -77,7 +77,16 @@ Recuperação de senha, permissões de equipe de verdade e sincronização entre
 
 ```
 frontend/
-├── src/                rotas, telas e componentes
+├── src/
+│   ├── routes/         rotas do React Router (site, sitemap, robots e health)
+│   ├── pages/          páginas do sistema: site, entrada, vendas, cadastros, cenários e indicadores
+│   ├── layouts/        estrutura da área de gestão: menu lateral, cabeçalho e troca de módulos
+│   ├── components/     componentes reutilizáveis; os componentes base do shadcn ficam em components/ui
+│   ├── services/       comunicação com a API, sessão e token
+│   ├── hooks/          hooks personalizados
+│   ├── utils/          funções auxiliares: formatação, SEO, cookies e a regra de módulos visíveis
+│   ├── types/          tipos da API; api.gen.ts é gerado a partir do contrato
+│   └── data/           dados da demonstração
 ├── public/images/      logo e imagens do site
 ├── assets/             arquivos originais da identidade visual
 ├── .env.example        modelo de configuração

@@ -4,14 +4,33 @@ Guia de trabalho da equipe AstralCommits. Vale para todas as pastas do repositó
 
 ## Fluxo de trabalho (GitFlow)
 
-A `main` é protegida: nada entra nela sem Pull Request e sem a aprovação de pelo menos uma pessoa da equipe.
+O repositório tem duas branches fixas. A `main` é protegida: nada entra nela sem Pull Request, sem a aprovação de pelo menos uma pessoa da equipe e sem o CI passando. Na `develop`, quem tem acesso de escrita pode dar push direto; só não é permitido apagar a branch nem reescrever o histórico (force-push).
 
-1. Atualize a `main` local: `git checkout main && git pull`.
-2. Crie uma branch para a issue, seguindo o padrão abaixo.
+Checks que precisam passar para o merge na `main`:
+
+| Workflow | Check |
+| --- | --- |
+| Back-end CI | `Build e testes (Java 21)` |
+| Front-end CI | `Lint, typecheck e build` |
+| Banco de Dados CI | `Schema, dados e demonstração (MySQL 8)` |
+| CodeQL | `Análise de segurança (java-kotlin)` e `Análise de segurança (javascript-typescript)` |
+| Imagens Docker | `Imagem trama-api` e `Imagem trama-web` |
+
+Todos esses workflows rodam em qualquer Pull Request, sem filtro de pasta. Se um workflow novo virar obrigatório, ele também precisa rodar em todo PR, senão o check nunca aparece e o merge fica bloqueado.
+
+| Branch | Para quê |
+|---|---|
+| `develop` | branch padrão. Recebe as features e correções e é onde a equipe testa tudo junto antes de lançar |
+| `main` | o que está publicado. Só recebe a `develop` quando ela está testada, e cada versão vira uma tag `v*` a partir dela |
+
+1. Atualize a `develop` local: `git checkout develop && git pull`.
+2. Crie uma branch para a issue a partir da `develop`, seguindo o padrão abaixo.
 3. Faça commits pequenos e com mensagem no padrão da equipe.
-4. Envie a branch e abra um Pull Request para a `main`, preenchendo o modelo.
+4. Envie a branch e abra um Pull Request para a `develop`, preenchendo o modelo. Para mudanças pequenas, dá para commitar direto na `develop`; o CI roda do mesmo jeito em cada push.
 5. Peça a revisão de alguém da sua frente (ou de outra frente, se a mudança afetar as duas).
 6. Depois da aprovação e com o CI passando, faça o merge com **Create a merge commit** e apague a branch.
+
+Para lançar: abra um Pull Request da `develop` para a `main`. Depois do merge, crie a tag da versão na `main`, como explica o guia de [Ambientes e operação](docs/operacao/ambientes.md#publicar-uma-versão).
 
 ## Nome das branches
 
@@ -59,3 +78,12 @@ Quem revisa confere:
 ## Como rodar o projeto
 
 Veja a seção [Como rodar o projeto completo](README.md#como-rodar-o-projeto-completo) do README.
+
+## Mudanças no banco de dados
+
+A estrutura do MySQL é controlada pelo Flyway, em `backend/src/main/resources/db/migration`.
+
+1. Crie uma migração nova com o próximo número, por exemplo `V8__adiciona_coluna_x.sql`. Nunca edite uma migração que já está na `main`.
+2. Rode `python database/scripts/gerar_schema.py` para atualizar o `database/schema.sql` e o `database/banco_completo.sql`.
+3. Ajuste as entidades JPA, se precisar, e rode os testes do back com o Docker aberto, para o `MigracoesMySqlTest` rodar.
+4. Se a mudança alterar a API, atualize o contrato (`docs/api/openapi.json`) e os tipos do front (`npm run api:types`).

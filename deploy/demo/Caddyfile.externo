@@ -1,0 +1,14 @@
+# Bloco para um Caddy que já roda no servidor (fora do Docker).
+# Troque o endereço pelo TRAMA_DOMINIO do .env e cole no Caddyfile existente.
+181-215-236-218.sslip.io {
+	encode zstd gzip
+
+	@api path /api/* /v3/api-docs* /swagger-ui*
+	handle @api {
+		reverse_proxy 127.0.0.1:18080
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:13000
+	}
+}

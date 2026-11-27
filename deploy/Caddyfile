@@ -1,0 +1,12 @@
+{$TRAMA_DOMINIO} {
+	encode zstd gzip
+
+	@api path /api/* /v3/api-docs* /swagger-ui*
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

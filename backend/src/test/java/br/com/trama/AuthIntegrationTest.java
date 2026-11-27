@@ -102,6 +102,61 @@ class AuthIntegrationTest {
         mockMvc.perform(login(email, SENHA)).andExpect(status().isOk());
     }
 
+    @Test
+    void cadastroCriaConfeccaoEEmpresarioQueJaEntraLogado() throws Exception {
+        String email = "cadastro-" + UUID.randomUUID() + "@trama.test";
+        MvcResult result = mockMvc.perform(cadastro(email, SENHA, "Caruaru"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andReturn();
+        String token = objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
+        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.perfil").value("EMPRESARIO"))
+                .andExpect(jsonPath("$.nome").value("Ana Cadastro"))
+                .andExpect(jsonPath("$.confeccao.cidade").value("Caruaru"));
+        mockMvc.perform(login(email, SENHA)).andExpect(status().isOk());
+    }
+
+    @Test
+    void cadastroComEmailRepetidoResponde409() throws Exception {
+        String email = "repetido-" + UUID.randomUUID() + "@trama.test";
+        criarUsuario(email, PerfilUsuario.ADMIN, null);
+        mockMvc.perform(cadastro(email.toUpperCase(), SENHA, "Caruaru"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409));
+    }
+
+    @Test
+    void cadastroForaDoPoloOuComSenhaCurtaResponde400() throws Exception {
+        mockMvc.perform(cadastro("fora-" + UUID.randomUUID() + "@trama.test", SENHA, "Recife"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(cadastro("curta-" + UUID.randomUUID() + "@trama.test", "1234567", "Caruaru"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.senha").exists());
+    }
+
+    @Test
+    void cidadesPermitidasSaoPublicas() throws Exception {
+        mockMvc.perform(get("/api/cidades"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3));
+    }
+
+    private org.springframework.test.web.servlet.RequestBuilder cadastro(String email, String senha, String cidade)
+            throws Exception {
+        Map<String, Object> corpo = new java.util.LinkedHashMap<>();
+        corpo.put("nome", "  Ana   Cadastro ");
+        corpo.put("email", email);
+        corpo.put("senha", senha);
+        corpo.put("nomeConfeccao", "Confecção " + UUID.randomUUID());
+        corpo.put("porte", "MICRO");
+        corpo.put("tipo", "CONFECCAO");
+        corpo.put("cidade", cidade);
+        return post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(corpo));
+    }
+
     private org.springframework.test.web.servlet.RequestBuilder login(String email, String senha) throws Exception {
         return post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("email", email, "senha", senha)));

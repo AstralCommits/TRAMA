@@ -33,7 +33,7 @@ cd TRAMA
 docker compose up --build -d --wait
 ```
 
-Na primeira vez o Docker baixa as imagens, carrega `database/schema/banco_completo.sql` (tabelas, procedures, triggers, índices e dados de exemplo) e a massa de demonstração `database/seeds/seed_demonstracao_projetai.sql`, compila a API e o front. Depois:
+Na primeira vez o Docker baixa as imagens e compila a API e o front. A API cria a estrutura do banco pelas migrações do Flyway, e o serviço `seed` carrega os dados de exemplo e a massa de demonstração. Depois:
 
 | Serviço | Endereço |
 |---|---|
@@ -89,7 +89,7 @@ Abrir `http://localhost:3000`.
 
 | Sintoma | Causa provável | Solução |
 |---|---|---|
-| API para com "Schema-validation: missing column" | Banco criado antes da v0.4.0 | `docker compose down -v && docker compose up -d` ou rodar `database/migrations/V0_4_0__origem_dado_nome_fonte.sql` |
+| API para com "Schema-validation" ou erro do Flyway | Banco criado antes do Flyway | `docker compose down -v && docker compose up -d` |
 | API: "Communications link failure" | Porta errada | Conferir `DB_URL` com porta **3307** |
 | Telas com "Não foi possível conectar à API" | API parada ou `.env` sem `VITE_API_URL` | Subir a API; conferir o `.env` e reiniciar `npm run dev` |
 | Toda chamada responde 401 | Sessão expirada | Sair e entrar de novo |

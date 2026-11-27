@@ -9,10 +9,9 @@ import {
 } from 'react-router';
 import type { Route } from './+types/root';
 import stylesheet from "./index.css?url";
-import { siteOrigin } from '@/lib/site-origin.server';
-import { HorizonsPreviewScripts } from './horizons-preview-scripts';
+import { siteOrigin } from '@/utils/site-origin.server';
 import { CookieBanner } from '@/components/cookie-banner';
-import { openCookiePreferences } from '@/lib/cookie-consent';
+import { openCookiePreferences } from '@/utils/cookie-consent';
 
 export const links: Route.LinksFunction = () => [
 	{ rel: 'stylesheet', href: stylesheet },
@@ -51,7 +50,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<Meta />
 				<Links />
-				<HorizonsPreviewScripts />
 			</head>
 			<body suppressHydrationWarning>
 				<div id="root">{children}</div>

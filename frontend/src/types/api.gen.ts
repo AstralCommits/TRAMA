@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/auth/cadastro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cadastra uma confecção e o usuário EMPRESARIO dela, e retorna um JWT Bearer */
+        post: operations["cadastrar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -255,6 +272,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        CadastroRequest: {
+            cidade: string;
+            cnpj?: string;
+            email: string;
+            nome: string;
+            nomeConfeccao: string;
+            /** @enum {string} */
+            porte: "MICRO" | "PEQUENA" | "MEDIA";
+            senha: string;
+            /** @enum {string} */
+            tipo: "CONFECCAO" | "FACCAO";
+        };
         CategoriaIndicadorDTO: {
             categoria?: string;
             classificacao?: string;
@@ -277,8 +306,8 @@ export interface components {
         };
         CategoriaResponse: {
             /** Format: int64 */
-            idCategoria?: number;
-            nome?: string;
+            idCategoria: number;
+            nome: string;
         };
         CenarioRequest: {
             /** Format: int64 */
@@ -292,15 +321,15 @@ export interface components {
             categoriaId?: number;
             descricao?: string;
             /** Format: int64 */
-            idCenario?: number;
-            nome?: string;
-            percentualImpacto?: number;
+            idCenario: number;
+            nome: string;
+            percentualImpacto: number;
         };
         CidadeResponse: {
             /** Format: int64 */
-            idCidade?: number;
-            nome?: string;
-            uf?: string;
+            idCidade: number;
+            nome: string;
+            uf: string;
         };
         ConfeccaoDoUsuario: {
             cidade: string;
@@ -319,31 +348,31 @@ export interface components {
             tipo: "CONFECCAO" | "FACCAO";
         };
         ConfeccaoResponse: {
-            cidade?: string;
+            cidade: string;
             cnpj?: string;
             /** Format: int64 */
-            idCidade?: number;
+            idCidade: number;
             /** Format: int64 */
-            idConfeccao?: number;
-            nome?: string;
+            idConfeccao: number;
+            nome: string;
             /** @enum {string} */
-            porte?: "MICRO" | "PEQUENA" | "MEDIA";
+            porte: "MICRO" | "PEQUENA" | "MEDIA";
             /** @enum {string} */
-            tipo?: "CONFECCAO" | "FACCAO";
-            uf?: string;
+            tipo: "CONFECCAO" | "FACCAO";
+            uf: string;
         };
         ImportacaoResponse: {
             /** Format: date-time */
-            dataImportacao?: string;
+            dataImportacao: string;
             /** Format: int64 */
-            idImportacao?: number;
+            idImportacao: number;
             /** Format: int64 */
             idUsuario?: number;
-            nomeArquivo?: string;
+            nomeArquivo: string;
             /** Format: int32 */
             qtdLinhas?: number;
             /** @enum {string} */
-            status?: "CONCLUIDA" | "ERRO";
+            status: "CONCLUIDA" | "ERRO";
         };
         IndicadorResponseDTO: {
             /** Format: int64 */
@@ -374,7 +403,7 @@ export interface components {
             senha: string;
         };
         LoginResponse: {
-            token?: string;
+            token: string;
         };
         SimulacaoCenarioRequest: {
             /** Format: int64 */
@@ -382,10 +411,10 @@ export interface components {
             percentualImpacto: number;
         };
         SimulacaoCenarioResponse: {
-            diferencaPercentual?: number;
-            diferencaReais?: number;
-            faturamentoHipotetico?: number;
-            faturamentoReal?: number;
+            diferencaPercentual: number;
+            diferencaReais: number;
+            faturamentoHipotetico: number;
+            faturamentoReal: number;
         };
         UsuarioLogadoResponse: {
             confeccao?: components["schemas"]["ConfeccaoDoUsuario"];
@@ -412,25 +441,25 @@ export interface components {
             quantidade: number;
         };
         VendaResponse: {
-            categoria?: string;
-            confeccao?: string;
-            faturamento?: number;
+            categoria: string;
+            confeccao: string;
+            faturamento: number;
             /** Format: int64 */
-            idCategoria?: number;
+            idCategoria: number;
             /** Format: int64 */
-            idConfeccao?: number;
+            idConfeccao: number;
             /** Format: int64 */
-            idLancamento?: number;
-            mesAno?: string;
-            nomeFonte?: string;
+            idLancamento: number;
+            mesAno: string;
+            nomeFonte: string;
             /** @enum {string} */
-            origem?: "MANUAL" | "IMPORTACAO";
+            origem: "MANUAL" | "IMPORTACAO";
             /** @enum {string} */
-            origemDado?: "ENTREVISTA" | "QUESTIONARIO" | "FONTE_SECUNDARIA";
+            origemDado: "ENTREVISTA" | "QUESTIONARIO" | "FONTE_SECUNDARIA";
             /** Format: int32 */
-            quantidade?: number;
+            quantidade: number;
             /** @enum {string} */
-            status?: "ATIVO" | "CANCELADO";
+            status: "ATIVO" | "CANCELADO";
         };
     };
     responses: never;
@@ -441,6 +470,30 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    cadastrar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CadastroRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LoginResponse"];
+                };
+            };
+        };
+    };
     login: {
         parameters: {
             query?: never;
