@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Baixar o repositório
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Subir o banco com docker compose
         run: docker compose up -d --wait --wait-timeout 300 banco
