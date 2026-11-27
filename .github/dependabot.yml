@@ -17,11 +17,25 @@ updates:
     groups:
       back-menores:
         update-types: [minor, patch]
+    ignore:
+      # Spring Boot 4 é uma migração própria (ver #140), não um bump automático.
+      - dependency-name: org.springframework.boot:spring-boot-starter-parent
+        update-types: [version-update:semver-major]
+      # springdoc 3.x exige Spring Boot 4; volta junto com essa migração.
+      - dependency-name: org.springdoc:springdoc-openapi-starter-webmvc-ui
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: docker
     directory: /backend
     schedule:
       interval: monthly
+    ignore:
+      # Só usamos JDK LTS. O 25 é o LTS atual; revisar quando sair o próximo LTS.
+      - dependency-name: eclipse-temurin
+        versions: [">= 26"]
+      # A tag da imagem de build (3.9-eclipse-temurin-XX) é atualizada à mão,
+      # junto com o eclipse-temurin, para o JDK de build e de runtime ficarem iguais.
+      - dependency-name: maven
 
   - package-ecosystem: docker
     directory: /frontend

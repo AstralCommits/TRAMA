@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Baixar o repositório
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Conferir se schema.sql e banco_completo.sql estão iguais às migrações
         run: |

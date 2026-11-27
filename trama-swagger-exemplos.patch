@@ -1,0 +1,908 @@
+diff -ruN a/backend/src/main/java/br/com/trama/config/SwaggerExamples.java b/backend/src/main/java/br/com/trama/config/SwaggerExamples.java
+--- a/backend/src/main/java/br/com/trama/config/SwaggerExamples.java	1970-01-01 00:00:00.000000000 +0000
++++ b/backend/src/main/java/br/com/trama/config/SwaggerExamples.java	2026-11-27 12:47:31.847747508 +0000
+@@ -0,0 +1,352 @@
++package br.com.trama.config;
++
++/**
++ * Exemplos JSON usados somente na documentação (Swagger UI / OpenAPI).
++ * Os valores são fictícios, mas coerentes com o domínio do TRAMA: confecções do Polo Têxtil
++ * do Agreste (Caruaru, Toritama e Santa Cruz do Capibaribe) e as categorias de produto cadastradas.
++ * Nenhuma regra de negócio depende desta classe.
++ */
++public final class SwaggerExamples {
++
++    private SwaggerExamples() {
++    }
++
++    // ------------------------------------------------------------------ Vendas
++
++    public static final String VENDA_CRIADA = """
++            {
++              "idLancamento": 128,
++              "mesAno": "2026-10",
++              "quantidade": 850,
++              "faturamento": 40800.00,
++              "origem": "MANUAL",
++              "origemDado": "ENTREVISTA",
++              "nomeFonte": "Entrevista com a proprietária, Caruaru, out/2026",
++              "status": "ATIVO",
++              "idConfeccao": 1,
++              "confeccao": "Alto do Agreste Confecções",
++              "idCategoria": 1,
++              "categoria": "Moda Feminina"
++            }""";
++
++    public static final String VENDA_LISTA = """
++            [
++              {
++                "idLancamento": 128,
++                "mesAno": "2026-10",
++                "quantidade": 850,
++                "faturamento": 40800.00,
++                "origem": "MANUAL",
++                "origemDado": "ENTREVISTA",
++                "nomeFonte": "Entrevista com a proprietária, Caruaru, out/2026",
++                "status": "ATIVO",
++                "idConfeccao": 1,
++                "confeccao": "Alto do Agreste Confecções",
++                "idCategoria": 1,
++                "categoria": "Moda Feminina"
++              },
++              {
++                "idLancamento": 129,
++                "mesAno": "2026-10",
++                "quantidade": 620,
++                "faturamento": 32240.00,
++                "origem": "IMPORTACAO",
++                "origemDado": "QUESTIONARIO",
++                "nomeFonte": "Questionário Polo Têxtil, 3º trimestre de 2026",
++                "status": "ATIVO",
++                "idConfeccao": 1,
++                "confeccao": "Alto do Agreste Confecções",
++                "idCategoria": 2,
++                "categoria": "Moda Masculina"
++              }
++            ]""";
++
++    public static final String VENDA_ATUALIZADA = """
++            {
++              "idLancamento": 128,
++              "mesAno": "2026-10",
++              "quantidade": 900,
++              "faturamento": 43200.00,
++              "origem": "MANUAL",
++              "origemDado": "ENTREVISTA",
++              "nomeFonte": "Entrevista com a proprietária, Caruaru, out/2026",
++              "status": "ATIVO",
++              "idConfeccao": 1,
++              "confeccao": "Alto do Agreste Confecções",
++              "idCategoria": 1,
++              "categoria": "Moda Feminina"
++            }""";
++
++    public static final String VENDA_PUT_REQUEST = """
++            {
++              "idConfeccao": 1,
++              "idCategoria": 1,
++              "mesAno": "2026-10",
++              "quantidade": 900,
++              "faturamento": 43200.00,
++              "origem": "MANUAL",
++              "origemDado": "ENTREVISTA",
++              "nomeFonte": "Entrevista com a proprietária, Caruaru, out/2026"
++            }""";
++
++    public static final String VENDA_POST_REQUEST = """
++            {
++              "idConfeccao": 1,
++              "idCategoria": 1,
++              "mesAno": "2026-10",
++              "quantidade": 850,
++              "faturamento": 40800.00,
++              "origem": "MANUAL",
++              "origemDado": "ENTREVISTA",
++              "nomeFonte": "Entrevista com a proprietária, Caruaru, out/2026"
++            }""";
++
++    // ------------------------------------------------------------- Importações
++
++    public static final String IMPORTACAO_CRIADA = """
++            {
++              "idImportacao": 7,
++              "nomeArquivo": "vendas-caruaru-2026-09.csv",
++              "dataImportacao": "2026-11-12T14:32:08",
++              "qtdLinhas": 4,
++              "status": "CONCLUIDA",
++              "idUsuario": 2
++            }""";
++
++    public static final String IMPORTACAO_LISTA = """
++            [
++              {
++                "idImportacao": 7,
++                "nomeArquivo": "vendas-caruaru-2026-09.csv",
++                "dataImportacao": "2026-11-12T14:32:08",
++                "qtdLinhas": 4,
++                "status": "CONCLUIDA",
++                "idUsuario": 2
++              },
++              {
++                "idImportacao": 6,
++                "nomeArquivo": "vendas-toritama-2026-08.csv",
++                "dataImportacao": "2026-11-05T09:15:41",
++                "qtdLinhas": 0,
++                "status": "ERRO",
++                "idUsuario": 2
++              }
++            ]""";
++
++    // -------------------------------------------------------------- Indicadores
++
++    public static final String INDICADORES = """
++            {
++              "inicio": "2026-07",
++              "fim": "2026-09",
++              "quantidadeTotal": 17500,
++              "faturamentoTotal": 807500.00,
++              "faturamentoMedio": 67291.67,
++              "quantidadeLancamentos": 12,
++              "cidade": "Caruaru",
++              "pecasVendidas": 17500,
++              "ticketMedio": 46.14,
++              "inicioAnterior": "2026-04",
++              "fimAnterior": "2026-06",
++              "faturamentoTotalAnterior": 765700.00,
++              "pecasVendidasAnterior": 17150,
++              "variacaoPercentual": 5.46,
++              "categorias": [
++                {
++                  "idCategoria": 1,
++                  "categoria": "Moda Feminina",
++                  "faturamento": 412800.00,
++                  "pecasVendidas": 8600,
++                  "faturamentoAnterior": 377200.00,
++                  "pecasVendidasAnterior": 8200,
++                  "variacaoPercentual": 9.44,
++                  "classificacao": "ALTA"
++                },
++                {
++                  "idCategoria": 2,
++                  "categoria": "Moda Masculina",
++                  "faturamento": 213200.00,
++                  "pecasVendidas": 4100,
++                  "faturamentoAnterior": 225000.00,
++                  "pecasVendidasAnterior": 4500,
++                  "variacaoPercentual": -5.24,
++                  "classificacao": "QUEDA"
++                },
++                {
++                  "idCategoria": 3,
++                  "categoria": "Moda Infantil",
++                  "faturamento": 99000.00,
++                  "pecasVendidas": 3300,
++                  "faturamentoAnterior": 97500.00,
++                  "pecasVendidasAnterior": 3250,
++                  "variacaoPercentual": 1.54,
++                  "classificacao": "ESTAVEL"
++                },
++                {
++                  "idCategoria": 4,
++                  "categoria": "Fitness",
++                  "faturamento": 82500.00,
++                  "pecasVendidas": 1500,
++                  "faturamentoAnterior": 66000.00,
++                  "pecasVendidasAnterior": 1200,
++                  "variacaoPercentual": 25.00,
++                  "classificacao": "ALTA"
++                }
++              ],
++              "categoriaLider": {
++                "categoria": "Moda Feminina",
++                "faturamento": 412800.00
++              }
++            }""";
++
++    public static final String TENDENCIAS = """
++            [
++              {
++                "idCategoria": 4,
++                "categoria": "Fitness",
++                "faturamento": 82500.00,
++                "pecasVendidas": 1500,
++                "faturamentoAnterior": 66000.00,
++                "pecasVendidasAnterior": 1200,
++                "variacaoPercentual": 25.00,
++                "classificacao": "ALTA"
++              },
++              {
++                "idCategoria": 1,
++                "categoria": "Moda Feminina",
++                "faturamento": 412800.00,
++                "pecasVendidas": 8600,
++                "faturamentoAnterior": 377200.00,
++                "pecasVendidasAnterior": 8200,
++                "variacaoPercentual": 9.44,
++                "classificacao": "ALTA"
++              },
++              {
++                "idCategoria": 3,
++                "categoria": "Moda Infantil",
++                "faturamento": 99000.00,
++                "pecasVendidas": 3300,
++                "faturamentoAnterior": 97500.00,
++                "pecasVendidasAnterior": 3250,
++                "variacaoPercentual": 1.54,
++                "classificacao": "ESTAVEL"
++              },
++              {
++                "idCategoria": 2,
++                "categoria": "Moda Masculina",
++                "faturamento": 213200.00,
++                "pecasVendidas": 4100,
++                "faturamentoAnterior": 225000.00,
++                "pecasVendidasAnterior": 4500,
++                "variacaoPercentual": -5.24,
++                "classificacao": "QUEDA"
++              }
++            ]""";
++
++    // ------------------------------------------------------------------- Erros
++    // Formato real devolvido por ApiExceptionHandler (RFC 7807 / ProblemDetail).
++
++    public static final String ERRO_VALIDACAO = """
++            {
++              "type": "about:blank",
++              "title": "Bad Request",
++              "status": 400,
++              "detail": "Existem campos inválidos na requisição.",
++              "instance": "/api/vendas",
++              "timestamp": "2026-11-12T14:32:08.512-03:00",
++              "errors": {
++                "mesAno": "O mês deve usar o formato AAAA-MM, por exemplo 2026-03.",
++                "quantidade": "A quantidade não pode ser negativa."
++              }
++            }""";
++
++    public static final String ERRO_VENDA_DUPLICADA = """
++            {
++              "type": "about:blank",
++              "title": "Bad Request",
++              "status": 400,
++              "detail": "Já existe um lançamento para esta confecção, categoria e mês de referência.",
++              "instance": "/api/vendas",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_JA_CANCELADO = """
++            {
++              "type": "about:blank",
++              "title": "Bad Request",
++              "status": 400,
++              "detail": "Este lançamento já está cancelado.",
++              "instance": "/api/vendas/128",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_MES_VENDAS_INVALIDO = """
++            {
++              "type": "about:blank",
++              "title": "Bad Request",
++              "status": 400,
++              "detail": "O mês deve usar o formato AAAA-MM, por exemplo 2026-03.",
++              "instance": "/api/vendas",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_MES_INVALIDO = """
++            {
++              "type": "about:blank",
++              "title": "Bad Request",
++              "status": 400,
++              "detail": "O mês de início deve usar o formato AAAA-MM.",
++              "instance": "/api/indicadores",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_CSV_INVALIDO = """
++            {
++              "type": "about:blank",
++              "title": "Bad Request",
++              "status": 400,
++              "detail": "Linha 3 inválida: Quantidade e faturamento devem ser maiores ou iguais a zero.",
++              "instance": "/api/importacoes",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_NAO_AUTENTICADO = """
++            {
++              "type": "about:blank",
++              "title": "Unauthorized",
++              "status": 401,
++              "detail": "É necessário apresentar um token Bearer válido.",
++              "instance": "/api/vendas",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_SEM_PERMISSAO = """
++            {
++              "type": "about:blank",
++              "title": "Forbidden",
++              "status": 403,
++              "detail": "O usuário autenticado não possui permissão para esta operação.",
++              "instance": "/api/vendas",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_VENDA_NAO_ENCONTRADA = """
++            {
++              "type": "about:blank",
++              "title": "Not Found",
++              "status": 404,
++              "detail": "Lançamento não encontrado.",
++              "instance": "/api/vendas/9999",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++
++    public static final String ERRO_ARQUIVO_GRANDE = """
++            {
++              "type": "about:blank",
++              "title": "Payload Too Large",
++              "status": 413,
++              "detail": "O arquivo excede o limite de 10 MB.",
++              "instance": "/api/importacoes",
++              "timestamp": "2026-11-12T14:32:08.512-03:00"
++            }""";
++}
+diff -ruN a/backend/src/main/java/br/com/trama/controller/ImportacaoController.java b/backend/src/main/java/br/com/trama/controller/ImportacaoController.java
+--- a/backend/src/main/java/br/com/trama/controller/ImportacaoController.java	2026-11-27 12:46:01.748759655 +0000
++++ b/backend/src/main/java/br/com/trama/controller/ImportacaoController.java	2026-11-27 12:47:31.852644588 +0000
+@@ -1,9 +1,21 @@
+ package br.com.trama.controller;
+ 
++import static br.com.trama.config.SwaggerExamples.ERRO_ARQUIVO_GRANDE;
++import static br.com.trama.config.SwaggerExamples.ERRO_CSV_INVALIDO;
++import static br.com.trama.config.SwaggerExamples.ERRO_NAO_AUTENTICADO;
++import static br.com.trama.config.SwaggerExamples.IMPORTACAO_CRIADA;
++import static br.com.trama.config.SwaggerExamples.IMPORTACAO_LISTA;
++
+ import br.com.trama.dto.ImportacaoResponse;
+ import br.com.trama.security.UsuarioPrincipal;
+ import br.com.trama.service.ImportacaoService;
+ import io.swagger.v3.oas.annotations.Operation;
++import io.swagger.v3.oas.annotations.Parameter;
++import io.swagger.v3.oas.annotations.media.ArraySchema;
++import io.swagger.v3.oas.annotations.media.Content;
++import io.swagger.v3.oas.annotations.media.ExampleObject;
++import io.swagger.v3.oas.annotations.media.Schema;
++import io.swagger.v3.oas.annotations.responses.ApiResponse;
+ import io.swagger.v3.oas.annotations.tags.Tag;
+ import java.util.List;
+ import org.springframework.http.MediaType;
+@@ -19,15 +31,45 @@
+ 
+ @RestController
+ @RequestMapping("/api/importacoes")
+-@Tag(name = "Importações")
++@Tag(name = "Importações", description = "Carga de lançamentos mensais de vendas por arquivo CSV.")
+ public class ImportacaoController {
++
++    private static final String JSON = "application/json";
++    private static final String PROBLEM_JSON = "application/problem+json";
++
+     private final ImportacaoService service;
+ 
+     public ImportacaoController(ImportacaoService service) { this.service = service; }
+ 
+     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+-    @Operation(summary = "Importa lançamentos mensais por arquivo CSV")
++    @Operation(summary = "Importa lançamentos mensais por arquivo CSV",
++            description = """
++                    Envie o arquivo no campo `arquivo` (extensão .csv, até 10 MB, UTF-8). \
++                    O separador (`;` ou `,`) é detectado pela primeira linha. \
++                    Colunas obrigatórias: `mesAno` (AAAA-MM), `quantidade`, `faturamento` (ponto decimal), \
++                    `idConfeccao`, `idCategoria`, `origemDado` (ENTREVISTA, QUESTIONARIO ou FONTE_SECUNDARIA) e `nomeFonte`.
++
++                    Exemplo de conteúdo:
++
++                    ```
++                    mesAno;quantidade;faturamento;idConfeccao;idCategoria;origemDado;nomeFonte
++                    2026-09;800;38400.00;1;1;ENTREVISTA;Entrevista com a proprietária, Caruaru, set/2026
++                    2026-09;590;30680.00;1;2;ENTREVISTA;Entrevista com a proprietária, Caruaru, set/2026
++                    ```
++
++                    A importação é atômica: se uma linha for inválida ou duplicar um lançamento já cadastrado, \
++                    nenhuma venda do arquivo é gravada. Um arquivo pronto para teste está em `docs/api/exemplos/importacao-vendas.csv`.""")
++    @ApiResponse(responseCode = "201", description = "Arquivo processado; todas as linhas foram gravadas.",
++            content = @Content(mediaType = JSON, schema = @Schema(implementation = ImportacaoResponse.class),
++                    examples = @ExampleObject(name = "Importação concluída", value = IMPORTACAO_CRIADA)))
++    @ApiResponse(responseCode = "400", description = "Arquivo ausente, sem extensão .csv, vazio, com coluna obrigatória faltando ou com linha inválida.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(name = "Linha inválida", value = ERRO_CSV_INVALIDO)))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
++    @ApiResponse(responseCode = "413", description = "Arquivo maior que 10 MB.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_ARQUIVO_GRANDE)))
+     public ResponseEntity<ImportacaoResponse> importar(
++            @Parameter(description = "Arquivo CSV com as vendas mensais (ex.: vendas-caruaru-2026-09.csv).")
+             @RequestPart("arquivo") MultipartFile arquivo,
+             @AuthenticationPrincipal UsuarioPrincipal principal) {
+         ImportacaoResponse response = service.importar(arquivo, principal);
+@@ -35,7 +77,13 @@
+     }
+ 
+     @GetMapping
+-    @Operation(summary = "Lista as importações do usuário autenticado")
++    @Operation(summary = "Lista as importações do usuário autenticado",
++            description = "ADMIN enxerga as importações de todos os usuários; os demais perfis, apenas as próprias.")
++    @ApiResponse(responseCode = "200", description = "Histórico de importações (pode ser vazio).",
++            content = @Content(mediaType = JSON, array = @ArraySchema(schema = @Schema(implementation = ImportacaoResponse.class)),
++                    examples = @ExampleObject(name = "Histórico com sucesso e erro", value = IMPORTACAO_LISTA)))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
+     public List<ImportacaoResponse> listar(@AuthenticationPrincipal UsuarioPrincipal principal) {
+         return service.listar(principal);
+     }
+diff -ruN a/backend/src/main/java/br/com/trama/controller/IndicadorController.java b/backend/src/main/java/br/com/trama/controller/IndicadorController.java
+--- a/backend/src/main/java/br/com/trama/controller/IndicadorController.java	2026-11-27 12:46:01.748769787 +0000
++++ b/backend/src/main/java/br/com/trama/controller/IndicadorController.java	2026-11-27 12:47:31.853902167 +0000
+@@ -1,9 +1,22 @@
+ package br.com.trama.controller;
+ 
++import static br.com.trama.config.SwaggerExamples.ERRO_MES_INVALIDO;
++import static br.com.trama.config.SwaggerExamples.ERRO_NAO_AUTENTICADO;
++import static br.com.trama.config.SwaggerExamples.INDICADORES;
++import static br.com.trama.config.SwaggerExamples.TENDENCIAS;
++
+ import br.com.trama.dto.CategoriaIndicadorDTO;
+ import br.com.trama.dto.IndicadorResponseDTO;
+ import br.com.trama.service.IndicadorService;
+ import br.com.trama.security.UsuarioPrincipal;
++import io.swagger.v3.oas.annotations.Operation;
++import io.swagger.v3.oas.annotations.Parameter;
++import io.swagger.v3.oas.annotations.media.ArraySchema;
++import io.swagger.v3.oas.annotations.media.Content;
++import io.swagger.v3.oas.annotations.media.ExampleObject;
++import io.swagger.v3.oas.annotations.media.Schema;
++import io.swagger.v3.oas.annotations.responses.ApiResponse;
++import io.swagger.v3.oas.annotations.tags.Tag;
+ import org.springframework.security.core.annotation.AuthenticationPrincipal;
+ import java.util.List;
+ import org.springframework.http.ResponseEntity;
+@@ -14,8 +27,12 @@
+ 
+ @RestController
+ @RequestMapping("/api/indicadores")
++@Tag(name = "Indicadores", description = "Indicadores de vendas do Polo Têxtil e tendências por categoria.")
+ public class IndicadorController {
+ 
++    private static final String JSON = "application/json";
++    private static final String PROBLEM_JSON = "application/problem+json";
++
+     private final IndicadorService indicadorService;
+ 
+     public IndicadorController(IndicadorService indicadorService) {
+@@ -23,10 +40,26 @@
+     }
+ 
+     @GetMapping
++    @Operation(summary = "Consulta os indicadores de vendas de um período",
++            description = "Compara o período informado com o período imediatamente anterior de mesma duração "
++                    + "(ex.: 2026-07 a 2026-09 é comparado a 2026-04 a 2026-06). Considera apenas lançamentos ativos; "
++                    + "empresários enxergam somente a própria confecção.")
++    @ApiResponse(responseCode = "200", description = "Indicadores consolidados e por categoria.",
++            content = @Content(mediaType = JSON, schema = @Schema(implementation = IndicadorResponseDTO.class),
++                    examples = @ExampleObject(name = "3º trimestre de 2026 em Caruaru", value = INDICADORES)))
++    @ApiResponse(responseCode = "400", description = "Mês fora do formato AAAA-MM, parâmetro ausente ou fim anterior ao início.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_MES_INVALIDO)))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
+     public ResponseEntity<IndicadorResponseDTO> buscarIndicadores(
++            @Parameter(description = "Primeiro mês do período (AAAA-MM).", example = "2026-07")
+             @RequestParam String inicio,
++            @Parameter(description = "Último mês do período (AAAA-MM), igual ou posterior ao início.", example = "2026-09")
+             @RequestParam String fim,
++            @Parameter(description = "Filtra por categoria (1 = Moda Feminina). Opcional.", example = "1")
+             @RequestParam(required = false) Long categoriaId,
++            @Parameter(description = "Filtra pelo nome da cidade (Caruaru, Toritama ou Santa Cruz do Capibaribe). Opcional.",
++                    example = "Caruaru")
+             @RequestParam(required = false) String cidade,
+             @AuthenticationPrincipal UsuarioPrincipal principal) {
+ 
+@@ -36,9 +69,22 @@
+     }
+ 
+     @GetMapping("/tendencias")
++    @Operation(summary = "Lista a tendência de cada categoria no período",
++            description = "Ordena as categorias da maior para a menor variação percentual de faturamento. "
++                    + "Classificação: ALTA (>= +5%), QUEDA (<= -5%), ESTAVEL ou SEM_BASE (sem vendas no período anterior).")
++    @ApiResponse(responseCode = "200", description = "Tendências por categoria.",
++            content = @Content(mediaType = JSON, array = @ArraySchema(schema = @Schema(implementation = CategoriaIndicadorDTO.class)),
++                    examples = @ExampleObject(name = "Tendências do 3º trimestre de 2026", value = TENDENCIAS)))
++    @ApiResponse(responseCode = "400", description = "Mês fora do formato AAAA-MM, parâmetro ausente ou fim anterior ao início.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_MES_INVALIDO)))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
+     public List<CategoriaIndicadorDTO> buscarTendencias(
++            @Parameter(description = "Primeiro mês do período (AAAA-MM).", example = "2026-07")
+             @RequestParam String inicio,
++            @Parameter(description = "Último mês do período (AAAA-MM), igual ou posterior ao início.", example = "2026-09")
+             @RequestParam String fim,
++            @Parameter(description = "Filtra pelo nome da cidade. Opcional.", example = "Caruaru")
+             @RequestParam(required = false) String cidade,
+             @AuthenticationPrincipal UsuarioPrincipal principal) {
+         return indicadorService.buscarTendencias(inicio, fim, cidade, principal);
+diff -ruN a/backend/src/main/java/br/com/trama/controller/VendaController.java b/backend/src/main/java/br/com/trama/controller/VendaController.java
+--- a/backend/src/main/java/br/com/trama/controller/VendaController.java	2026-11-27 12:46:01.748778898 +0000
++++ b/backend/src/main/java/br/com/trama/controller/VendaController.java	2026-11-27 12:47:31.848236565 +0000
+@@ -1,9 +1,30 @@
+ package br.com.trama.controller;
+ 
++import static br.com.trama.config.SwaggerExamples.ERRO_JA_CANCELADO;
++import static br.com.trama.config.SwaggerExamples.ERRO_MES_VENDAS_INVALIDO;
++import static br.com.trama.config.SwaggerExamples.ERRO_NAO_AUTENTICADO;
++import static br.com.trama.config.SwaggerExamples.ERRO_SEM_PERMISSAO;
++import static br.com.trama.config.SwaggerExamples.ERRO_VALIDACAO;
++import static br.com.trama.config.SwaggerExamples.ERRO_VENDA_DUPLICADA;
++import static br.com.trama.config.SwaggerExamples.ERRO_VENDA_NAO_ENCONTRADA;
++import static br.com.trama.config.SwaggerExamples.VENDA_ATUALIZADA;
++import static br.com.trama.config.SwaggerExamples.VENDA_CRIADA;
++import static br.com.trama.config.SwaggerExamples.VENDA_LISTA;
++import static br.com.trama.config.SwaggerExamples.VENDA_POST_REQUEST;
++import static br.com.trama.config.SwaggerExamples.VENDA_PUT_REQUEST;
++
+ import br.com.trama.dto.VendaRequest;
+ import br.com.trama.dto.VendaResponse;
+ import br.com.trama.service.VendaService;
+ import br.com.trama.security.UsuarioPrincipal;
++import io.swagger.v3.oas.annotations.Operation;
++import io.swagger.v3.oas.annotations.Parameter;
++import io.swagger.v3.oas.annotations.media.ArraySchema;
++import io.swagger.v3.oas.annotations.media.Content;
++import io.swagger.v3.oas.annotations.media.ExampleObject;
++import io.swagger.v3.oas.annotations.media.Schema;
++import io.swagger.v3.oas.annotations.responses.ApiResponse;
++import io.swagger.v3.oas.annotations.tags.Tag;
+ import jakarta.validation.Valid;
+ import java.net.URI;
+ import java.util.List;
+@@ -23,8 +44,12 @@
+ 
+ @RestController
+ @RequestMapping("/api/vendas")
++@Tag(name = "Vendas", description = "Lançamentos mensais de vendas por confecção e categoria de produto.")
+ public class VendaController {
+ 
++    private static final String JSON = "application/json";
++    private static final String PROBLEM_JSON = "application/problem+json";
++
+     private final VendaService service;
+ 
+     public VendaController(VendaService service) {
+@@ -33,6 +58,23 @@
+ 
+     @PostMapping
+     @PreAuthorize("hasAnyRole('ADMIN', 'EMPRESARIO')")
++    @Operation(summary = "Cria um lançamento mensal de vendas",
++            description = "Perfis ADMIN ou EMPRESARIO (este apenas para a própria confecção). "
++                    + "Só pode existir um lançamento por confecção, categoria e mês.",
++            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
++                    content = @Content(mediaType = JSON, examples = @ExampleObject(
++                            name = "Moda Feminina em Caruaru", value = VENDA_POST_REQUEST))))
++    @ApiResponse(responseCode = "201", description = "Lançamento criado; o cabeçalho Location aponta para o recurso.",
++            content = @Content(mediaType = JSON, schema = @Schema(implementation = VendaResponse.class),
++                    examples = @ExampleObject(name = "Lançamento criado", value = VENDA_CRIADA)))
++    @ApiResponse(responseCode = "400", description = "Campo inválido ou lançamento duplicado.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = {
++                    @ExampleObject(name = "Campos inválidos", value = ERRO_VALIDACAO),
++                    @ExampleObject(name = "Lançamento duplicado", value = ERRO_VENDA_DUPLICADA)}))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
++    @ApiResponse(responseCode = "403", description = "Perfil sem permissão para criar lançamentos.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_SEM_PERMISSAO)))
+     public ResponseEntity<VendaResponse> criar(
+             @Valid @RequestBody VendaRequest request,
+             @AuthenticationPrincipal UsuarioPrincipal principal) {
+@@ -49,9 +91,21 @@
+     }
+ 
+     @GetMapping
++    @Operation(summary = "Lista lançamentos ativos, com filtros opcionais",
++            description = "Empresários enxergam apenas a própria confecção, independentemente do filtro enviado.")
++    @ApiResponse(responseCode = "200", description = "Lista de lançamentos ativos (pode ser vazia).",
++            content = @Content(mediaType = JSON, array = @ArraySchema(schema = @Schema(implementation = VendaResponse.class)),
++                    examples = @ExampleObject(name = "Vendas de outubro/2026", value = VENDA_LISTA)))
++    @ApiResponse(responseCode = "400", description = "Mês fora do formato AAAA-MM.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_MES_VENDAS_INVALIDO)))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
+     public List<VendaResponse> listar(
++            @Parameter(description = "Filtra pelo id da categoria (1 = Moda Feminina).", example = "1")
+             @RequestParam(required = false) Long categoria,
++            @Parameter(description = "Filtra pelo id da confecção.", example = "1")
+             @RequestParam(required = false) Long confeccao,
++            @Parameter(description = "Filtra pelo mês de referência (AAAA-MM).", example = "2026-10")
+             @RequestParam(required = false) String mesAno,
+             @AuthenticationPrincipal UsuarioPrincipal principal) {
+ 
+@@ -59,14 +113,43 @@
+     }
+ 
+     @GetMapping("/{id}")
+-    public VendaResponse buscar(@PathVariable Long id,
+-                                @AuthenticationPrincipal UsuarioPrincipal principal) {
++    @Operation(summary = "Busca um lançamento pelo identificador")
++    @ApiResponse(responseCode = "200", description = "Lançamento encontrado.",
++            content = @Content(mediaType = JSON, schema = @Schema(implementation = VendaResponse.class),
++                    examples = @ExampleObject(name = "Lançamento", value = VENDA_CRIADA)))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
++    @ApiResponse(responseCode = "404", description = "Lançamento inexistente.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_VENDA_NAO_ENCONTRADA)))
++    public VendaResponse buscar(
++            @Parameter(description = "Identificador do lançamento.", example = "128")
++            @PathVariable Long id,
++            @AuthenticationPrincipal UsuarioPrincipal principal) {
+         return service.buscar(id, principal);
+     }
+ 
+     @PutMapping("/{id}")
+     @PreAuthorize("hasAnyRole('ADMIN', 'EMPRESARIO')")
++    @Operation(summary = "Atualiza um lançamento ativo",
++            description = "Lançamentos cancelados não podem ser atualizados.",
++            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
++                    content = @Content(mediaType = JSON, examples = @ExampleObject(
++                            name = "Correção de quantidade e faturamento", value = VENDA_PUT_REQUEST))))
++    @ApiResponse(responseCode = "200", description = "Lançamento atualizado.",
++            content = @Content(mediaType = JSON, schema = @Schema(implementation = VendaResponse.class),
++                    examples = @ExampleObject(name = "Lançamento atualizado", value = VENDA_ATUALIZADA)))
++    @ApiResponse(responseCode = "400", description = "Campo inválido, lançamento cancelado ou duplicado.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = {
++                    @ExampleObject(name = "Campos inválidos", value = ERRO_VALIDACAO),
++                    @ExampleObject(name = "Lançamento duplicado", value = ERRO_VENDA_DUPLICADA)}))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
++    @ApiResponse(responseCode = "403", description = "Perfil sem permissão para atualizar lançamentos.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_SEM_PERMISSAO)))
++    @ApiResponse(responseCode = "404", description = "Lançamento inexistente.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_VENDA_NAO_ENCONTRADA)))
+     public VendaResponse atualizar(
++            @Parameter(description = "Identificador do lançamento.", example = "128")
+             @PathVariable Long id,
+             @Valid @RequestBody VendaRequest request,
+             @AuthenticationPrincipal UsuarioPrincipal principal) {
+@@ -76,8 +159,21 @@
+ 
+     @DeleteMapping("/{id}")
+     @PreAuthorize("hasAnyRole('ADMIN', 'EMPRESARIO')")
+-    public ResponseEntity<Void> cancelar(@PathVariable Long id,
+-                                         @AuthenticationPrincipal UsuarioPrincipal principal) {
++    @Operation(summary = "Cancela um lançamento (exclusão lógica)",
++            description = "O registro é mantido com status CANCELADO e deixa de entrar nas listagens e nos indicadores.")
++    @ApiResponse(responseCode = "204", description = "Lançamento cancelado; sem corpo na resposta.")
++    @ApiResponse(responseCode = "400", description = "Lançamento já estava cancelado.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_JA_CANCELADO)))
++    @ApiResponse(responseCode = "401", description = "Token Bearer ausente ou inválido.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_NAO_AUTENTICADO)))
++    @ApiResponse(responseCode = "403", description = "Perfil sem permissão para cancelar lançamentos.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_SEM_PERMISSAO)))
++    @ApiResponse(responseCode = "404", description = "Lançamento inexistente.",
++            content = @Content(mediaType = PROBLEM_JSON, examples = @ExampleObject(value = ERRO_VENDA_NAO_ENCONTRADA)))
++    public ResponseEntity<Void> cancelar(
++            @Parameter(description = "Identificador do lançamento.", example = "128")
++            @PathVariable Long id,
++            @AuthenticationPrincipal UsuarioPrincipal principal) {
+ 
+         service.cancelar(id, principal);
+ 
+diff -ruN a/backend/src/main/java/br/com/trama/dto/CategoriaIndicadorDTO.java b/backend/src/main/java/br/com/trama/dto/CategoriaIndicadorDTO.java
+--- a/backend/src/main/java/br/com/trama/dto/CategoriaIndicadorDTO.java	2026-11-27 12:46:01.748808883 +0000
++++ b/backend/src/main/java/br/com/trama/dto/CategoriaIndicadorDTO.java	2026-11-27 12:46:27.240304140 +0000
+@@ -1,14 +1,26 @@
+ package br.com.trama.dto;
+ 
++import io.swagger.v3.oas.annotations.media.Schema;
+ import java.math.BigDecimal;
+ 
++@Schema(description = "Indicadores de uma categoria no período e variação frente ao período anterior.")
+ public record CategoriaIndicadorDTO(
++        @Schema(description = "Identificador da categoria.", example = "1")
+         Long idCategoria,
++        @Schema(description = "Nome da categoria.", example = "Moda Feminina")
+         String categoria,
++        @Schema(description = "Faturamento da categoria no período, em reais (R$).", example = "412800.00")
+         BigDecimal faturamento,
++        @Schema(description = "Peças vendidas no período.", example = "8600")
+         long pecasVendidas,
++        @Schema(description = "Faturamento no período anterior, em reais (R$).", example = "377200.00")
+         BigDecimal faturamentoAnterior,
++        @Schema(description = "Peças vendidas no período anterior.", example = "8200")
+         long pecasVendidasAnterior,
++        @Schema(description = "Variação percentual do faturamento; nula se o período anterior não teve vendas.",
++                example = "9.44", nullable = true)
+         BigDecimal variacaoPercentual,
++        @Schema(description = "Tendência: ALTA (variação >= +5%), QUEDA (<= -5%), ESTAVEL ou SEM_BASE.",
++                example = "ALTA", allowableValues = {"ALTA", "QUEDA", "ESTAVEL", "SEM_BASE"})
+         String classificacao
+ ) {}
+diff -ruN a/backend/src/main/java/br/com/trama/dto/CategoriaLiderDTO.java b/backend/src/main/java/br/com/trama/dto/CategoriaLiderDTO.java
+--- a/backend/src/main/java/br/com/trama/dto/CategoriaLiderDTO.java	2026-11-27 12:46:01.748819024 +0000
++++ b/backend/src/main/java/br/com/trama/dto/CategoriaLiderDTO.java	2026-11-27 12:46:27.241264129 +0000
+@@ -1,5 +1,11 @@
+ package br.com.trama.dto;
+ 
++import io.swagger.v3.oas.annotations.media.Schema;
+ import java.math.BigDecimal;
+ 
+-public record CategoriaLiderDTO(String categoria, BigDecimal faturamento) {}
++@Schema(description = "Categoria com maior faturamento no período.")
++public record CategoriaLiderDTO(
++        @Schema(description = "Nome da categoria.", example = "Moda Feminina")
++        String categoria,
++        @Schema(description = "Faturamento da categoria, em reais (R$).", example = "412800.00")
++        BigDecimal faturamento) {}
+diff -ruN a/backend/src/main/java/br/com/trama/dto/ImportacaoResponse.java b/backend/src/main/java/br/com/trama/dto/ImportacaoResponse.java
+--- a/backend/src/main/java/br/com/trama/dto/ImportacaoResponse.java	2026-11-27 12:46:01.748893910 +0000
++++ b/backend/src/main/java/br/com/trama/dto/ImportacaoResponse.java	2026-11-27 12:46:27.238110076 +0000
+@@ -1,13 +1,22 @@
+ package br.com.trama.dto;
+ 
+ import br.com.trama.model.enums.StatusImportacao;
++import io.swagger.v3.oas.annotations.media.Schema;
+ import java.time.LocalDateTime;
+ 
++@Schema(description = "Registro de uma importação de vendas por arquivo CSV.")
+ public record ImportacaoResponse(
++        @Schema(description = "Identificador da importação.", example = "7")
+         Long idImportacao,
++        @Schema(description = "Nome do arquivo enviado.", example = "vendas-caruaru-2026-09.csv")
+         String nomeArquivo,
++        @Schema(description = "Data e hora em que a importação foi processada.",
++                type = "string", format = "date-time", example = "2026-11-12T14:32:08")
+         LocalDateTime dataImportacao,
++        @Schema(description = "Quantidade de linhas de venda lidas do arquivo.", example = "4")
+         Integer qtdLinhas,
++        @Schema(description = "Resultado do processamento.", example = "CONCLUIDA")
+         StatusImportacao status,
++        @Schema(description = "Identificador do usuário que enviou o arquivo.", example = "2")
+         Long idUsuario
+ ) {}
+diff -ruN a/backend/src/main/java/br/com/trama/dto/IndicadorResponseDTO.java b/backend/src/main/java/br/com/trama/dto/IndicadorResponseDTO.java
+--- a/backend/src/main/java/br/com/trama/dto/IndicadorResponseDTO.java	2026-11-27 12:46:01.748902708 +0000
++++ b/backend/src/main/java/br/com/trama/dto/IndicadorResponseDTO.java	2026-11-27 12:46:27.239285130 +0000
+@@ -1,24 +1,44 @@
+ package br.com.trama.dto;
+ 
++import io.swagger.v3.oas.annotations.media.Schema;
+ import java.math.BigDecimal;
+ import java.util.List;
+ 
++@Schema(description = "Indicadores de vendas do período, comparados ao período imediatamente anterior de mesma duração.")
+ public record IndicadorResponseDTO(
++        @Schema(description = "Primeiro mês do período (AAAA-MM).", example = "2026-07")
+         String inicio,
++        @Schema(description = "Último mês do período (AAAA-MM).", example = "2026-09")
+         String fim,
++        @Schema(description = "Total de peças vendidas no período.", example = "17500")
+         Long quantidadeTotal,
++        @Schema(description = "Faturamento total do período, em reais (R$).", example = "807500.00")
+         BigDecimal faturamentoTotal,
++        @Schema(description = "Faturamento médio por lançamento, em reais (R$).", example = "67291.67")
+         BigDecimal faturamentoMedio,
++        @Schema(description = "Quantidade de lançamentos ativos considerados.", example = "12")
+         long quantidadeLancamentos,
++        @Schema(description = "Categoria usada como filtro, quando informada.", example = "1", nullable = true)
+         Long categoriaId,
++        @Schema(description = "Cidade usada como filtro, quando informada.", example = "Caruaru", nullable = true)
+         String cidade,
++        @Schema(description = "Peças vendidas no período (mesmo valor de quantidadeTotal).", example = "17500")
+         long pecasVendidas,
++        @Schema(description = "Ticket médio por peça, em reais (R$).", example = "46.14")
+         BigDecimal ticketMedio,
++        @Schema(description = "Primeiro mês do período anterior (AAAA-MM).", example = "2026-04")
+         String inicioAnterior,
++        @Schema(description = "Último mês do período anterior (AAAA-MM).", example = "2026-06")
+         String fimAnterior,
++        @Schema(description = "Faturamento do período anterior, em reais (R$).", example = "765700.00")
+         BigDecimal faturamentoTotalAnterior,
++        @Schema(description = "Peças vendidas no período anterior.", example = "17150")
+         long pecasVendidasAnterior,
++        @Schema(description = "Variação percentual do faturamento em relação ao período anterior; nula se não houver base.",
++                example = "5.46", nullable = true)
+         BigDecimal variacaoPercentual,
++        @Schema(description = "Resultado por categoria, ordenado do maior para o menor faturamento.")
+         List<CategoriaIndicadorDTO> categorias,
++        @Schema(description = "Categoria com maior faturamento no período; nula se não houve vendas.", nullable = true)
+         CategoriaLiderDTO categoriaLider
+ ) {}
+diff -ruN a/backend/src/main/java/br/com/trama/dto/VendaRequest.java b/backend/src/main/java/br/com/trama/dto/VendaRequest.java
+--- a/backend/src/main/java/br/com/trama/dto/VendaRequest.java	2026-11-27 12:46:01.748971125 +0000
++++ b/backend/src/main/java/br/com/trama/dto/VendaRequest.java	2026-11-27 12:46:27.235974272 +0000
+@@ -3,6 +3,7 @@
+ import br.com.trama.model.enums.OrigemDado;
+ import br.com.trama.model.enums.OrigemLancamento;
+ import br.com.trama.validation.TextoSeguro;
++import io.swagger.v3.oas.annotations.media.Schema;
+ import jakarta.validation.constraints.DecimalMin;
+ import jakarta.validation.constraints.Digits;
+ import jakarta.validation.constraints.NotBlank;
+@@ -12,33 +13,43 @@
+ import jakarta.validation.constraints.Size;
+ import java.math.BigDecimal;
+ 
++@Schema(description = "Lançamento mensal de vendas de uma confecção em uma categoria de produto.")
+ public record VendaRequest(
++        @Schema(description = "Identificador da confecção (cadastrada em /api/confeccoes).", example = "1")
+         @NotNull(message = "Selecione a confecção.")
+         Long idConfeccao,
+ 
++        @Schema(description = "Identificador da categoria (ver /api/categorias). Ex.: 1 = Moda Feminina.", example = "1")
+         @NotNull(message = "Selecione a categoria.")
+         Long idCategoria,
+ 
++        @Schema(description = "Mês de referência no formato AAAA-MM.", example = "2026-10")
+         @NotBlank(message = "Informe o mês de referência.")
+         @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])$",
+                  message = "O mês deve usar o formato AAAA-MM, por exemplo 2026-03.")
+         String mesAno,
+ 
++        @Schema(description = "Quantidade de peças vendidas no mês.", example = "850")
+         @NotNull(message = "Informe a quantidade.")
+         @PositiveOrZero(message = "A quantidade não pode ser negativa.")
+         Integer quantidade,
+ 
++        @Schema(description = "Faturamento total do mês, em reais (R$).", example = "40800.00")
+         @NotNull(message = "Informe o faturamento.")
+         @DecimalMin(value = "0.00", inclusive = true, message = "O faturamento não pode ser negativo.")
+         @Digits(integer = 10, fraction = 2, message = "O faturamento deve ter até 10 dígitos inteiros e 2 casas decimais.")
+         BigDecimal faturamento,
+ 
++        @Schema(description = "Como o registro foi incluído: digitação manual ou importação de CSV.", example = "MANUAL")
+         @NotNull(message = "Informe como o registro foi incluído: MANUAL ou IMPORTACAO.")
+         OrigemLancamento origem,
+ 
++        @Schema(description = "Procedência do dado: entrevista, questionário ou fonte secundária.", example = "ENTREVISTA")
+         @NotNull(message = "Informe a procedência do dado.")
+         OrigemDado origemDado,
+ 
++        @Schema(description = "Nome da fonte ou da coleta (até 200 caracteres, sem HTML).",
++                example = "Entrevista com a proprietária, Caruaru, out/2026")
+         @NotBlank(message = "Informe o nome da fonte ou da coleta.")
+         @Size(max = 200, message = "O nome da fonte deve ter no máximo 200 caracteres.")
+         @Pattern(regexp = TextoSeguro.SEM_HTML, message = TextoSeguro.MENSAGEM)
+diff -ruN a/backend/src/main/java/br/com/trama/dto/VendaResponse.java b/backend/src/main/java/br/com/trama/dto/VendaResponse.java
+--- a/backend/src/main/java/br/com/trama/dto/VendaResponse.java	2026-11-27 12:46:01.748979813 +0000
++++ b/backend/src/main/java/br/com/trama/dto/VendaResponse.java	2026-11-27 12:46:27.237039406 +0000
+@@ -3,19 +3,33 @@
+ import br.com.trama.model.enums.OrigemDado;
+ import br.com.trama.model.enums.OrigemLancamento;
+ import br.com.trama.model.enums.StatusLancamento;
++import io.swagger.v3.oas.annotations.media.Schema;
+ import java.math.BigDecimal;
+ 
++@Schema(description = "Lançamento mensal de vendas registrado no TRAMA.")
+ public record VendaResponse(
++        @Schema(description = "Identificador do lançamento.", example = "128")
+         Long idLancamento,
++        @Schema(description = "Mês de referência (AAAA-MM).", example = "2026-10")
+         String mesAno,
++        @Schema(description = "Quantidade de peças vendidas.", example = "850")
+         Integer quantidade,
++        @Schema(description = "Faturamento do mês, em reais (R$).", example = "40800.00")
+         BigDecimal faturamento,
++        @Schema(description = "Como o registro foi incluído.", example = "MANUAL")
+         OrigemLancamento origem,
++        @Schema(description = "Procedência do dado.", example = "ENTREVISTA")
+         OrigemDado origemDado,
++        @Schema(description = "Nome da fonte ou da coleta.", example = "Entrevista com a proprietária, Caruaru, out/2026")
+         String nomeFonte,
++        @Schema(description = "Situação do lançamento; cancelamentos são lógicos.", example = "ATIVO")
+         StatusLancamento status,
++        @Schema(description = "Identificador da confecção.", example = "1")
+         Long idConfeccao,
++        @Schema(description = "Nome da confecção.", example = "Alto do Agreste Confecções")
+         String confeccao,
++        @Schema(description = "Identificador da categoria.", example = "1")
+         Long idCategoria,
++        @Schema(description = "Nome da categoria.", example = "Moda Feminina")
+         String categoria) {
+ }

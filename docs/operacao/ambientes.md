@@ -21,15 +21,15 @@ O perfil `prod` não carrega os dados de exemplo nem os usuários de demonstraç
 | [`frontend.yml`](../../.github/workflows/frontend.yml) | PR e push que mudam `frontend/` ou o contrato | tipos do contrato em dia, lint, typecheck, testes e build |
 | [`database.yml`](../../.github/workflows/database.yml) | PR e push que mudam `database/` ou o compose | sobe o MySQL e confere tabelas, views, procedures, triggers e os casos da demonstração |
 | [`docker.yml`](../../.github/workflows/docker.yml) | PR que muda o código; tags `v*` | monta as imagens da API e do front; nas tags, publica no GitHub Container Registry |
-| [`codeql.yml`](../../.github/workflows/codeql.yml) | PR, push na `main` e toda segunda-feira | análise de segurança do Java e do TypeScript |
+| [`codeql.yml`](../../.github/workflows/codeql.yml) | PR, push na `main` e na `develop` e toda segunda-feira | análise de segurança do Java e do TypeScript |
 
 O [Dependabot](../../.github/dependabot.yml) abre PRs semanais para as dependências do npm e do Maven e mensais para as imagens Docker e as actions.
 
 ## Publicar uma versão
 
-1. Na `main` atualizada, registre a versão no [CHANGELOG](../../CHANGELOG.md).
+1. Na `develop`, registre a versão no [CHANGELOG](../../CHANGELOG.md) e leve a `develop` para a `main` por Pull Request.
 2. Defina a variável do repositório `TRAMA_API_URL` (Settings → Secrets and variables → Actions → Variables) com o endereço público do TRAMA, por exemplo `https://trama.exemplo.com.br` (sem `/api` no fim). O front recebe esse endereço no build e chama a API em `/api` no mesmo domínio.
-3. Crie a tag e envie:
+3. Na `main` atualizada, crie a tag e envie:
 
    ```bash
    git tag v1.0.0
