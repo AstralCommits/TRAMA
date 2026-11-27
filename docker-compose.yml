@@ -53,13 +53,19 @@ services:
     entrypoint: ["sh", "-c"]
     command:
       - |
-        if [ "$$(mysql -h banco -utrama -N -e 'SELECT COUNT(*) FROM confeccoes.confeccao')" = "0" ]; then
+        # A view da demonstração é o último objeto criado: se ela existe, a carga terminou.
+        carregado=$$(mysql -h banco -utrama -N -e "SELECT COUNT(*) FROM information_schema.views WHERE table_schema = 'confeccoes' AND table_name = 'vw_serie_polo_regional'") || exit 1
+        confeccoes=$$(mysql -h banco -utrama -N -e 'SELECT COUNT(*) FROM confeccoes.confeccao') || exit 1
+        if [ "$$carregado" = "1" ]; then
+          echo "Os dados de exemplo já foram carregados; seed ignorado."
+        elif [ "$$confeccoes" = "0" ]; then
           for arquivo in seeds/inserts.sql tests/teste_triggers.sql queries/transacoes.sql seeds/seed_demonstracao_projetai.sql; do
             mysql -h banco -utrama --default-character-set=utf8mb4 confeccoes < /database/$$arquivo > /dev/null || exit 1
           done &&
           echo "Dados de exemplo e demonstração carregados."
         else
-          echo "O banco já tem dados; seed ignorado."
+          echo "O banco tem dados, mas o seed não terminou. Recrie com: docker compose down -v (apaga os dados)." >&2
+          exit 1
         fi
 
   web:

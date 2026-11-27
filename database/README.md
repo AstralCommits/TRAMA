@@ -397,7 +397,7 @@ docker compose up -d --wait api
 docker compose run --rm seed
 ```
 
-A API aplica as migrações do Flyway no MySQL, e o serviço `seed` carrega os dados de exemplo, os testes dos triggers, as transações e a massa de demonstração. O `seed` só carrega quando o banco ainda não tem dados. O `docker compose up --build`, que sobe tudo, já faz esses dois passos.
+A API aplica as migrações do Flyway no MySQL, e o serviço `seed` carrega os dados de exemplo, os testes dos triggers, as transações e a massa de demonstração. O `seed` só carrega num banco vazio e é ignorado quando a carga já terminou. Se o banco tiver dados e a carga não tiver terminado (uma falha no meio, ou cadastros feitos antes do seed), ele para com erro: recrie com `docker compose down -v`, que apaga os dados. O `docker compose up --build`, que sobe tudo, já faz esses dois passos.
 
 | Configuração | Valor |
 |---|---|
@@ -423,7 +423,7 @@ Pelo **MySQL Workbench** ou DBeaver, crie uma conexão com os dados da tabela ac
 | `docker compose stop` | Para os containers e mantém os dados |
 | `docker compose start` | Sobe de novo com os dados que já estavam lá |
 | `docker compose logs -f banco api` | Mostra o log do MySQL e da API, com as migrações aplicadas |
-| `docker compose down -v` | Apaga os containers **e os dados**; o próximo `up` recria a estrutura e carrega os dados de novo |
+| `docker compose down -v` | Apaga os containers **e os dados**; o próximo `docker compose up` recria a estrutura e carrega os dados de novo |
 
 Um banco criado antes do Flyway não tem a tabela `flyway_schema_history`, e a API não sobe com ele. Recrie com `docker compose down -v`.
 
@@ -509,7 +509,7 @@ Para descartar tudo e voltar aos dados de exemplo do repositório:
 
 | Ambiente | Comando |
 |---|---|
-| Docker | `docker compose down -v` e depois `docker compose up -d banco` |
+| Docker | `docker compose down -v`, depois `docker compose up -d --wait api` e `docker compose run --rm seed` |
 | MySQL instalado | `mysql -u root -p < database/banco_completo.sql` |
 | SQLite | `python database/sqlite/gerar_sqlite.py` |
 
