@@ -4,7 +4,7 @@ Guia de trabalho da equipe AstralCommits. Vale para todas as pastas do repositó
 
 ## Fluxo de trabalho (GitFlow)
 
-O repositório tem duas branches fixas, as duas protegidas: nada entra nelas sem Pull Request, sem a aprovação de pelo menos uma pessoa da equipe e sem o CI passando.
+O repositório tem duas branches fixas. A `main` é protegida: nada entra nela sem Pull Request, sem a aprovação de pelo menos uma pessoa da equipe e sem o CI passando. Na `develop`, quem tem acesso de escrita pode dar push direto; só não é permitido apagar a branch nem reescrever o histórico (force-push).
 
 | Branch | Para quê |
 |---|---|
@@ -14,7 +14,7 @@ O repositório tem duas branches fixas, as duas protegidas: nada entra nelas sem
 1. Atualize a `develop` local: `git checkout develop && git pull`.
 2. Crie uma branch para a issue a partir da `develop`, seguindo o padrão abaixo.
 3. Faça commits pequenos e com mensagem no padrão da equipe.
-4. Envie a branch e abra um Pull Request para a `develop`, preenchendo o modelo.
+4. Envie a branch e abra um Pull Request para a `develop`, preenchendo o modelo. Para mudanças pequenas, dá para commitar direto na `develop`; o CI roda do mesmo jeito em cada push.
 5. Peça a revisão de alguém da sua frente (ou de outra frente, se a mudança afetar as duas).
 6. Depois da aprovação e com o CI passando, faça o merge com **Create a merge commit** e apague a branch.
 

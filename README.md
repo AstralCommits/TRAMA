@@ -145,7 +145,7 @@ Acompanhamento: [auditoria de 09/11](docs/auditoria/2026-11-09-auditoria.md), [c
 
 ## Como contribuir
 
-A `develop` (branch padrão) e a `main` são protegidas: toda mudança entra por Pull Request na `develop`, que vai para a `main` quando está testada, com a aprovação de pelo menos uma pessoa da equipe e o CI passando. O [guia de contribuição](CONTRIBUTING.md) explica o nome das branches, o padrão dos commits (`DB-01:`, `BACK-02:`, `FRONT-04:`) e o que conferir na revisão.
+As mudanças entram na `develop` (branch padrão), por Pull Request ou push direto, e vão para a `main` quando estão testadas. A `main` é protegida: só recebe Pull Request, com a aprovação de pelo menos uma pessoa da equipe e o CI passando. O [guia de contribuição](CONTRIBUTING.md) explica o nome das branches, o padrão dos commits (`DB-01:`, `BACK-02:`, `FRONT-04:`) e o que conferir na revisão.
 
 Este repositório junta os antigos [Back-end](https://github.com/AstralCommits/Back-end), [Front-end](https://github.com/AstralCommits/Front-end) e [Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados), com o histórico de commits de cada um. As branches que vieram de lá têm o nome do repositório na frente (`back-end/`, `front-end/`, `banco-de-dados/` e `novas-funcionalidades/`) e ficam só como histórico. As tags de versão do banco (`v0.1.0` a `v0.3.1`) continuam no repositório [Banco-de-Dados](https://github.com/AstralCommits/Banco-de-Dados/tags).
 
