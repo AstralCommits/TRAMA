@@ -1,0 +1,663 @@
+# TRAMA | Banco de Dados
+
+Banco MySQL 8 `confeccoes` do [TRAMA](../README.md): modelagem, procedures, triggers, auditoria, índices, massa de demonstração, versão SQLite e backup.
+
+Os comandos deste documento rodam na raiz do repositório.
+
+## Modelo conceitual
+
+No modelo conceitual não aparecem chaves estrangeiras: elas surgem como colunas só no modelo lógico.
+
+```mermaid
+erDiagram
+    CIDADE ||--o{ CONFECCAO : localiza
+    CONFECCAO |o--o{ USUARIO : possui
+    CONFECCAO ||--o{ LANCAMENTO_MENSAL : informa
+    CATEGORIA ||--o{ LANCAMENTO_MENSAL : classifica
+    IMPORTACAO |o--o{ LANCAMENTO_MENSAL : origina
+    USUARIO ||--o{ IMPORTACAO : realiza
+    USUARIO ||--o{ CENARIO_CONCORRENCIA : cria
+    USUARIO ||--o{ RELATORIO : gera
+    CATEGORIA |o--o{ CENARIO_CONCORRENCIA : simula
+    CENARIO_CONCORRENCIA |o--o{ RELATORIO : fundamenta
+    RELATORIO ||--|{ ITEM_RELATORIO : possui
+    CATEGORIA |o--o{ ITEM_RELATORIO : agrupa
+    CIDADE |o--o{ ITEM_RELATORIO : compara
+    CONFECCAO ||--o{ ENTREVISTA : responde
+    CATEGORIA |o--o{ ENTREVISTA : "é percebida em"
+    LANCAMENTO_MENSAL ||--o{ HISTORICO_LANCAMENTO : registra
+    USUARIO |o--o{ HISTORICO_LANCAMENTO : altera
+```
+
+### Entidades e atributos
+
+| Entidade | Identificador | Demais atributos |
+|---|---|---|
+| **Cidade** | id_cidade | nome (Toritama, Caruaru ou Santa Cruz do Capibaribe), uf (PE) |
+| **Confecção** | id_confeccao | nome, cnpj (opcional), porte (micro, pequena, média), tipo (confecção, facção) |
+| **Usuário** | id_usuario | nome, email, senha_hash, perfil (ADMIN, EMPRESARIO) |
+| **Categoria** | id_categoria | nome (até 50 caracteres) |
+| **Lançamento mensal** | id_lancamento | mes_referencia, quantidade, faturamento, origem (MANUAL, IMPORTACAO), fonte_dado (ENTREVISTA, QUESTIONARIO, FONTE_SECUNDARIA), nome_fonte, status (ATIVO, CANCELADO) |
+| **Importação** | id_importacao | nome_arquivo, data_importacao, qtd_linhas, status (CONCLUIDA, ERRO) |
+| **Cenário de concorrência** | id_cenario | nome, percentual_impacto, descricao (opcional) |
+| **Entrevista** | id_entrevista | data, resumo, achou_algo_novo (sim, não) |
+| **Relatório** | id_relatorio | tipo (REGIONAL, CATEGORIA_PERIODO, TENDENCIA, CENARIO), periodo_inicio, periodo_fim, limiar_tendencia, data_geracao |
+| **Item de relatório** | id_item | quantidade, faturamento, variacao_percentual, tendencia (ALTA, QUEDA, ESTAVEL) |
+| **Histórico de lançamento** | id_historico | acao (UPDATE, DELETE), origem (MANUAL, IMPORTACAO), mes_referencia, quantidade_antiga, faturamento_antigo, status_antigo, quantidade_nova, faturamento_novo, status_novo (os novos ficam vazios no DELETE), data_alteracao |
+
+## Modelo lógico
+
+```mermaid
+erDiagram
+    cidade               ||--o{ confeccao            : localiza
+    confeccao            |o--o{ usuario              : possui
+    confeccao            ||--o{ lancamento_mensal    : informa
+    categoria            ||--o{ lancamento_mensal    : classifica
+    importacao           |o--o{ lancamento_mensal    : origina
+    usuario              ||--o{ importacao           : realiza
+    usuario              ||--o{ cenario_concorrencia : cria
+    usuario              ||--o{ relatorio            : gera
+    categoria            |o--o{ cenario_concorrencia : simula
+    cenario_concorrencia |o--o{ relatorio            : fundamenta
+    relatorio            ||--|{ item_relatorio       : possui
+    categoria            |o--o{ item_relatorio       : agrupa
+    cidade               |o--o{ item_relatorio       : compara
+    confeccao            ||--o{ entrevista           : responde
+    categoria            |o--o{ entrevista           : "é percebida em"
+    lancamento_mensal    ||..o{ historico_lancamento : registra
+    usuario              |o..o{ historico_lancamento : altera
+
+    cidade {
+        int     id_cidade PK
+        varchar nome UK "Toritama | Caruaru | Santa Cruz do Capibaribe"
+        char    uf "PE"
+    }
+    confeccao {
+        int     id_confeccao PK
+        varchar nome
+        varchar cnpj UK "opcional"
+        varchar porte "MICRO | PEQUENA | MEDIA"
+        varchar tipo "CONFECCAO | FACCAO"
+        int     id_cidade FK
+    }
+    usuario {
+        int     id_usuario PK
+        varchar nome
+        varchar email UK
+        varchar senha_hash
+        varchar perfil "ADMIN | EMPRESARIO"
+        int     id_confeccao FK "NULL se ADMIN"
+    }
+    categoria {
+        int     id_categoria PK
+        varchar nome UK "até 50 caracteres"
+    }
+    importacao {
+        int       id_importacao PK
+        varchar   nome_arquivo
+        datetime  data_importacao
+        int       qtd_linhas
+        varchar   imp_status "CONCLUIDA | ERRO"
+        int       id_usuario FK
+    }
+    lancamento_mensal {
+        int     id_lancamento PK
+        date    mes_referencia "dia 1 do mês"
+        int     quantidade
+        decimal faturamento
+        varchar origem "MANUAL | IMPORTACAO"
+        varchar fonte_dado "ENTREVISTA | QUESTIONARIO | FONTE_SECUNDARIA"
+        varchar nome_fonte "nome da fonte (RF04)"
+        varchar lanc_status "ATIVO | CANCELADO"
+        int     id_confeccao FK
+        int     id_categoria FK
+        int     id_importacao FK "NULL se MANUAL"
+    }
+    cenario_concorrencia {
+        int     id_cenario PK
+        varchar nome
+        decimal percentual_impacto "0 a 100"
+        varchar descricao "opcional"
+        int     id_usuario FK
+        int     id_categoria FK "NULL = todas"
+    }
+    relatorio {
+        int       id_relatorio PK
+        varchar   tipo "REGIONAL | CATEGORIA_PERIODO | TENDENCIA | CENARIO"
+        date      periodo_inicio
+        date      periodo_fim
+        decimal   limiar_tendencia
+        datetime  data_geracao
+        int       id_usuario FK
+        int       id_cenario FK "obrigatório se CENARIO"
+    }
+    item_relatorio {
+        int     id_item PK
+        int     quantidade
+        decimal faturamento
+        decimal variacao_percentual
+        varchar tendencia "ALTA | QUEDA | ESTAVEL"
+        int     id_relatorio FK
+        int     id_categoria FK "opcional"
+        int     id_cidade FK "opcional, usado no REGIONAL"
+    }
+    entrevista {
+        int     id_entrevista PK
+        date    data
+        text    resumo
+        varchar achou_algo_novo "SIM | NAO"
+        int     id_confeccao FK
+        int     id_categoria_percebida FK "opcional"
+    }
+    historico_lancamento {
+        int       id_historico PK
+        int       id_lancamento "sem FK"
+        varchar   acao "UPDATE | DELETE"
+        varchar   origem "MANUAL | IMPORTACAO"
+        date      mes_referencia
+        int       id_confeccao "sem FK"
+        int       id_categoria "sem FK"
+        int       quantidade_antiga
+        decimal   faturamento_antigo
+        varchar   status_antigo
+        int       quantidade_nova "NULL se DELETE"
+        decimal   faturamento_novo "NULL se DELETE"
+        varchar   status_novo "NULL se DELETE"
+        int       id_usuario "sem FK, quem alterou"
+        datetime  data_alteracao
+    }
+```
+
+`historico_lancamento` implementa a entidade Histórico de lançamento e é preenchida pelos triggers. As linhas tracejadas indicam que `id_lancamento` e `id_usuario` **não são FK**: o registro do histórico precisa continuar existindo depois que o lançamento (ou o usuário) é excluído, e uma FK impediria isso. Pelo mesmo motivo a tabela guarda uma cópia de `origem`, `mes_referencia`, `id_confeccao` e `id_categoria`: depois de um DELETE, o lançamento não existe mais para consultar esses dados. Essa repetição é proposital — o histórico é um retrato do lançamento no momento da alteração, não um dado que deva acompanhar mudanças futuras.
+
+**Legenda da cardinalidade:** `||` = exatamente 1 · `|o` = 0 ou 1 · `o{` = 0 ou N · `|{` = 1 ou N
+
+## Relacionamentos e cardinalidades
+
+| Entidade A | Relacionamento | Entidade B |
+|---|---|---|
+| Cidade (0,N) | localiza | Confecção (1,1) |
+| Confecção (0,N) | possui | Usuário (0,1) |
+| Confecção (0,N) | informa | Lançamento mensal (1,1) |
+| Categoria (0,N) | classifica | Lançamento mensal (1,1) |
+| Importação (0,N) | origina | Lançamento mensal (0,1) |
+| Usuário (0,N) | realiza | Importação (1,1) |
+| Usuário (0,N) | cria | Cenário de concorrência (1,1) |
+| Usuário (0,N) | gera | Relatório (1,1) |
+| Categoria (0,N) | simula | Cenário de concorrência (0,1) |
+| Cenário de concorrência (0,N) | fundamenta | Relatório (0,1) |
+| Relatório (1,N) | possui | Item de relatório (1,1) |
+| Categoria (0,N) | agrupa | Item de relatório (0,1) |
+| Cidade (0,N) | compara | Item de relatório (0,1) |
+| Confecção (0,N) | responde | Entrevista (1,1) |
+| Categoria (0,N) | é percebida em | Entrevista (0,1) |
+| Lançamento mensal (0,N) | registra | Histórico de lançamento (1,1) |
+| Usuário (0,N) | altera | Histórico de lançamento (0,1) |
+
+### Justificativa das cardinalidades opcionais
+
+Cada participação (0,1) do modelo existe por causa de uma regra do [minimundo](../docs/database/minimundo.md):
+
+| Relacionamento | Por que é (0,1) | Regra | Garantia no banco |
+|---|---|---|---|
+| Confecção → Usuário | O ADMIN não pertence a nenhuma confecção | RN02 | `id_confeccao` aceita NULL; `CHECK chk_usuario_perfil_confeccao` garante a combinação |
+| Importação → Lançamento mensal | O lançamento pode ser digitado à mão (origem MANUAL) | — | `id_importacao` aceita NULL; `origem` guarda MANUAL ou IMPORTACAO |
+| Categoria → Cenário de concorrência | Um cenário sem categoria vale para todas | RN06 | FK aceita NULL |
+| Cenário de concorrência → Relatório | Só o relatório do tipo CENARIO usa cenário | RN07 | `id_cenario` aceita NULL; tipo validado pelo sistema |
+| Categoria → Item de relatório | O relatório REGIONAL agrupa por cidade, não por categoria | RN07 | `id_categoria` aceita NULL; cidade ou categoria validado pelo sistema |
+| Cidade → Item de relatório | Só o relatório REGIONAL compara cidades | RN07 | `id_cidade` aceita NULL |
+| Categoria → Entrevista | O empresário pode não saber ou não responder qual categoria vende mais | RN09 | FK aceita NULL |
+
+**Relatório (1,N) → Item de relatório (RN10):** a exigência de pelo menos um item não pode ser garantida por FK, porque o relatório é gravado antes dos itens. Quem garante é a transação de geração do relatório (`transacoes.sql`): se nenhum item for gerado, ela faz `ROLLBACK`.
+
+## Chaves estrangeiras (modelo lógico)
+
+Em um relacionamento 1:N, a FK fica no lado N. Se a cardinalidade desse lado é (1,1), a FK é `NOT NULL`; se é (0,1), ela aceita `NULL`.
+
+| Tabela (lado N) | FK | Referencia | Obrigatória? |
+|---|---|---|---|
+| confeccao | id_cidade | cidade | Sim |
+| usuario | id_confeccao | confeccao | Não (só para perfil EMPRESARIO) |
+| lancamento_mensal | id_confeccao | confeccao | Sim |
+| lancamento_mensal | id_categoria | categoria | Sim |
+| lancamento_mensal | id_importacao | importacao | Não (só para origem IMPORTACAO) |
+| importacao | id_usuario | usuario | Sim |
+| cenario_concorrencia | id_usuario | usuario | Sim |
+| cenario_concorrencia | id_categoria | categoria | Não |
+| relatorio | id_usuario | usuario | Sim |
+| relatorio | id_cenario | cenario_concorrencia | Não (só para tipo CENARIO) |
+| item_relatorio | id_relatorio | relatorio | Sim |
+| item_relatorio | id_categoria | categoria | Não |
+| item_relatorio | id_cidade | cidade | Não (só no relatório REGIONAL) |
+| entrevista | id_confeccao | confeccao | Sim |
+| entrevista | id_categoria_percebida | categoria | Não |
+
+## Regras do minimundo e onde são garantidas
+
+A numeração segue o [minimundo](../docs/database/minimundo.md).
+
+| # | Regra | Implementação |
+|---|---|---|
+| RN01 | Cada confecção fica em uma única cidade; CNPJ opcional, mas sem repetição | `id_cidade NOT NULL`; `cnpj` aceita NULL e é `UNIQUE` |
+| RN02 | ADMIN não tem confecção; EMPRESARIO tem exatamente uma | `CHECK chk_usuario_perfil_confeccao` |
+| RN03 | Um lançamento por confecção, categoria e mês | `UNIQUE (id_confeccao, id_categoria, mes_referencia)` |
+| RN04 | Lançamento cancelado fica fora dos indicadores e relatórios | Procedure `cancelar_lancamento` muda o status sem apagar; as consultas filtram `lanc_status = 'ATIVO'` |
+| RN05 | Linha inválida na planilha: nada da importação é gravado | Transação em `transacoes.sql` |
+| RN06 | Impacto entre 0 e 100; cenário sem categoria vale para todas | `id_categoria` opcional; `CHECK chk_cenario_impacto` (0 a 100) |
+| RN07 | Relatório CENARIO exige cenário; o REGIONAL compara as cidades do polo | `id_cidade` com FK para `cidade`; cenário obrigatório validado pelo sistema |
+| RN08 | Tendência: ALTA se a variação for **≥ +5%**, QUEDA se for **≤ −5%**, ESTAVEL entre os dois (limites inclusivos) | Calculada ao gerar o relatório; `limiar_tendencia` guarda os 5% usados |
+| RN09 | Entrevista registra a categoria que o empresário *acha* que mais vende | `id_categoria_percebida` aceita NULL |
+| RN10 | Todo relatório tem pelo menos um item | Transação em `transacoes.sql` faz `ROLLBACK` se nenhum item for gerado |
+| RN12 | O sistema atende só Toritama, Caruaru e Santa Cruz do Capibaribe, em PE (RF02) | `CHECK chk_cidade_agreste` e `UNIQUE` no nome da cidade |
+| RN13 | Todo lançamento informa a fonte do dado: entrevista, questionário ou fonte secundária (RF04) | `fonte_dado NOT NULL` com `CHECK chk_lanc_fonte` e `nome_fonte NOT NULL` |
+| RN11 | Toda alteração ou exclusão de lançamento fica no histórico | Triggers `trg_historico_lancamento_update` e `trg_historico_lancamento_delete`; relatórios em `auditoria.sql` |
+
+## Procedures
+
+| Procedure | Parâmetros | O que faz |
+|---|---|---|
+| `inserir_lancamento` | mês, quantidade, faturamento, confecção, categoria, fonte do dado | Grava um lançamento MANUAL e ATIVO; qualquer dia do mês vira dia 1 |
+| `atualizar_lancamento` | id do lançamento, quantidade, faturamento, id do usuário | Corrige quantidade e faturamento |
+| `cancelar_lancamento` | id do lançamento, id do usuário | Muda o status para CANCELADO, sem apagar (RN04) |
+| `excluir_lancamento` | id do lançamento, id do usuário | Apaga o lançamento de vez |
+
+O id do usuário é quem está fazendo a alteração. A procedure guarda esse id em `@id_usuario` antes de mexer no lançamento, o trigger copia para o histórico, e no fim a procedure limpa a variável. Alterações feitas direto com `UPDATE` ou `DELETE`, sem passar pelas procedures, ficam no histórico como "Nao identificado".
+
+## Triggers
+
+| Trigger | Quando dispara | O que grava em `historico_lancamento` |
+|---|---|---|
+| `trg_historico_lancamento_update` | Depois de um UPDATE em `lancamento_mensal` | Ação `UPDATE`, origem, mês, confecção, categoria, os valores de antes (`OLD`) e de depois (`NEW`) e o usuário de `@id_usuario` |
+| `trg_historico_lancamento_delete` | Depois de um DELETE em `lancamento_mensal` | Ação `DELETE`, os dados e valores do lançamento apagado e o usuário |
+
+Cancelar um lançamento também vai para o histórico, porque o cancelamento é um UPDATE no status.
+
+## Auditoria do histórico
+
+O `auditoria.sql` traz a view e as procedures para monitorar as alterações em lançamentos (RF06). Todas as procedures recebem o período e a origem: `'MANUAL'` para acompanhar só os lançamentos digitados à mão, `'IMPORTACAO'` para os que vieram de planilha, ou `NULL` para todos.
+
+| Objeto | Parâmetros | O que mostra |
+|---|---|---|
+| `vw_historico_lancamento` (view) | — | Histórico com nomes de confecção, cidade, categoria e usuário, e a diferença de quantidade e faturamento entre antes e depois |
+| `relatorio_historico_periodo` | início, fim, origem | Todas as alterações do período, da mais recente para a mais antiga |
+| `relatorio_alteracoes_por_usuario` | início, fim, origem | Quantas correções, cancelamentos e exclusões cada usuário fez, e o impacto no faturamento |
+| `relatorio_alteracoes_por_confeccao` | início, fim, origem | Quantas alterações cada confecção teve, quantos lançamentos foram mexidos e o impacto no faturamento |
+
+O **impacto no faturamento** é quanto as alterações mudaram o faturamento que entra nos indicadores: numa correção, a diferença entre o valor novo e o antigo; num cancelamento ou exclusão, o valor antigo inteiro, negativo, porque o lançamento sai dos indicadores (RN04).
+
+```sql
+CALL relatorio_alteracoes_por_usuario('2026-10-01', '2026-10-31', 'MANUAL');
+```
+
+## Transações
+
+| # | Situação | Resultado |
+|---|---|---|
+| 1 | Importação de planilha sem erros | `COMMIT`: a importação e as linhas são gravadas juntas |
+| 2 | Importação com uma linha inválida | `ROLLBACK`: nada da importação é gravado (RN05); depois só a tentativa é registrada com status ERRO |
+| 3 | Geração de relatório com um item digitado errado | `ROLLBACK TO SAVEPOINT`: desfaz só o item errado e mantém os anteriores, depois `COMMIT` |
+| 4 | Relatório sem nenhum item | `ROLLBACK`: todo relatório precisa de pelo menos um item (RN10) |
+
+## Consultas
+
+O `consultas.sql` traz 10 consultas que juntam as tabelas com `INNER JOIN` e `LEFT JOIN` e usam `COUNT`, `AVG`, `MAX` e `MIN` com `GROUP BY`. Entre elas:
+
+- confecções com cidade e UF;
+- lançamentos ativos por cidade e faturamento médio por categoria;
+- usuários que nunca fizeram importação (`LEFT JOIN`);
+- relatórios com o cenário usado e a quantidade de itens;
+- histórico de alterações gravado pelos triggers.
+
+## Índices (RNF01)
+
+O RNF01 pede resposta em até 3 segundos com 10.000 vendas. Além das chaves primárias, dos `UNIQUE` e dos índices que o MySQL cria para cada FK, o `schema.sql` cria:
+
+| Índice | Tabela | Colunas | Para quê |
+|---|---|---|---|
+| `idx_lancamento_mes_categoria` | lancamento_mensal | mes_referencia, id_categoria, id_confeccao, lanc_status, quantidade, faturamento | Agregação de faturamento por período e categoria (RF05/RF06) |
+| `idx_lancamento_confeccao` | lancamento_mensal | id_confeccao | Filtro por confecção e, pela junção com `confeccao`, por cidade |
+| `idx_historico_lancamento` | historico_lancamento | id_lancamento, data_alteracao | Histórico de um lançamento (RN11); `id_lancamento` não é FK, então não tinha índice |
+| `idx_historico_data` | historico_lancamento | data_alteracao, origem | Relatórios de auditoria por período e origem (`auditoria.sql`) |
+| `idx_cenario_usuario_nome` | cenario_concorrencia | id_usuario, nome | Cenários salvos do usuário, consultados por nome (RF08) |
+| `idx_relatorio_usuario_data` | relatorio | id_usuario, data_geracao | Relatórios do usuário, do mais recente ao mais antigo |
+
+`idx_lancamento_mes_categoria` começa por `(mes_referencia, id_categoria)` e termina com as colunas que a consulta filtra e soma. Assim ele **cobre** a consulta: o MySQL lê só o índice, sem voltar à tabela. Sem essas colunas, a agregação de um período longo (12 meses) caía em *full table scan* (`type = ALL` no `EXPLAIN`), porque buscar cada linha pelo índice saía mais caro que ler a tabela inteira.
+
+O `teste_desempenho.sql` gera 10.000 lançamentos dentro de uma transação, roda as consultas de faturamento por categoria (RF05) e de tendência (RF06), mostra o `EXPLAIN` das agregações por período e desfaz tudo com `ROLLBACK`. Em um MySQL 8.0 local, com 10.000 vendas:
+
+| Agregação por período | Sem os índices | Com os índices |
+|---|---|---|
+| 12 meses, por categoria | `ALL` (full table scan), 27 ms | `range` em `idx_lancamento_mes_categoria`, 24 ms |
+| 2 meses, por categoria | `ALL` (full table scan), 9 ms | `range` em `idx_lancamento_mes_categoria`, 4 ms |
+
+As agregações do `consultas.sql` (por cidade, categoria e mês) também usam índice (`type = ref`), sem *full table scan*. Com esse volume tudo fica muito abaixo dos 3 segundos; os índices tiram o *full table scan* e mantêm a margem quando o número de vendas crescer.
+
+## Arquivos
+
+```
+database/
+├── schema/       estrutura do banco: tabelas, procedures, triggers e auditoria
+├── seeds/        dados de exemplo e massa de demonstração
+├── migrations/   atualizações para bancos já criados
+├── tests/        casos de teste e teste de desempenho
+├── queries/      consultas, selects e transações de exemplo
+├── sqlite/       versão SQLite e o gerador do extensao.db
+├── scripts/      backup e teste de restauração
+└── backups/      saída dos backups (não versionada)
+```
+
+O banco sobe pelo [`docker-compose.yml`](../docker-compose.yml) da raiz (serviço `banco`), que carrega o `banco_completo.sql` e a massa de demonstração na primeira subida. O minimundo fica em [docs/database/minimundo.md](../docs/database/minimundo.md).
+
+| Pasta | Arquivo | Conteúdo |
+|---|---|---|
+| `schema/` | [banco_completo.sql](schema/banco_completo.sql) | Schema, dados de exemplo, procedures, triggers, auditoria e transações em um único script, na ordem certa; recria o banco do zero |
+| `schema/` | [schema.sql](schema/schema.sql) | Criação do banco, das 10 tabelas, da tabela de auditoria `historico_lancamento` e dos índices do RNF01 |
+| `schema/` | [procedures.sql](schema/procedures.sql) | Procedures para inserir, atualizar, cancelar e excluir lançamentos |
+| `schema/` | [triggers.sql](schema/triggers.sql) | Triggers que gravam no histórico os UPDATE e DELETE de lançamentos |
+| `schema/` | [auditoria.sql](schema/auditoria.sql) | View e procedures de relatório do histórico de lançamentos |
+| `seeds/` | [inserts.sql](seeds/inserts.sql) | Dados de exemplo para todas as tabelas |
+| `seeds/` | [seed_demonstracao_projetai.sql](seeds/seed_demonstracao_projetai.sql) | Massa de dados fictícia do polo têxtil para o ProjetAÍ e a view `vw_serie_polo_regional` |
+| `tests/` | [teste_demonstracao_projetai.sql](tests/teste_demonstracao_projetai.sql) | 12 casos de teste da massa de demonstração; não altera os dados |
+| `tests/` | [teste_desempenho.sql](tests/teste_desempenho.sql) | Teste do RNF01 com 10.000 vendas; não fica no `banco_completo.sql` e não altera os dados |
+| `tests/` | [teste_triggers.sql](tests/teste_triggers.sql) | Insere, altera, cancela e exclui um lançamento e mostra o histórico gravado pelos triggers; precisa dos dados de exemplo |
+| `tests/` | [teste_auditoria.sql](tests/teste_auditoria.sql) | Chama a view e as procedures de relatório do histórico |
+| `queries/` | [consultas.sql](queries/consultas.sql) | Consultas com `INNER JOIN`, `LEFT JOIN`, `GROUP BY`, `COUNT`, `AVG`, `MAX` e `MIN` |
+| `queries/` | [selects.sql](queries/selects.sql) | Consulta de todos os registros de cada tabela |
+| `queries/` | [transacoes.sql](queries/transacoes.sql) | Transações de importação e de geração de relatório (`COMMIT`, `ROLLBACK`, `SAVEPOINT`) |
+| `sqlite/` | [schema_sqlite.sql](sqlite/schema_sqlite.sql) | Versão SQLite3 do `schema.sql`, com os triggers e a view |
+| `sqlite/` | [gerar_sqlite.py](sqlite/gerar_sqlite.py) | Gera o `extensao.db` a partir do `schema_sqlite.sql` e do `seeds/inserts.sql` |
+| `sqlite/` | [extensao.db](sqlite/extensao.db) | Banco SQLite pronto, com os dados de exemplo |
+
+## Como executar
+
+### Com Docker (recomendado para o back-end e o front-end)
+
+Precisa só do [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e aberto. Para subir só o banco, na raiz do repositório:
+
+```bash
+docker compose up -d banco
+```
+
+Na primeira vez, o Docker baixa a imagem `mysql:8.0` e roda o `database/schema/banco_completo.sql` e o `database/seeds/seed_demonstracao_projetai.sql` automaticamente: cria as tabelas, procedures, triggers, índices, os dados de exemplo e a massa de demonstração. Leva por volta de um minuto. Para saber se terminou:
+
+```bash
+docker compose ps
+```
+
+Quando a coluna `STATUS` mostrar `healthy`, o banco está pronto. O healthcheck só fica `healthy` depois que a carga inicial terminou e a tabela `lancamento_mensal` responde.
+
+| Configuração | Valor |
+|---|---|
+| Host | `localhost` |
+| Porta | `3307` |
+| Banco | `confeccoes` |
+| Usuário / senha | `trama` / `trama` |
+| Usuário root / senha | `root` / `root` |
+| URL JDBC (Spring Boot) | `jdbc:mysql://localhost:3307/confeccoes` |
+
+A porta é `3307`, e não `3306`, para não dar conflito com um MySQL já instalado no computador. Para usar outra porta, defina `MYSQL_PORT` antes de subir (no Git Bash: `MYSQL_PORT=3306 docker compose up -d banco`). Essas credenciais são só para desenvolvimento.
+
+Para conferir as tabelas e os dados pelo terminal:
+
+```bash
+docker compose exec banco mysql -utrama -ptrama confeccoes -e "SHOW TABLES; SELECT COUNT(*) FROM lancamento_mensal;"
+```
+
+Pelo **MySQL Workbench** ou DBeaver, crie uma conexão com os dados da tabela acima.
+
+| Comando | O que faz |
+|---|---|
+| `docker compose stop` | Para o banco e mantém os dados |
+| `docker compose start` | Sobe de novo com os dados que já estavam lá |
+| `docker compose logs -f banco` | Mostra o log do MySQL (útil se o status não ficar `healthy`) |
+| `docker compose down -v` | Apaga o container **e os dados**; o próximo `up -d` recarrega o `banco_completo.sql` do zero |
+
+O `banco_completo.sql` só roda quando o volume de dados está vazio. Depois de mudar algum script SQL, use `docker compose down -v` e `docker compose up -d banco` para recarregar.
+
+A cada push e Pull Request, o GitHub Actions ([`.github/workflows/database.yml`](../.github/workflows/database.yml)) roda `docker compose up -d banco`, espera o banco ficar `healthy` e confere que as 11 tabelas existem com dados, além das 2 views, das 7 procedures, dos 2 triggers e dos 12 casos de teste da massa de demonstração. O resultado aparece na aba **Actions** do repositório e como ✅ ou ❌ no commit e no Pull Request. Assim, uma mudança nos scripts que quebre a carga inicial é descoberta antes de chegar à `develop`.
+
+### Com MySQL instalado
+
+O jeito mais simples é rodar o script completo, que apaga e recria o banco `confeccoes` com tudo:
+
+```bash
+mysql -u root -p < database/schema/banco_completo.sql
+```
+
+Se preferir rodar por partes, use os arquivos nesta ordem, porque cada um depende do anterior:
+
+```bash
+mysql -u root -p < database/schema/schema.sql
+mysql -u root -p < database/seeds/inserts.sql
+mysql -u root -p < database/schema/procedures.sql
+mysql -u root -p < database/schema/triggers.sql
+mysql -u root -p < database/schema/auditoria.sql
+mysql -u root -p < database/queries/transacoes.sql
+mysql -u root -p < database/queries/selects.sql
+mysql -u root -p < database/queries/consultas.sql
+```
+
+Para conferir os triggers, a auditoria e o desempenho (RNF01), rode depois de criar o banco:
+
+```bash
+mysql -u root -p confeccoes < database/tests/teste_triggers.sql
+mysql -u root -p confeccoes < database/tests/teste_auditoria.sql
+mysql -u root -p < database/tests/teste_desempenho.sql
+```
+
+Os arquivos de `schema/` só criam estrutura, sem dados nem testes. É com eles que o banco de produção nasce (veja [Ambientes e operação](../docs/operacao/ambientes.md)).
+
+Para recomeçar do zero, apague o banco antes com `DROP DATABASE confeccoes;`.
+
+Pelo **MySQL Workbench**: abra cada arquivo em *File → Open SQL Script* e execute (⚡), na mesma ordem.
+
+## Massa de demonstração (ProjetAÍ)
+
+O `docker compose` da raiz já carrega a massa quando cria o banco. Com um MySQL instalado, ou num banco criado antes, rode a carga e confira (na raiz do repositório):
+
+```bash
+docker compose exec -T banco mysql -utrama -ptrama --default-character-set=utf8mb4 confeccoes < database/seeds/seed_demonstracao_projetai.sql
+docker compose exec -T banco mysql -utrama -ptrama confeccoes < database/tests/teste_demonstracao_projetai.sql
+```
+
+São **dados fictícios**: 12 confecções de Caruaru, Toritama e Santa Cruz do Capibaribe (ids 9001 a 9012, nome iniciado por `Demo`, sem CNPJ) e 408 lançamentos, de novembro/2024 a outubro/2026. Há picos em maio/junho e em novembro/dezembro e, na comparação dos últimos 12 meses com os 12 anteriores, categorias em alta (Jeans e Fitness), em queda (Moda Masculina e Praia) e estáveis (Moda Feminina e Moda Infantil).
+
+A carga cria a `vw_serie_polo_regional`, com faturamento, itens e variação mês a mês por município. Rodar de novo não duplica nada e, se algo falhar, ela desfaz tudo.
+
+## Backup e restauração
+
+O backup usa o `mysqldump` e guarda as tabelas, os dados, as views, as procedures e os triggers. Os arquivos ficam na pasta `backups/`, que está no `.gitignore` para não irem para o GitHub.
+
+### Com Docker
+
+Os comandos rodam o `mysqldump` **dentro** do container e depois copiam o arquivo. Assim o backup sai em UTF-8 em qualquer terminal (o `>` do PowerShell gravaria o arquivo em outra codificação e quebraria os acentos).
+
+Fazer o backup:
+
+```bash
+docker compose exec banco sh -c "mysqldump -uroot -proot --databases confeccoes --add-drop-database --routines --triggers --set-gtid-purged=OFF > /tmp/backup.sql"
+docker compose cp banco:/tmp/backup.sql database/backups/backup_confeccoes.sql
+```
+
+Restaurar um backup (apaga o banco atual e recria igual ao backup):
+
+```bash
+docker compose cp database/backups/backup_confeccoes.sql banco:/tmp/backup.sql
+docker compose exec banco sh -c "mysql -uroot -proot < /tmp/backup.sql"
+```
+
+### Com MySQL instalado
+
+No **Git Bash**, na pasta do repositório:
+
+```bash
+mysqldump -u root -p --databases confeccoes --add-drop-database --routines --triggers --set-gtid-purged=OFF --result-file=database/backups/backup_confeccoes.sql
+mysql -u root -p < database/backups/backup_confeccoes.sql
+```
+
+O primeiro comando faz o backup e o segundo restaura. O `--result-file` grava o arquivo direto em UTF-8, sem depender do terminal.
+
+### Voltar ao estado inicial
+
+Para descartar tudo e voltar aos dados de exemplo do repositório:
+
+| Ambiente | Comando |
+|---|---|
+| Docker | `docker compose down -v` e depois `docker compose up -d banco` |
+| MySQL instalado | `mysql -u root -p < database/schema/banco_completo.sql` |
+| SQLite | `python database/sqlite/gerar_sqlite.py` |
+
+### Conferir a integridade depois de restaurar
+
+```sql
+USE confeccoes;
+SELECT COUNT(*) FROM lancamento_mensal;
+SELECT COUNT(*) FROM historico_lancamento;
+SHOW PROCEDURE STATUS WHERE Db = 'confeccoes';
+SHOW TRIGGERS FROM confeccoes;
+CHECK TABLE cidade, confeccao, usuario, categoria, lancamento_mensal;
+```
+
+As contagens devem bater com as do banco de onde o backup saiu, e o `CHECK TABLE` deve mostrar `OK` em todas as linhas.
+## Usuários de demonstração
+
+Os usuários dos dados de exemplo entram na API com a senha `TramaDemo2026`, guardada em BCrypt com um sal por usuário. O e-mail de cada um está no `inserts.sql`: o `admin@confeccoes.com` é ADMIN e os demais são EMPRESARIO.
+
+**Só para desenvolvimento e demonstração.** A senha é pública: não use estes usuários em um banco exposto na internet. Para atualizar um banco já criado, sem apagar dados, rode `database/migrations/V0_5_1__senhas_bcrypt.sql`, que só muda as senhas antigas de exemplo.
+
+As outras migrações de `database/migrations/` também servem só para bancos já criados, e cada uma roda uma única vez, na ordem da versão: `V0_4_0__origem_dado_nome_fonte.sql` (v0.3.x para v0.4.0, renomeia `fonte_dado` para `origem_dado` e cria `nome_fonte`) e `V0_5_0__fonte_dado.sql` (volta o nome para `fonte_dado`). Depois da `V0_4_0`, rode de novo `database/schema/procedures.sql` e o trecho de views de `database/schema/schema.sql`. Bancos novos, criados pelo `docker compose` ou pelo `banco_completo.sql`, já nascem com a estrutura atual.
+
+## Banco local em SQLite (`extensao.db`)
+
+Para quem precisa de um banco local sem instalar MySQL nem Docker, o repositório traz uma versão SQLite3 do mesmo modelo: as 11 tabelas, todas as chaves primárias e estrangeiras, os `UNIQUE`, os `CHECK`, os dois triggers do histórico de lançamento e as views `vw_lancamentos` e `vw_historico_lancamento`, com os mesmos dados de exemplo do `inserts.sql`.
+
+O arquivo pronto é o [`database/sqlite/extensao.db`](sqlite/extensao.db). Para gerar de novo (depois de mudar o `schema_sqlite.sql` ou o `inserts.sql`), na raiz do repositório:
+
+```bash
+python database/sqlite/gerar_sqlite.py
+```
+
+O script apaga o `extensao.db` antigo, roda o `schema_sqlite.sql`, carrega o `inserts.sql` (ignorando só a linha `USE confeccoes;`, que é do MySQL) e confere as chaves estrangeiras e a integridade do arquivo. Precisa só do Python 3, que já vem com o SQLite.
+
+Se tiver o [`sqlite3`](https://sqlite.org/download.html) de linha de comando, o mesmo resultado sai com:
+
+```bash
+sqlite3 database/sqlite/extensao.db < database/sqlite/schema_sqlite.sql
+```
+
+```bash
+sed '/^USE /d' database/seeds/inserts.sql | sqlite3 database/sqlite/extensao.db
+```
+
+### Diferenças em relação ao MySQL
+
+| MySQL (`schema.sql`) | SQLite (`schema_sqlite.sql`) |
+|---|---|
+| `INT AUTO_INCREMENT PRIMARY KEY` | `INTEGER PRIMARY KEY AUTOINCREMENT` |
+| `VARCHAR(n)`, `CHAR(2)` | `TEXT` (o SQLite não limita tamanho; o limite de 50 caracteres da categoria virou `CHECK (length(nome) <= 50)`) |
+| `DECIMAL(12,2)` | `NUMERIC` |
+| `DATE`, `DATETIME` | `TEXT` em ISO 8601 (`AAAA-MM-DD` e `AAAA-MM-DD HH:MM:SS`), validado por `CHECK` |
+| `DAY(mes_referencia) = 1` | `strftime('%d', mes_referencia) = '01'` |
+| Procedures (`procedures.sql`, `auditoria.sql`) | Não existem no SQLite: inserir, atualizar, cancelar e excluir lançamentos e os relatórios de auditoria ficam com o back-end (a view `vw_historico_lancamento` existe) |
+| `@id_usuario` no histórico | O SQLite não tem variáveis de sessão: os triggers gravam `id_usuario` vazio e o back-end preenche logo depois da alteração, na mesma transação: `UPDATE historico_lancamento SET id_usuario = ? WHERE id_historico = (SELECT MAX(id_historico) FROM historico_lancamento WHERE id_lancamento = ?)` (`last_insert_rowid()` não serve, porque não enxerga os inserts feitos pelos triggers) |
+
+`NUMERIC` guarda os valores como número de ponto flutuante quando têm casas decimais, então somas de faturamento podem ter diferenças de centavos em casas muito distantes. Para desenvolvimento local isso não atrapalha; o MySQL continua sendo o banco oficial.
+
+### Usando no back-end
+
+O SQLite **só aplica as chaves estrangeiras quando a conexão liga isso**, e precisa ser em toda conexão. Sem isso, o banco aceita lançamentos de confecções que não existem.
+
+No Spring Boot, com o driver `org.xerial:sqlite-jdbc`:
+
+```properties
+spring.datasource.url=jdbc:sqlite:../database/sqlite/extensao.db?foreign_keys=on
+spring.datasource.driver-class-name=org.sqlite.JDBC
+```
+
+Ajuste o caminho para onde o `extensao.db` estiver no seu computador. Em qualquer outro cliente, rode `PRAGMA foreign_keys = ON;` logo depois de abrir a conexão. Para olhar as tabelas e os dados, o [DB Browser for SQLite](https://sqlitebrowser.org/) abre o arquivo direto.
+
+## Backup automatizado e recuperação (DB-07)
+
+Os scripts ficam em `database/scripts/` e os backups em `database/backups/` (`confeccoes_AAAAMMDD_HHMMSS.sql.gz`).
+
+| Arquivo | Função |
+|---|---|
+| `database/scripts/backup_database.sh` | Backup lógico compactado (`.sql.gz`) com timestamp e expurgo de backups com mais de 7 dias |
+| `database/scripts/restore_test.sh` | Teste de restauração do backup em um banco temporário |
+| `database/scripts/backup.env.example` | Modelo de configuração (copie para `database/scripts/backup.env`, que não é versionado) |
+
+Requisitos: MySQL 8 (`mysqldump` e `mysql` no PATH) e um terminal bash (Linux, WSL ou Git Bash). No Git Bash, se o `mysqldump` não for encontrado, adicione a pasta do MySQL ao PATH:
+
+```bash
+export PATH="$PATH:/c/Program Files/MySQL/MySQL Server 8.0/bin"
+```
+
+### Configuração
+
+Na raiz do repositório:
+
+```bash
+cp database/scripts/backup.env.example database/scripts/backup.env
+```
+
+Edite o `database/scripts/backup.env` com `DB_USER` e `DB_PASS`. Esse arquivo contém a senha e é ignorado pelo Git. Por padrão os backups vão para a pasta `database/backups/`; para mudar, defina `BACKUP_DIR`. Os dias de retenção ficam em `RETENTION_DAYS` (padrão 7).
+
+### Execução
+
+```bash
+bash database/scripts/backup_database.sh            # backup + expurgo
+bash database/scripts/backup_database.sh --verify   # backup + expurgo + teste de restore
+bash database/scripts/restore_test.sh               # testa o backup mais recente
+```
+
+Para agendar no Linux, use o `cron` (backup diário às 02:00 com teste de restore):
+
+```cron
+0 2 * * * bash /caminho/do/repo/database/scripts/backup_database.sh --verify >> /var/log/confeccoes_backup.cron.log 2>&1
+```
+
+O agendamento está apenas documentado; ele não é instalado automaticamente em nenhum servidor.
+
+### O que o backup garante
+
+- O arquivo só vira `.sql.gz` depois de validado (gzip íntegro, dump completo e com tabelas).
+- O expurgo só roda depois de um backup novo válido, então uma falha nunca apaga o último backup bom.
+- O teste de restore usa um banco temporário `restore_test_*`, apagado ao final. O banco real nunca é tocado.
+- O usuário do teste precisa de permissão para criar e apagar bancos `restore_test_*`.
+
+### Procedimento de recuperação
+
+1. Pare a aplicação para evitar novas escritas.
+2. Escolha o backup: `ls -lt database/backups/confeccoes_*.sql.gz | head`
+3. Valide: `bash database/scripts/restore_test.sh database/backups/confeccoes_AAAAMMDD_HHMMSS.sql.gz`. Só continue se terminar com `RESTORE TEST: OK`.
+4. Se o banco ainda existe, guarde uma cópia do estado atual com `mysqldump` antes de apagar.
+5. Recrie o banco vazio:
+
+   ```sql
+   DROP DATABASE IF EXISTS confeccoes;
+   CREATE DATABASE confeccoes CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+   ```
+
+6. Restaure (o `sed` remove o `DEFINER` original, para funcionar com qualquer usuário):
+
+   ```bash
+   gzip -dc database/backups/confeccoes_AAAAMMDD_HHMMSS.sql.gz \
+     | sed -E 's/DEFINER[[:space:]]*=[[:space:]]*`[^`]*`@`[^`]*`//g' \
+     | mysql -u root -p --default-character-set=utf8mb4 confeccoes
+   ```
+
+7. Confira com `SHOW FULL TABLES;` e `SELECT COUNT(*) FROM lancamento_mensal;`.
+8. Reative a aplicação e registre o incidente (horário, backup usado e dados perdidos entre o backup e a falha).
+
+### Erros comuns
+
+| Erro | Solução |
+|---|---|
+| `Access denied ... SUPER or SET_USER_ID` | Use o `sed` do passo 6 (o `restore_test.sh` já faz isso) |
+| `@@GLOBAL.GTID_PURGED ...` | O padrão do script já inclui `--set-gtid-purged=OFF`; confira se `DUMP_OPTS` não foi alterado |
+| `Outro backup ja esta em execucao` | Há um backup em andamento; se travou, apague `backups/.backup.lock.d` |
+
+### Pontos de atenção
+
+- Os backups ficam na mesma máquina. Copie os `.sql.gz` para outro disco ou para a nuvem de vez em quando: um backup na mesma máquina não protege contra falha do disco.
+- O `cron` está documentado, mas não instalado em nenhum servidor.

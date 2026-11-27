@@ -1,4 +1,0 @@
-SQL schema SHA-256 comparison
-e786656312263347e2425259b46898ddf05482fc75af68e8e8a31b1978ab3d6b  Banco-de-Dados/database/schema.sql
-e786656312263347e2425259b46898ddf05482fc75af68e8e8a31b1978ab3d6b  Back-end/database/schema_reference.sql
-PASS: files are byte-identical

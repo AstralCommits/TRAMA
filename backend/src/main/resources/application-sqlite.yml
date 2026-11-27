@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${SQLITE_URL:jdbc:sqlite:./data/confeccoes.db}
+    username:
+    password:
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    show-sql: false
+
+trama:
+  jwt:
+    secret: ${TRAMA_JWT_SECRET:trama-local-development-only-secret-change-before-use-2026}

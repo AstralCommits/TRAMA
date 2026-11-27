@@ -7,7 +7,7 @@ Cada integrante tem uma fala e um tempo. O total fecha em 10:00, com 30 segundos
 
 | Item | Responsável | Como conferir |
 |---|---|---|
-| Banco com a carga de demonstração | Jamile Keiller | `docker compose up -d` e rodar `Banco-de-Dados/database/seed_demonstracao_projetaí.sql` |
+| Banco com a carga de demonstração | Jamile Keiller | `docker compose up -d` e rodar `database/seeds/seed_demonstracao_projetai.sql` |
 | API no ar | Ester Reis | `http://localhost:8080/api/health` responde `UP` |
 | Front no ar | Gyovanna Gabrielly | `http://localhost:3000` abre a tela inicial (usar `localhost`, não `127.0.0.1`, por causa do CORS) |
 | Login de demonstração | Maria Nicolle | `admin@confeccoes.com`, senha de demonstração combinada com a equipe |

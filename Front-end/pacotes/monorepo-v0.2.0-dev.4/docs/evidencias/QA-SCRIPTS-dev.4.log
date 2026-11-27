@@ -1,5 +1,0 @@
-node --check scripts/run-maven.mjs: PASS
-node --check scripts/verify-monorepo-package.mjs: PASS
-bash -n Back-end/mvnw: PASS
-Node available in preparation environment: v22.16.0
-Project engine requirement: >=22.22.0

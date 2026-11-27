@@ -1,0 +1,1226 @@
+{
+  "components" : {
+    "schemas" : {
+      "CategoriaIndicadorDTO" : {
+        "properties" : {
+          "categoria" : {
+            "type" : "string"
+          },
+          "classificacao" : {
+            "type" : "string"
+          },
+          "faturamento" : {
+            "type" : "number"
+          },
+          "faturamentoAnterior" : {
+            "type" : "number"
+          },
+          "idCategoria" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "pecasVendidas" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "pecasVendidasAnterior" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "variacaoPercentual" : {
+            "type" : "number"
+          }
+        },
+        "type" : "object"
+      },
+      "CategoriaLiderDTO" : {
+        "properties" : {
+          "categoria" : {
+            "type" : "string"
+          },
+          "faturamento" : {
+            "type" : "number"
+          }
+        },
+        "type" : "object"
+      },
+      "CategoriaRequest" : {
+        "properties" : {
+          "nome" : {
+            "maxLength" : 50,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          }
+        },
+        "required" : [ "nome" ],
+        "type" : "object"
+      },
+      "CategoriaResponse" : {
+        "properties" : {
+          "idCategoria" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "nome" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "CenarioRequest" : {
+        "properties" : {
+          "categoriaId" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "descricao" : {
+            "maxLength" : 300,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "nome" : {
+            "maxLength" : 100,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "percentualImpacto" : {
+            "exclusiveMaximum" : false,
+            "exclusiveMinimum" : false,
+            "maximum" : 100.0,
+            "minimum" : 0.0,
+            "type" : "number"
+          }
+        },
+        "required" : [ "nome", "percentualImpacto" ],
+        "type" : "object"
+      },
+      "CenarioResponse" : {
+        "properties" : {
+          "categoriaId" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "descricao" : {
+            "type" : "string"
+          },
+          "idCenario" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "nome" : {
+            "type" : "string"
+          },
+          "percentualImpacto" : {
+            "type" : "number"
+          }
+        },
+        "type" : "object"
+      },
+      "CidadeResponse" : {
+        "properties" : {
+          "idCidade" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "nome" : {
+            "type" : "string"
+          },
+          "uf" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "ConfeccaoDoUsuario" : {
+        "nullable" : true,
+        "properties" : {
+          "cidade" : {
+            "type" : "string"
+          },
+          "idConfeccao" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "nome" : {
+            "type" : "string"
+          },
+          "uf" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cidade", "idConfeccao", "nome", "uf" ],
+        "type" : "object"
+      },
+      "ConfeccaoRequest" : {
+        "properties" : {
+          "cidade" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "cnpj" : {
+            "pattern" : "^(?:\\d{14}|\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})?$",
+            "type" : "string"
+          },
+          "nome" : {
+            "maxLength" : 120,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "porte" : {
+            "enum" : [ "MICRO", "PEQUENA", "MEDIA" ],
+            "type" : "string"
+          },
+          "tipo" : {
+            "enum" : [ "CONFECCAO", "FACCAO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "cidade", "nome", "porte", "tipo" ],
+        "type" : "object"
+      },
+      "ConfeccaoResponse" : {
+        "properties" : {
+          "cidade" : {
+            "type" : "string"
+          },
+          "cnpj" : {
+            "type" : "string"
+          },
+          "idCidade" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "idConfeccao" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "nome" : {
+            "type" : "string"
+          },
+          "porte" : {
+            "enum" : [ "MICRO", "PEQUENA", "MEDIA" ],
+            "type" : "string"
+          },
+          "tipo" : {
+            "enum" : [ "CONFECCAO", "FACCAO" ],
+            "type" : "string"
+          },
+          "uf" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "ImportacaoResponse" : {
+        "properties" : {
+          "dataImportacao" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "idImportacao" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "idUsuario" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "nomeArquivo" : {
+            "type" : "string"
+          },
+          "qtdLinhas" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "status" : {
+            "enum" : [ "CONCLUIDA", "ERRO" ],
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "IndicadorResponseDTO" : {
+        "properties" : {
+          "categoriaId" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "categoriaLider" : {
+            "$ref" : "#/components/schemas/CategoriaLiderDTO"
+          },
+          "categorias" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CategoriaIndicadorDTO"
+            },
+            "type" : "array"
+          },
+          "cidade" : {
+            "type" : "string"
+          },
+          "faturamentoMedio" : {
+            "type" : "number"
+          },
+          "faturamentoTotal" : {
+            "type" : "number"
+          },
+          "faturamentoTotalAnterior" : {
+            "type" : "number"
+          },
+          "fim" : {
+            "type" : "string"
+          },
+          "fimAnterior" : {
+            "type" : "string"
+          },
+          "inicio" : {
+            "type" : "string"
+          },
+          "inicioAnterior" : {
+            "type" : "string"
+          },
+          "pecasVendidas" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "pecasVendidasAnterior" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "quantidadeLancamentos" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "quantidadeTotal" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "ticketMedio" : {
+            "type" : "number"
+          },
+          "variacaoPercentual" : {
+            "type" : "number"
+          }
+        },
+        "type" : "object"
+      },
+      "LoginRequest" : {
+        "properties" : {
+          "email" : {
+            "maxLength" : 120,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "senha" : {
+            "maxLength" : 72,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "email", "senha" ],
+        "type" : "object"
+      },
+      "LoginResponse" : {
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "SimulacaoCenarioRequest" : {
+        "properties" : {
+          "categoriaId" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "percentualImpacto" : {
+            "exclusiveMaximum" : false,
+            "exclusiveMinimum" : false,
+            "maximum" : 100.0,
+            "minimum" : 0.0,
+            "type" : "number"
+          }
+        },
+        "required" : [ "percentualImpacto" ],
+        "type" : "object"
+      },
+      "SimulacaoCenarioResponse" : {
+        "properties" : {
+          "diferencaPercentual" : {
+            "type" : "number"
+          },
+          "diferencaReais" : {
+            "type" : "number"
+          },
+          "faturamentoHipotetico" : {
+            "type" : "number"
+          },
+          "faturamentoReal" : {
+            "type" : "number"
+          }
+        },
+        "type" : "object"
+      },
+      "UsuarioLogadoResponse" : {
+        "properties" : {
+          "confeccao" : {
+            "$ref" : "#/components/schemas/ConfeccaoDoUsuario"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "idUsuario" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "nome" : {
+            "type" : "string"
+          },
+          "perfil" : {
+            "enum" : [ "ADMIN", "EMPRESARIO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "email", "idUsuario", "nome", "perfil" ],
+        "type" : "object"
+      },
+      "VendaRequest" : {
+        "properties" : {
+          "faturamento" : {
+            "exclusiveMinimum" : false,
+            "minimum" : 0.0,
+            "type" : "number"
+          },
+          "idCategoria" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "idConfeccao" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "mesAno" : {
+            "pattern" : "^\\d{4}-(0[1-9]|1[0-2])$",
+            "type" : "string"
+          },
+          "nomeFonte" : {
+            "maxLength" : 200,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "origem" : {
+            "enum" : [ "MANUAL", "IMPORTACAO" ],
+            "type" : "string"
+          },
+          "origemDado" : {
+            "enum" : [ "ENTREVISTA", "QUESTIONARIO", "FONTE_SECUNDARIA" ],
+            "type" : "string"
+          },
+          "quantidade" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "faturamento", "idCategoria", "idConfeccao", "mesAno", "nomeFonte", "origem", "origemDado", "quantidade" ],
+        "type" : "object"
+      },
+      "VendaResponse" : {
+        "properties" : {
+          "categoria" : {
+            "type" : "string"
+          },
+          "confeccao" : {
+            "type" : "string"
+          },
+          "faturamento" : {
+            "type" : "number"
+          },
+          "idCategoria" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "idConfeccao" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "idLancamento" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "mesAno" : {
+            "type" : "string"
+          },
+          "nomeFonte" : {
+            "type" : "string"
+          },
+          "origem" : {
+            "enum" : [ "MANUAL", "IMPORTACAO" ],
+            "type" : "string"
+          },
+          "origemDado" : {
+            "enum" : [ "ENTREVISTA", "QUESTIONARIO", "FONTE_SECUNDARIA" ],
+            "type" : "string"
+          },
+          "quantidade" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "status" : {
+            "enum" : [ "ATIVO", "CANCELADO" ],
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  },
+  "info" : {
+    "contact" : {
+      "name" : "Equipe TRAMA"
+    },
+    "description" : "API REST para gerenciamento de confecções, vendas mensais e cenários de concorrência do Polo Têxtil do Agreste.",
+    "title" : "TRAMA API",
+    "version" : "0.2.0"
+  },
+  "openapi" : "3.0.1",
+  "paths" : {
+    "/api/auth/login" : {
+      "post" : {
+        "operationId" : "login",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Autentica um usuário e retorna um JWT Bearer",
+        "tags" : [ "Autenticação" ]
+      }
+    },
+    "/api/auth/me" : {
+      "get" : {
+        "operationId" : "me",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UsuarioLogadoResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Retorna o usuário autenticado, com o perfil e a confecção dele",
+        "tags" : [ "Autenticação" ]
+      }
+    },
+    "/api/categorias" : {
+      "get" : {
+        "operationId" : "listar_4",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/CategoriaResponse"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "categoria-controller" ]
+      },
+      "post" : {
+        "operationId" : "criar_3",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CategoriaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoriaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "categoria-controller" ]
+      }
+    },
+    "/api/categorias/{id}" : {
+      "delete" : {
+        "operationId" : "excluir_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "categoria-controller" ]
+      },
+      "get" : {
+        "operationId" : "buscar_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoriaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "categoria-controller" ]
+      },
+      "put" : {
+        "operationId" : "atualizar_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CategoriaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoriaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "categoria-controller" ]
+      }
+    },
+    "/api/cenarios" : {
+      "get" : {
+        "operationId" : "listar_3",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/CenarioResponse"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Lista cenários de concorrência do usuário autenticado",
+        "tags" : [ "Cenários de concorrência" ]
+      },
+      "post" : {
+        "operationId" : "criar_2",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CenarioRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CenarioResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Cadastra um cenário de concorrência",
+        "tags" : [ "Cenários de concorrência" ]
+      }
+    },
+    "/api/cenarios/simular" : {
+      "post" : {
+        "operationId" : "simular",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SimulacaoCenarioRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SimulacaoCenarioResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Simula o impacto percentual sobre o faturamento real",
+        "tags" : [ "Cenários de concorrência" ]
+      }
+    },
+    "/api/cidades" : {
+      "get" : {
+        "operationId" : "listarPermitidas",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/CidadeResponse"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "cidade-controller" ]
+      }
+    },
+    "/api/confeccoes" : {
+      "get" : {
+        "operationId" : "listar_2",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/ConfeccaoResponse"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "confeccao-controller" ]
+      },
+      "post" : {
+        "operationId" : "criar_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ConfeccaoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfeccaoResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "confeccao-controller" ]
+      }
+    },
+    "/api/confeccoes/{id}" : {
+      "delete" : {
+        "operationId" : "excluir",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "confeccao-controller" ]
+      },
+      "get" : {
+        "operationId" : "buscar_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfeccaoResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "confeccao-controller" ]
+      },
+      "put" : {
+        "operationId" : "atualizar_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ConfeccaoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfeccaoResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "confeccao-controller" ]
+      }
+    },
+    "/api/health" : {
+      "get" : {
+        "operationId" : "health",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "additionalProperties" : {
+                    "type" : "string"
+                  },
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "health-controller" ]
+      }
+    },
+    "/api/importacoes" : {
+      "get" : {
+        "operationId" : "listar_1",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/ImportacaoResponse"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Lista as importações do usuário autenticado",
+        "tags" : [ "Importações" ]
+      },
+      "post" : {
+        "operationId" : "importar",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "properties" : {
+                  "arquivo" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                },
+                "required" : [ "arquivo" ],
+                "type" : "object"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportacaoResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Importa lançamentos mensais por arquivo CSV",
+        "tags" : [ "Importações" ]
+      }
+    },
+    "/api/indicadores" : {
+      "get" : {
+        "operationId" : "buscarIndicadores",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "inicio",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "fim",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "categoriaId",
+          "required" : false,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cidade",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IndicadorResponseDTO"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "indicador-controller" ]
+      }
+    },
+    "/api/indicadores/tendencias" : {
+      "get" : {
+        "operationId" : "buscarTendencias",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "inicio",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "fim",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cidade",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/CategoriaIndicadorDTO"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "indicador-controller" ]
+      }
+    },
+    "/api/vendas" : {
+      "get" : {
+        "operationId" : "listar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "categoria",
+          "required" : false,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "confeccao",
+          "required" : false,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "mesAno",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/VendaResponse"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "venda-controller" ]
+      },
+      "post" : {
+        "operationId" : "criar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VendaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VendaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "venda-controller" ]
+      }
+    },
+    "/api/vendas/{id}" : {
+      "delete" : {
+        "operationId" : "cancelar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "venda-controller" ]
+      },
+      "get" : {
+        "operationId" : "buscar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VendaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "venda-controller" ]
+      },
+      "put" : {
+        "operationId" : "atualizar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VendaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VendaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "venda-controller" ]
+      }
+    }
+  },
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ]
+}

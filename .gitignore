@@ -5,13 +5,14 @@ build/
 target/
 *.class
 .env
-.env.local
+.env.*
 !.env.example
+!.env.prod.example
 *.log
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
 *.iml
-Banco-de-Dados/backups/*
-!Banco-de-Dados/backups/.gitkeep
+database/backups/*
+!database/backups/.gitkeep

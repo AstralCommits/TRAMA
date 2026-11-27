@@ -26,7 +26,7 @@ Técnicas: partição de equivalência e valor-limite (±5%, 0%/100%, valores ne
 
 ### 1.3 Ambiente
 
-MySQL 8 via `docker compose` do Banco-de-Dados (porta 3307); API no perfil `dev`; Front com `VITE_API_URL=http://localhost:8080`; dados do `inserts.sql`.
+MySQL 8 via `docker compose` da raiz (porta 3307); API no perfil `dev`; Front com `VITE_API_URL=http://localhost:8080`; dados do `inserts.sql`.
 
 ### 1.4 Critérios
 

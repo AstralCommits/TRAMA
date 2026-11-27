@@ -1,0 +1,80 @@
+name: trama
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  banco:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD no .env}
+      MYSQL_DATABASE: confeccoes
+      MYSQL_USER: trama
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no .env}
+      TZ: America/Recife
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - ./database/schema/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/schema/procedures.sql:/docker-entrypoint-initdb.d/02-procedures.sql:ro
+      - ./database/schema/triggers.sql:/docker-entrypoint-initdb.d/03-triggers.sql:ro
+      - ./database/schema/auditoria.sql:/docker-entrypoint-initdb.d/04-auditoria.sql:ro
+      - trama_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -utrama -p$$MYSQL_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    logging: *logging
+
+  api:
+    image: ${TRAMA_API_IMAGE:-ghcr.io/astralcommits/trama-api}:${TRAMA_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      banco:
+        condition: service_healthy
+    environment:
+      TZ: America/Recife
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://banco:3306/confeccoes?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Recife&characterEncoding=UTF-8
+      DB_USERNAME: trama
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no .env}
+      TRAMA_JWT_SECRET: ${TRAMA_JWT_SECRET:?Defina TRAMA_JWT_SECRET no .env}
+      TRAMA_CORS_ALLOWED_ORIGINS: ${TRAMA_WEB_URL:?Defina TRAMA_WEB_URL no .env}
+      TRAMA_ADMIN_EMAIL: ${TRAMA_ADMIN_EMAIL:-}
+      TRAMA_ADMIN_PASSWORD: ${TRAMA_ADMIN_PASSWORD:-}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8081 && printf \"GET /actuator/health/readiness HTTP/1.0\r\n\r\n\" >&3 && grep -q 200 <&3'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    logging: *logging
+
+  web:
+    image: ${TRAMA_WEB_IMAGE:-ghcr.io/astralcommits/trama-web}:${TRAMA_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    logging: *logging
+
+volumes:
+  trama_mysql:
