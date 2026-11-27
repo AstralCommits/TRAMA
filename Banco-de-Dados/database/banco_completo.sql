@@ -320,10 +320,6 @@ INNER JOIN categoria cat ON l.id_categoria = cat.id_categoria
 INNER JOIN cidade ci     ON c.id_cidade = ci.id_cidade
 WHERE l.lanc_status = 'ATIVO';
 
--- DB-04: analitica de faturamento e vendas por polo regional.
--- municipio_id e o alias de cidade.id_cidade; o indice equivalente e confeccao(id_cidade).
--- As 3 cidades cadastradas (Toritama, Caruaru e Santa Cruz do Capibaribe) sao os polos.
--- A main nao tem tabela de pedidos, entao a contagem vem dos lancamentos ativos.
 CREATE OR REPLACE VIEW vw_vendas_polo_regional AS
 SELECT ci.id_cidade AS municipio_id,
        ci.nome AS municipio,
