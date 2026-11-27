@@ -41,6 +41,7 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 - Imagem do front sem dependências de desenvolvimento e rodando sem root.
 - Guia de ambientes, publicação, logs e monitoramento em `docs/operacao/ambientes.md`.
 - Proxy Caddy no `docker-compose.prod.yml`: um único domínio com HTTPS automático, `/api` para a API e o resto para o front; só as portas 80 e 443 ficam expostas, e a API e o front passam a escutar só em `127.0.0.1` no servidor. O CORS usa `https://<TRAMA_DOMINIO>`, a menos que `TRAMA_WEB_URL` seja definido.
+- Demonstração pública com os dados de exemplo: `docker-compose.demo.yml` e `deploy/demo/subir.sh` (perfil `dev`, senhas aleatórias no `.env`, Caddy opcional com `--proxy`), o bloco `deploy/demo/Caddyfile.externo` para um Caddy que já exista e os scripts de `deploy/demo/windows` para rodar sem Docker num Windows Server.
 
 ### Corrigido
 
