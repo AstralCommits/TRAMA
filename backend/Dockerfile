@@ -5,7 +5,7 @@ RUN mvn -B -q dependency:go-offline
 COPY src ./src
 RUN mvn -B -q -DskipTests package
 
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 RUN useradd --system --uid 1001 trama
 COPY --from=build /app/target/*.jar app.jar
