@@ -1,4 +1,4 @@
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -7,7 +7,7 @@ ARG VITE_API_URL=http://localhost:8080
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
-FROM node:22-alpine
+FROM node:26-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
