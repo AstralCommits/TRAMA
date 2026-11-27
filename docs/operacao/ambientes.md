@@ -28,7 +28,7 @@ O [Dependabot](../../.github/dependabot.yml) abre PRs semanais para as dependên
 ## Publicar uma versão
 
 1. Na `develop`, registre a versão no [CHANGELOG](../../CHANGELOG.md) e leve a `develop` para a `main` por Pull Request.
-2. Defina a variável do repositório `TRAMA_API_URL` (Settings → Secrets and variables → Actions → Variables) com o endereço público da API, por exemplo `https://api.trama.exemplo.com.br`. O front recebe esse endereço no build.
+2. Defina a variável do repositório `TRAMA_API_URL` (Settings → Secrets and variables → Actions → Variables) com o endereço público do TRAMA, por exemplo `https://trama.exemplo.com.br` (sem `/api` no fim). O front recebe esse endereço no build e chama a API em `/api` no mesmo domínio.
 3. Na `main` atualizada, crie a tag e envie:
 
    ```bash
@@ -40,7 +40,13 @@ O [Dependabot](../../.github/dependabot.yml) abre PRs semanais para as dependên
 
 ## Subir em produção
 
-Precisa de um servidor com Docker e Docker Compose. No servidor:
+Precisa de um servidor com Docker e Docker Compose, com as portas 80 e 443 abertas, e de um domínio apontando para o IP do servidor. Sem domínio próprio, dá para usar o IP com o [sslip.io](https://sslip.io): o servidor `203.0.113.10` responde em `203-0-113-10.sslip.io`.
+
+O compose sobe quatro serviços. Só o `proxy` (Caddy) fica exposto para fora: ele emite o certificado HTTPS sozinho e encaminha `/api`, `/v3/api-docs` e `/swagger-ui` para a API e o resto para o front. O banco, a API e o front conversam pela rede interna do Docker; a API e o front também ficam em `127.0.0.1` nas portas `API_PORT` e `WEB_PORT`, acessíveis só de dentro do servidor, para diagnóstico e para o teste de produção.
+
+As imagens no GitHub Container Registry nascem privadas. Torne os pacotes `trama-api` e `trama-web` públicos (Packages → Package settings → Change visibility) ou faça `docker login ghcr.io` no servidor com um token que tenha `read:packages`.
+
+No servidor:
 
 ```bash
 git clone https://github.com/AstralCommits/TRAMA.git
@@ -53,11 +59,12 @@ Preencha o `.env`:
 | Variável | Para quê |
 |---|---|
 | `TRAMA_VERSION` | versão das imagens, por exemplo `1.0.0` |
-| `TRAMA_WEB_URL` | endereço público do front, usado no CORS da API |
+| `TRAMA_DOMINIO` | domínio do TRAMA, sem `https://`; o mesmo da variável `TRAMA_API_URL` do repositório. Usado no certificado HTTPS e no CORS da API |
+| `API_PORT` e `WEB_PORT` | portas da API e do front em `127.0.0.1` no servidor (padrão `8080` e `3000`) |
+| `HTTP_PORT` e `HTTPS_PORT` | portas públicas do proxy (padrão `80` e `443`); só mude se o servidor já usa essas portas |
 | `MYSQL_ROOT_PASSWORD` e `MYSQL_PASSWORD` | senhas do MySQL; use senhas longas e diferentes |
 | `TRAMA_JWT_SECRET` | segredo do token, com pelo menos 32 caracteres (`openssl rand -base64 48`) |
 | `TRAMA_ADMIN_EMAIL` e `TRAMA_ADMIN_PASSWORD` | primeiro administrador, criado só se ainda não existir |
-| `API_PORT` e `WEB_PORT` | portas publicadas no servidor |
 
 Depois:
 
@@ -66,7 +73,7 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d --wait
 ```
 
-Depois do primeiro login, apague `TRAMA_ADMIN_PASSWORD` do `.env`. Em produção, coloque um proxy com HTTPS (Nginx, Caddy ou o do provedor) na frente das portas da API e do front.
+Abra `https://<TRAMA_DOMINIO>` e entre com o administrador. Depois do primeiro login, apague `TRAMA_ADMIN_PASSWORD` do `.env`.
 
 O MySQL não fica exposto fora da rede do Docker, e o Swagger fica desligado em produção (`TRAMA_API_DOCS=true` liga).
 
@@ -115,4 +122,4 @@ A API expõe o Actuator na porta 8081, que fica só na rede interna do Docker:
 
 Para acompanhar de fora, aponte um Prometheus (ou o agente do provedor) para `api:8081/actuator/prometheus` na mesma rede do Docker. Um alerta útil para começar: taxa de respostas 5xx acima de 1% em 5 minutos.
 
-O `docker compose ps` mostra o estado de saúde dos três serviços.
+O `docker compose ps` mostra o estado de saúde dos serviços.
