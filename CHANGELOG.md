@@ -28,6 +28,7 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 - Flyway passa a controlar a estrutura do MySQL: as migrações `V1` a `V7` em `backend/src/main/resources/db/migration` são a fonte oficial, aplicadas pela API nos perfis `dev` e `prod`.
 - `database/schema.sql` e `database/banco_completo.sql` passam a ser gerados a partir das migrações (`database/scripts/gerar_schema.py`), e o CI confere se estão em dia.
 - No desenvolvimento com Docker, os dados de exemplo e a demonstração são carregados pelo serviço `seed`, depois das migrações.
+- O `seed` não dá mais a carga como feita quando ela falha no meio: só é ignorado se terminou, e para com erro se o banco ficou com dados pela metade. O README passa a mostrar o comando certo para voltar ao estado inicial.
 - `MigracoesMySqlTest` aplica as migrações num MySQL 8 real (Testcontainers) e confere as entidades e os triggers.
 - Saíram `database/schema/`, as atualizações manuais `database/migrations/` (v0.4.0 a v0.5.1) e `backend/database/`, que repetiam a estrutura.
 

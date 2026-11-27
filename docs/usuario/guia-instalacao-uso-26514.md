@@ -90,6 +90,7 @@ Abrir `http://localhost:3000`.
 | Sintoma | Causa provável | Solução |
 |---|---|---|
 | API para com "Schema-validation" ou erro do Flyway | Banco criado antes do Flyway | `docker compose down -v && docker compose up -d` |
+| `seed` para com "o seed não terminou" | Carga interrompida, ou cadastros feitos antes do seed | `docker compose down -v && docker compose up -d` (apaga os dados) |
 | API: "Communications link failure" | Porta errada | Conferir `DB_URL` com porta **3307** |
 | Telas com "Não foi possível conectar à API" | API parada ou `.env` sem `VITE_API_URL` | Subir a API; conferir o `.env` e reiniciar `npm run dev` |
 | Toda chamada responde 401 | Sessão expirada | Sair e entrar de novo |
