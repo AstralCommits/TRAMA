@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AxiosAdapter, InternalAxiosRequestConfig } from 'axios';
 import { total } from '@/data/demo';
-import { getApiToken, hasValidApiToken, readApiClaims, SESSION_EXPIRED_EVENT, setApiToken } from '@/lib/apiToken';
-import { authenticateAccount, getSession, saveSession, type TramaUser } from '@/lib/auth.client';
+import { getApiToken, hasValidApiToken, readApiClaims, SESSION_EXPIRED_EVENT, setApiToken } from '@/services/apiToken';
+import { authenticateAccount, getSession, registerAccount, saveSession, type TramaUser } from '@/services/auth.client';
 import { api, getApiErrorMessage } from '@/services/api';
 import { importCsv } from '@/services/importacoesService';
 import { createVenda, toSale, updateVenda } from '@/services/vendasService';
@@ -43,7 +43,7 @@ const venda: Venda = {
   idLancamento: 7, mesAno: '2026-03', quantidade: 3, faturamento: 100, origem: 'IMPORTACAO', origemDado: 'ENTREVISTA',
   nomeFonte: 'Coleta', status: 'ATIVO', idConfeccao: 2, confeccao: 'Estilo Agreste', idCategoria: 1, categoria: 'Moda Feminina',
 };
-const confeccao: Confeccao = { idConfeccao: 2, nome: 'Estilo Agreste', porte: 'PEQUENA', tipo: 'CONFECCAO', cidade: 'Caruaru', uf: 'PE' };
+const confeccao: Confeccao = { idConfeccao: 2, nome: 'Estilo Agreste', porte: 'PEQUENA', tipo: 'CONFECCAO', idCidade: 2, cidade: 'Caruaru', uf: 'PE' };
 const apiUser: TramaUser = {
   id: 'api-ana@x.com', name: 'Ana', email: 'ana@x.com', company: 'Estilo Agreste', city: 'Caruaru',
   role: 'Empresário', isDemo: false, createdAt: '2026-11-24', source: 'api',
@@ -169,5 +169,35 @@ describe('vendas e importação', () => {
   it('mostra as mensagens de validação de cada campo', () => {
     const error = { isAxiosError: true, response: { status: 400, data: { detail: 'Existem campos inválidos.', errors: { nome: 'Informe o nome.' } } } };
     expect(getApiErrorMessage(error)).toBe('Informe o nome.');
+  });
+});
+
+describe('cadastro pela API', () => {
+  const novaConta = { name: 'Ana', email: 'Ana@Nova.com', password: 'SenhaForte1', company: 'Estilo Agreste', city: 'Caruaru' };
+
+  it('cria a conta no banco e já entra com o usuário da API', async () => {
+    const chamadas: { url: string; data: unknown }[] = [];
+    api.defaults.adapter = respond((config) => {
+      chamadas.push({ url: String(config.url), data: config.data ? JSON.parse(String(config.data)) : undefined });
+      return config.url === '/api/auth/cadastro'
+        ? { status: 201, data: { token: token({ sub: 'ana@nova.com', perfil: 'EMPRESARIO', idConfeccao: 9, exp: future }) } }
+        : { data: { idUsuario: 9, nome: 'Ana', email: 'ana@nova.com', perfil: 'EMPRESARIO', confeccao: { idConfeccao: 9, nome: 'Estilo Agreste', cidade: 'Caruaru', uf: 'PE' } } };
+    });
+    expect(await registerAccount({ ...novaConta, porte: 'PEQUENA', tipo: 'FACCAO' }))
+      .toMatchObject({ source: 'api', role: 'Empresário', company: 'Estilo Agreste', city: 'Caruaru' });
+    expect(chamadas.map((c) => c.url)).toEqual(['/api/auth/cadastro', '/api/auth/me']);
+    expect(chamadas[0].data).toMatchObject({ email: 'ana@nova.com', nomeConfeccao: 'Estilo Agreste', porte: 'PEQUENA', tipo: 'FACCAO', cidade: 'Caruaru' });
+    expect(window.localStorage.getItem('trama:accounts:v1')).toBeNull();
+  });
+
+  it('mostra a mensagem da API quando o e-mail já existe', async () => {
+    api.defaults.adapter = respond(() => ({ status: 409, data: { detail: 'Já existe uma conta com este e-mail. Entre ou use outro endereço.' } }));
+    await expect(registerAccount(novaConta)).rejects.toThrow('Já existe uma conta com este e-mail.');
+    expect(getApiToken()).toBeNull();
+  });
+
+  it('mostra o erro de validação do campo', async () => {
+    api.defaults.adapter = respond(() => ({ status: 400, data: { errors: { cidade: 'Cidade fora do polo do Agreste.' } } }));
+    await expect(registerAccount({ ...novaConta, city: 'Recife' })).rejects.toThrow('Cidade fora do polo do Agreste.');
   });
 });

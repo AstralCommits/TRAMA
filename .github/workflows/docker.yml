@@ -1,12 +1,9 @@
 name: Imagens Docker
 
 on:
+  # Sem filtro de caminhos: "Imagem trama-api" e "Imagem trama-web" são checks
+  # obrigatórios na proteção da main, e um check que não roda deixa o PR travado.
   pull_request:
-    paths:
-      - "backend/**"
-      - "frontend/**"
-      - "docker-compose*.yml"
-      - ".github/workflows/docker.yml"
   push:
     tags:
       - "v*"
@@ -31,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Entrar no GitHub Container Registry
         if: startsWith(github.ref, 'refs/tags/v')

@@ -1,6 +1,52 @@
 {
   "components" : {
     "schemas" : {
+      "CadastroRequest" : {
+        "properties" : {
+          "cidade" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "cnpj" : {
+            "pattern" : "^(?:\\d{14}|\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})?$",
+            "type" : "string"
+          },
+          "email" : {
+            "format" : "email",
+            "maxLength" : 120,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "nome" : {
+            "maxLength" : 100,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "nomeConfeccao" : {
+            "maxLength" : 120,
+            "minLength" : 0,
+            "pattern" : "(?s)^(?!.*(?i:javascript\\s*:|vbscript\\s*:|data\\s*:\\s*text/html))[^<>]*$",
+            "type" : "string"
+          },
+          "porte" : {
+            "enum" : [ "MICRO", "PEQUENA", "MEDIA" ],
+            "type" : "string"
+          },
+          "senha" : {
+            "maxLength" : 72,
+            "minLength" : 8,
+            "type" : "string"
+          },
+          "tipo" : {
+            "enum" : [ "CONFECCAO", "FACCAO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "cidade", "email", "nome", "nomeConfeccao", "porte", "senha", "tipo" ],
+        "type" : "object"
+      },
       "CategoriaIndicadorDTO" : {
         "properties" : {
           "categoria" : {
@@ -66,6 +112,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "idCategoria", "nome" ],
         "type" : "object"
       },
       "CenarioRequest" : {
@@ -117,6 +164,7 @@
             "type" : "number"
           }
         },
+        "required" : [ "idCenario", "nome", "percentualImpacto" ],
         "type" : "object"
       },
       "CidadeResponse" : {
@@ -132,6 +180,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "idCidade", "nome", "uf" ],
         "type" : "object"
       },
       "ConfeccaoDoUsuario" : {
@@ -215,6 +264,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "cidade", "idCidade", "idConfeccao", "nome", "porte", "tipo", "uf" ],
         "type" : "object"
       },
       "ImportacaoResponse" : {
@@ -243,6 +293,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "dataImportacao", "idImportacao", "nomeArquivo", "status" ],
         "type" : "object"
       },
       "IndicadorResponseDTO" : {
@@ -332,6 +383,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "token" ],
         "type" : "object"
       },
       "SimulacaoCenarioRequest" : {
@@ -366,6 +418,7 @@
             "type" : "number"
           }
         },
+        "required" : [ "diferencaPercentual", "diferencaReais", "faturamentoHipotetico", "faturamentoReal" ],
         "type" : "object"
       },
       "UsuarioLogadoResponse" : {
@@ -480,6 +533,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "categoria", "confeccao", "faturamento", "idCategoria", "idConfeccao", "idLancamento", "mesAno", "nomeFonte", "origem", "origemDado", "quantidade", "status" ],
         "type" : "object"
       }
     },
@@ -501,6 +555,36 @@
   },
   "openapi" : "3.0.1",
   "paths" : {
+    "/api/auth/cadastro" : {
+      "post" : {
+        "operationId" : "cadastrar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CadastroRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Cadastra uma confecção e o usuário EMPRESARIO dela, e retorna um JWT Bearer",
+        "tags" : [ "Autenticação" ]
+      }
+    },
     "/api/auth/login" : {
       "post" : {
         "operationId" : "login",
