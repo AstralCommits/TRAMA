@@ -13,7 +13,9 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 ### Integração
 
 - `GET /api/auth/me` devolve nome, perfil e confecção do usuário logado; o front deixou de deduzir a confecção pela primeira da lista.
+- `POST /api/auth/cadastro`: o Cadastrar-se cria a confecção e o usuário EMPRESARIO no banco e já entra logado, com limite de 5 cadastros por hora por conexão; sem a API, a conta continua no navegador. `GET /api/cidades` passou a ser público para a tela de cadastro.
 - Contrato da API versionado em `docs/api/openapi.json`, com teste no back e tipos gerados no front (`npm run api:types`), conferidos no CI.
+- Todos os tipos da API no front vêm do contrato: os campos que a API sempre devolve são marcados como obrigatórios nos DTOs, e `src/types/api.ts` só dá nomes aos tipos gerados.
 - Quem entra pela API vê só os módulos da SRS, todos ligados ao banco; os módulos locais ficam na demonstração e nas contas locais.
 
 ### Organização do front-end

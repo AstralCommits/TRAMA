@@ -1,15 +1,18 @@
 package br.com.trama.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+
 import br.com.trama.model.enums.PorteConfeccao;
 import br.com.trama.model.enums.TipoConfeccao;
 
 public record ConfeccaoResponse(
-        Long idConfeccao,
-        String nome,
+        @Schema(requiredMode = RequiredMode.REQUIRED) Long idConfeccao,
+        @Schema(requiredMode = RequiredMode.REQUIRED) String nome,
         String cnpj,
-        PorteConfeccao porte,
-        TipoConfeccao tipo,
-        Long idCidade,
-        String cidade,
-        String uf) {
+        @Schema(requiredMode = RequiredMode.REQUIRED) PorteConfeccao porte,
+        @Schema(requiredMode = RequiredMode.REQUIRED) TipoConfeccao tipo,
+        @Schema(requiredMode = RequiredMode.REQUIRED) Long idCidade,
+        @Schema(requiredMode = RequiredMode.REQUIRED) String cidade,
+        @Schema(requiredMode = RequiredMode.REQUIRED) String uf) {
 }

@@ -45,7 +45,7 @@ O workflow [`frontend.yml`](../.github/workflows/frontend.yml) roda os quatro em
 
 ## Como entrar
 
-- **Cadastrar-se:** cria uma conta com nome, e-mail, confecção, cidade e senha.
+- **Cadastrar-se:** cria uma conta com nome, e-mail, confecção, porte, tipo, cidade e senha. Com a API configurada, a conta e a confecção vão para o banco (`POST /api/auth/cadastro`) e a pessoa já entra como empresária; só aparecem as cidades aceitas pelo banco. Sem a API, a conta fica neste navegador.
 - **Entrar:** com um usuário do TRAMA, usa a API e o banco: o front pede o token em `POST /api/auth/login` e os dados do usuário em `GET /api/auth/me`. Com uma conta criada no navegador, os dados ficam só nele.
 - **Entrar na demonstração:** abre a Confecção Fio do Agreste com dados fictícios.
 

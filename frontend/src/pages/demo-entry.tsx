@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   authenticateAccount,
   registerAccount,
@@ -6,6 +6,8 @@ import {
   type TramaUser,
 } from '@/services/auth.client';
 import { isApiConfigured } from '@/services/api';
+import { listCidades } from '@/services/cadastrosService';
+import type { Porte, TipoConfeccao } from '@/types/api';
 
 type Props = {
   mode: string;
@@ -14,6 +16,7 @@ type Props = {
 };
 
 const cities = ['Santa Cruz do Capibaribe', 'Toritama', 'Caruaru', 'Outra cidade do Agreste'];
+const apiCities = ['Santa Cruz do Capibaribe', 'Toritama', 'Caruaru'];
 
 export function DemoEntry({ mode, close, onSuccess }: Props) {
   const initialView = mode === 'Cadastrar-se' ? 'register' : mode === 'Entrar na demonstração' ? 'demo' : 'login';
@@ -24,10 +27,22 @@ export function DemoEntry({ mode, close, onSuccess }: Props) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [company, setCompany] = useState('');
+  const [porte, setPorte] = useState<Porte>('MICRO');
+  const [tipo, setTipo] = useState<TipoConfeccao>('CONFECCAO');
+  const [registerCities, setRegisterCities] = useState(isApiConfigured() ? apiCities : cities);
   const [city, setCity] = useState('Santa Cruz do Capibaribe');
   const [role, setRole] = useState('Administrador');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (view !== 'register' || !isApiConfigured()) return;
+    const controller = new AbortController();
+    listCidades(controller.signal)
+      .then((lista) => { if (lista.length) setRegisterCities(lista.map((item) => item.nome)); })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [view]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,7 +51,7 @@ export function DemoEntry({ mode, close, onSuccess }: Props) {
     try {
       if (view === 'register') {
         if (password !== confirmPassword) throw new Error('As senhas não conferem.');
-        const user = await registerAccount({ name, email, password, company, city });
+        const user = await registerAccount({ name, email, password, company, city, porte, tipo });
         onSuccess(user);
       } else if (view === 'login') {
         const user = await authenticateAccount(email, password);
@@ -64,7 +79,7 @@ export function DemoEntry({ mode, close, onSuccess }: Props) {
       <section className="modal auth-modal" role="dialog" aria-modal="true" aria-label="Acesso à TRAMA">
         <span className="eyebrow">TRAMA / {view === 'demo' ? 'DEMONSTRAÇÃO' : 'ÁREA DA PLATAFORMA'}</span>
         <h2>{title}</h2>
-        {view === 'register' && <p>Cadastre sua empresa para entrar na área de gestão. Seus registros ficarão salvos neste navegador.</p>}
+        {view === 'register' && <p>{isApiConfigured() ? 'Cadastre sua confecção para entrar na área de gestão. Os dados ficam no banco do TRAMA.' : 'Cadastre sua empresa para entrar na área de gestão. Seus registros ficarão salvos neste navegador.'}</p>}
         {view === 'login' && <p>{isApiConfigured() ? 'Entre com o usuário cadastrado no TRAMA ou com uma conta criada neste navegador.' : 'Entre com o e-mail e a senha que você cadastrou neste navegador.'}</p>}
         {view === 'demo' && <p>Experimente todos os módulos com uma confecção e dados demonstrativos, sem usar informações comerciais reais.</p>}
 
@@ -80,7 +95,11 @@ export function DemoEntry({ mode, close, onSuccess }: Props) {
             <label>Seu nome<input required autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Nome completo" /></label>
             <label>Nome da confecção / empresa<input required value={company} onChange={(event) => setCompany(event.target.value)} placeholder="Ex.: Confecção Boa Trama" /></label>
             <label>E-mail<input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="voce@empresa.com" /></label>
-            <label>Cidade<select value={city} onChange={(event) => setCity(event.target.value)}>{cities.map((item) => <option key={item}>{item}</option>)}</select></label>
+            <label>Cidade<select value={city} onChange={(event) => setCity(event.target.value)}>{registerCities.map((item) => <option key={item}>{item}</option>)}</select></label>
+            {isApiConfigured() && <>
+              <label>Porte<select value={porte} onChange={(event) => setPorte(event.target.value as Porte)}><option value="MICRO">Micro</option><option value="PEQUENA">Pequena</option><option value="MEDIA">Média</option></select></label>
+              <label>Tipo<select value={tipo} onChange={(event) => setTipo(event.target.value as TipoConfeccao)}><option value="CONFECCAO">Confecção</option><option value="FACCAO">Facção</option></select></label>
+            </>}
             <label>Senha<input required type="password" minLength={8} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Mínimo de 8 caracteres" /></label>
             <label>Confirme sua senha<input required type="password" minLength={8} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Digite a senha novamente" /></label>
           </>}
