@@ -53,7 +53,7 @@ jobs:
             type=ref,event=pr
 
       - name: Montar e publicar
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.contexto }}
           push: ${{ startsWith(github.ref, 'refs/tags/v') }}
