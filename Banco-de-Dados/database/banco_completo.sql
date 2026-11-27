@@ -347,11 +347,6 @@ LEFT JOIN (
     GROUP BY c.id_cidade
 ) v ON v.id_cidade = ci.id_cidade;
 
-DROP PROCEDURE IF EXISTS inserir_lancamento;
-DROP PROCEDURE IF EXISTS atualizar_lancamento;
-DROP PROCEDURE IF EXISTS cancelar_lancamento;
-DROP PROCEDURE IF EXISTS excluir_lancamento;
-
 DELIMITER $$
 CREATE PROCEDURE inserir_lancamento(
     IN p_mes_referencia DATE,
@@ -490,10 +485,6 @@ LEFT JOIN confeccao c   ON h.id_confeccao = c.id_confeccao
 LEFT JOIN cidade ci     ON c.id_cidade = ci.id_cidade
 LEFT JOIN categoria cat ON h.id_categoria = cat.id_categoria
 LEFT JOIN usuario u     ON h.id_usuario = u.id_usuario;
-
-DROP PROCEDURE IF EXISTS relatorio_historico_periodo;
-DROP PROCEDURE IF EXISTS relatorio_alteracoes_por_usuario;
-DROP PROCEDURE IF EXISTS relatorio_alteracoes_por_confeccao;
 
 DELIMITER $$
 CREATE PROCEDURE relatorio_historico_periodo(
@@ -784,8 +775,6 @@ INNER JOIN categoria cat ON ir.id_categoria = cat.id_categoria
 LEFT JOIN cidade ci      ON ir.id_cidade = ci.id_cidade
 ORDER BY ir.tendencia, ir.variacao_percentual DESC;
 
-
--- DB-04: vendas por polo regional
 SELECT * FROM vw_vendas_polo_regional
 ORDER BY faturamento_total DESC;
 
@@ -801,7 +790,6 @@ EXPLAIN SELECT * FROM vw_vendas_polo_regional;
 
 EXPLAIN ANALYZE SELECT * FROM vw_vendas_polo_regional;
 
--- DB-04: teste de desempenho da view vw_vendas_polo_regional
 DROP PROCEDURE IF EXISTS teste_desempenho_polo_regional;
 
 DELIMITER $$
