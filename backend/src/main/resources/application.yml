@@ -53,3 +53,6 @@ springdoc:
     tags-sorter: alpha
   api-docs:
     path: /v3/api-docs
+    # Mantém o contrato em OpenAPI 3.0: a partir do springdoc 2.8 o padrão virou 3.1,
+    # que gera campos nullable de um jeito que o openapi-typescript não entende.
+    version: openapi_3_0

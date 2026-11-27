@@ -370,6 +370,7 @@ export interface components {
             variacaoPercentual?: number;
         };
         LoginRequest: {
+            /** Format: email */
             email: string;
             senha: string;
         };
