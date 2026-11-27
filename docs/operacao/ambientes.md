@@ -77,6 +77,38 @@ Abra `https://<TRAMA_DOMINIO>` e entre com o administrador. Depois do primeiro l
 
 O MySQL não fica exposto fora da rede do Docker, e o Swagger fica desligado em produção (`TRAMA_API_DOCS=true` liga).
 
+## Demonstração pública
+
+Para apresentar o TRAMA com os dados de demonstração num endereço público, o [`docker-compose.demo.yml`](../../docker-compose.demo.yml) usa o ambiente de desenvolvimento com Docker (perfil `dev`, serviço `seed`) atrás de um Caddy, que emite o certificado HTTPS sozinho e manda `/api/*` e o Swagger para a API e o resto para o front. O MySQL não fica exposto, e a API e o front só escutam em `127.0.0.1`.
+
+Num servidor Linux com Docker e as portas 80 e 443 livres, na raiz do repositório:
+
+```bash
+./deploy/demo/subir.sh --proxy                      # usa <ip>.sslip.io
+./deploy/demo/subir.sh --proxy trama.exemplo.com.br # ou um domínio que já aponte para o servidor
+```
+
+Se o servidor já tem um proxy nas portas 80 e 443, rode sem `--proxy` e cole o bloco de [`deploy/demo/Caddyfile.externo`](../../deploy/demo/Caddyfile.externo) no Caddyfile dele (a API fica em `127.0.0.1:18080` e o front em `127.0.0.1:13000`).
+
+O script cria um `.env` com senhas aleatórias na primeira vez e depois só reconstrói e sobe os containers.
+
+### Sem Docker, num Windows Server
+
+Numa VM que não repassa a virtualização da CPU, o WSL2 e o Docker não sobem. A demonstração atual roda assim, nativa, em `C:\trama-demo`:
+
+| Peça | Como roda | Endereço |
+|---|---|---|
+| MySQL 8.4 (zip oficial) | serviço `TRAMA-MySQL`, `my.ini` com `log-bin-trust-function-creators=1` | `127.0.0.1:3308` |
+| API (`trama.jar`, perfil `dev`) | tarefa agendada `TRAMA API` no boot, [`iniciar-api.cmd`](../../deploy/demo/windows/iniciar-api.cmd) | `127.0.0.1:18080` |
+| Front (build com `VITE_API_URL` do domínio público, Node 24 portátil) | tarefa agendada `TRAMA Web` no boot, [`iniciar-web.cmd`](../../deploy/demo/windows/iniciar-web.cmd) | `127.0.0.1:13000` |
+| HTTPS | bloco de [`Caddyfile.externo`](../../deploy/demo/Caddyfile.externo) no Caddy que já roda no servidor | portas 80 e 443 |
+
+As senhas ficam em `C:\trama-demo\config\segredos.cmd`, legível só por administradores. O Flyway cria a estrutura quando a API sobe; os dados de demonstração entram uma vez, na ordem do serviço `seed` do compose (`seeds/inserts.sql`, `tests/teste_triggers.sql`, `queries/transacoes.sql`, `seeds/seed_demonstracao_projetai.sql`). Logs em `C:\trama-demo\logs`.
+
+Para atualizar: gere o jar (`mvnw -DskipTests package`) e o build do front (`npm ci && npm run build` com `VITE_API_URL`), copie para `C:\trama-demo\api\trama.jar` e `C:\trama-demo\web` e reinicie as tarefas `TRAMA API` e `TRAMA Web`.
+
+Os usuários de demonstração têm senha pública: não cadastre dados reais nesse ambiente.
+
 ## Atualizar e voltar uma versão
 
 ```bash
