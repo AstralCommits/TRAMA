@@ -193,10 +193,23 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lista as importações do usuário autenticado */
+        /**
+         * Listar importações
+         * @description Lista as importações realizadas pelo usuário autenticado. Administradores podem consultar todas.
+         */
         get: operations["listar_1"];
         put?: never;
-        /** Importa lançamentos mensais por arquivo CSV */
+        /**
+         * Importar lançamentos por CSV
+         * @description Importa lançamentos mensais a partir de um arquivo CSV.
+         *     O arquivo deve utilizar UTF-8 e conter os cabeçalhos obrigatórios:
+         *     mesAno (ou mesReferencia), quantidade, faturamento (ou valor),
+         *     idConfeccao, idCategoria, origemDado e nomeFonte.
+         *
+         *     O separador pode ser vírgula ou ponto e vírgula.
+         *     Os identificadores de confecção e categoria devem existir no sistema.
+         *     A origem da importação é definida pelo próprio sistema.
+         */
         post: operations["importar"];
         delete?: never;
         options?: never;
@@ -211,6 +224,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Consultar indicadores de vendas
+         * @description Retorna os indicadores de vendas de um período, incluindo faturamento,
+         *     quantidade de peças, ticket médio, comparação com o período anterior
+         *     e desempenho por categoria.
+         *
+         *     Os períodos devem utilizar o formato AAAA-MM.
+         */
         get: operations["buscarIndicadores"];
         put?: never;
         post?: never;
@@ -227,6 +248,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Consultar tendências por categoria
+         * @description Retorna a evolução das categorias no período selecionado,
+         *     comparando faturamento e quantidade de peças com o período anterior.
+         *
+         *     Classificações possíveis: ALTA, QUEDA, ESTAVEL e SEM_BASE.
+         */
         get: operations["buscarTendencias"];
         put?: never;
         post?: never;
@@ -243,8 +271,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Listar vendas
+         * @description Lista os lançamentos de vendas, permitindo filtrar por categoria, confecção e mês.
+         */
         get: operations["listar"];
         put?: never;
+        /**
+         * Cadastrar venda
+         * @description Registra um lançamento mensal de vendas para uma confecção e categoria.
+         */
         post: operations["criar"];
         delete?: never;
         options?: never;
@@ -259,9 +295,21 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Buscar venda por ID
+         * @description Retorna os detalhes de um lançamento de venda específico.
+         */
         get: operations["buscar"];
+        /**
+         * Atualizar venda
+         * @description Atualiza os dados de um lançamento de venda existente.
+         */
         put: operations["atualizar"];
         post?: never;
+        /**
+         * Cancelar venda
+         * @description Cancela um lançamento de venda existente.
+         */
         delete: operations["cancelar"];
         options?: never;
         head?: never;
@@ -406,6 +454,19 @@ export interface components {
         };
         LoginResponse: {
             token: string;
+        };
+        ProblemDetail: {
+            detail?: string | null;
+            /** Format: uri */
+            instance?: string | null;
+            properties?: {
+                [key: string]: Record<string, never>;
+            } | null;
+            /** Format: int32 */
+            status?: number;
+            title?: string | null;
+            /** Format: uri */
+            type?: string;
         };
         SimulacaoCenarioRequest: {
             /** Format: int64 */
@@ -883,13 +944,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Importações retornadas com sucesso. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ImportacaoResponse"][];
+                    "application/json": components["schemas"]["ImportacaoResponse"][];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -904,19 +974,65 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /** Format: binary */
+                    /**
+                     * Format: binary
+                     * @description Arquivo CSV em UTF-8.
+                     *
+                     *     Exemplo de conteúdo:
+                     *     mesAno;quantidade;faturamento;idConfeccao;idCategoria;origemDado;nomeFonte
+                     *     2025-03;120;15000.00;1;1;ENTREVISTA;Entrevista com lojistas de Caruaru
+                     *     2025-03;80;9600.00;1;2;QUESTIONARIO;Questionário com comerciantes
+                     *
+                     *     Substitua os IDs pelos identificadores existentes no seu banco de dados.
+                     */
                     arquivo: string;
                 };
             };
         };
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Arquivo importado com sucesso. */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ImportacaoResponse"];
+                    "application/json": components["schemas"]["ImportacaoResponse"];
+                };
+            };
+            /** @description Arquivo inválido, cabeçalhos ausentes ou dados incorretos. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário sem permissão para importar os dados. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Arquivo maior que o limite permitido de 10 MB. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -924,9 +1040,25 @@ export interface operations {
     buscarIndicadores: {
         parameters: {
             query: {
+                /**
+                 * @description Mês inicial da consulta no formato AAAA-MM.
+                 * @example 2025-02
+                 */
                 inicio: string;
+                /**
+                 * @description Mês final da consulta no formato AAAA-MM.
+                 * @example 2025-02
+                 */
                 fim: string;
+                /**
+                 * @description Identificador opcional da categoria.
+                 * @example 1
+                 */
                 categoriaId?: number;
+                /**
+                 * @description Cidade utilizada como filtro.
+                 * @example Toritama
+                 */
                 cidade?: string;
             };
             header?: never;
@@ -935,13 +1067,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Indicadores calculados com sucesso. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["IndicadorResponseDTO"];
+                    "application/json": components["schemas"]["IndicadorResponseDTO"];
+                };
+            };
+            /** @description Período inválido ou data final anterior à inicial. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -949,8 +1099,20 @@ export interface operations {
     buscarTendencias: {
         parameters: {
             query: {
+                /**
+                 * @description Mês inicial da consulta no formato AAAA-MM.
+                 * @example 2025-02
+                 */
                 inicio: string;
+                /**
+                 * @description Mês final da consulta no formato AAAA-MM.
+                 * @example 2025-02
+                 */
                 fim: string;
+                /**
+                 * @description Cidade utilizada como filtro.
+                 * @example Toritama
+                 */
                 cidade?: string;
             };
             header?: never;
@@ -959,13 +1121,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Tendências calculadas com sucesso. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CategoriaIndicadorDTO"][];
+                    "application/json": components["schemas"]["CategoriaIndicadorDTO"][];
+                };
+            };
+            /** @description Período inválido. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -973,8 +1153,20 @@ export interface operations {
     listar: {
         parameters: {
             query?: {
+                /**
+                 * @description Filtrar pelo identificador da categoria.
+                 * @example 1
+                 */
                 categoria?: number;
+                /**
+                 * @description Filtrar pelo identificador da confecção.
+                 * @example 1
+                 */
                 confeccao?: number;
+                /**
+                 * @description Filtrar pelo mês de referência no formato AAAA-MM.
+                 * @example 2025-03
+                 */
                 mesAno?: string;
             };
             header?: never;
@@ -983,13 +1175,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Lista de vendas retornada com sucesso. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["VendaResponse"][];
+                    "application/json": components["schemas"]["VendaResponse"][];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -1001,19 +1202,47 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Dados necessários para cadastrar uma venda. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["VendaRequest"];
             };
         };
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Venda cadastrada com sucesso. */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["VendaResponse"];
+                    "application/json": components["schemas"]["VendaResponse"];
+                };
+            };
+            /** @description Dados inválidos. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário sem permissão. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -1023,19 +1252,41 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /**
+                 * @description Identificador do lançamento.
+                 * @example 101
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Venda encontrada com sucesso. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["VendaResponse"];
+                    "application/json": components["schemas"]["VendaResponse"];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Venda não encontrada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -1045,23 +1296,64 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /**
+                 * @description Identificador do lançamento.
+                 * @example 101
+                 */
                 id: number;
             };
             cookie?: never;
         };
+        /** @description Novos dados da venda. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["VendaRequest"];
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Venda atualizada com sucesso. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["VendaResponse"];
+                    "application/json": components["schemas"]["VendaResponse"];
+                };
+            };
+            /** @description Dados inválidos. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário sem permissão. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Venda não encontrada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -1071,18 +1363,49 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /**
+                 * @description Identificador do lançamento a cancelar.
+                 * @example 101
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Venda cancelada com sucesso. Não há conteúdo na resposta. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Usuário não autenticado. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Usuário sem permissão. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Venda não encontrada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
             };
         };
     };
