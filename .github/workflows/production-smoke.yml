@@ -1,0 +1,25 @@
+name: Teste de produção
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "database/**"
+      - "docker-compose.prod.yml"
+      - "scripts/testar-producao.sh"
+      - ".github/workflows/production-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Subir Compose de produção com segredos temporários
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - name: Executar teste integrado de produção
+        run: bash scripts/testar-producao.sh
