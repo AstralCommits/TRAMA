@@ -38,7 +38,7 @@ jobs:
         run: mvn --batch-mode --no-transfer-progress clean verify
       - name: Publicar relatório JaCoCo
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jacoco-report
           path: backend/target/site/jacoco/
