@@ -42,7 +42,7 @@ O [Dependabot](../../.github/dependabot.yml) abre PRs semanais para as dependên
 
 Precisa de um servidor com Docker e Docker Compose, com as portas 80 e 443 abertas, e de um domínio apontando para o IP do servidor. Sem domínio próprio, dá para usar o IP com o [sslip.io](https://sslip.io): o servidor `203.0.113.10` responde em `203-0-113-10.sslip.io`.
 
-O compose sobe quatro serviços. Só o `proxy` (Caddy) fica exposto: ele emite o certificado HTTPS sozinho e encaminha `/api`, `/v3/api-docs` e `/swagger-ui` para a API e o resto para o front. O banco, a API e o front conversam pela rede interna do Docker.
+O compose sobe quatro serviços. Só o `proxy` (Caddy) fica exposto para fora: ele emite o certificado HTTPS sozinho e encaminha `/api`, `/v3/api-docs` e `/swagger-ui` para a API e o resto para o front. O banco, a API e o front conversam pela rede interna do Docker; a API e o front também ficam em `127.0.0.1` nas portas `API_PORT` e `WEB_PORT`, acessíveis só de dentro do servidor, para diagnóstico e para o teste de produção.
 
 As imagens no GitHub Container Registry nascem privadas. Torne os pacotes `trama-api` e `trama-web` públicos (Packages → Package settings → Change visibility) ou faça `docker login ghcr.io` no servidor com um token que tenha `read:packages`.
 
@@ -60,6 +60,8 @@ Preencha o `.env`:
 |---|---|
 | `TRAMA_VERSION` | versão das imagens, por exemplo `1.0.0` |
 | `TRAMA_DOMINIO` | domínio do TRAMA, sem `https://`; o mesmo da variável `TRAMA_API_URL` do repositório. Usado no certificado HTTPS e no CORS da API |
+| `API_PORT` e `WEB_PORT` | portas da API e do front em `127.0.0.1` no servidor (padrão `8080` e `3000`) |
+| `HTTP_PORT` e `HTTPS_PORT` | portas públicas do proxy (padrão `80` e `443`); só mude se o servidor já usa essas portas |
 | `MYSQL_ROOT_PASSWORD` e `MYSQL_PASSWORD` | senhas do MySQL; use senhas longas e diferentes |
 | `TRAMA_JWT_SECRET` | segredo do token, com pelo menos 32 caracteres (`openssl rand -base64 48`) |
 | `TRAMA_ADMIN_EMAIL` e `TRAMA_ADMIN_PASSWORD` | primeiro administrador, criado só se ainda não existir |
