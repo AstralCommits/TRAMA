@@ -21,7 +21,7 @@ O perfil `prod` não carrega os dados de exemplo nem os usuários de demonstraç
 | [`frontend.yml`](../../.github/workflows/frontend.yml) | PR e push que mudam `frontend/` ou o contrato | tipos do contrato em dia, lint, typecheck, testes e build |
 | [`database.yml`](../../.github/workflows/database.yml) | PR e push que mudam `database/` ou o compose | sobe o MySQL e confere tabelas, views, procedures, triggers e os casos da demonstração |
 | [`docker.yml`](../../.github/workflows/docker.yml) | PR que muda o código; tags `v*` | monta as imagens da API e do front; nas tags, publica no GitHub Container Registry |
-| [`codeql.yml`](../../.github/workflows/codeql.yml) | PR, push na `main` e toda segunda-feira | análise de segurança do Java e do TypeScript |
+| [`codeql.yml`](../../.github/workflows/codeql.yml) | PR, push na `main` e na `develop` e toda segunda-feira | análise de segurança do Java e do TypeScript |
 
 O [Dependabot](../../.github/dependabot.yml) abre PRs semanais para as dependências do npm e do Maven e mensais para as imagens Docker e as actions.
 
