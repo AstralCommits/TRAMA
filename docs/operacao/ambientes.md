@@ -27,9 +27,9 @@ O [Dependabot](../../.github/dependabot.yml) abre PRs semanais para as dependên
 
 ## Publicar uma versão
 
-1. Na `main` atualizada, registre a versão no [CHANGELOG](../../CHANGELOG.md).
+1. Na `develop`, registre a versão no [CHANGELOG](../../CHANGELOG.md) e leve a `develop` para a `main` por Pull Request.
 2. Defina a variável do repositório `TRAMA_API_URL` (Settings → Secrets and variables → Actions → Variables) com o endereço público da API, por exemplo `https://api.trama.exemplo.com.br`. O front recebe esse endereço no build.
-3. Crie a tag e envie:
+3. Na `main` atualizada, crie a tag e envie:
 
    ```bash
    git tag v1.0.0
