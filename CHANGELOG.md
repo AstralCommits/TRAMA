@@ -47,6 +47,7 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 ### Corrigido
 
 - Rota inexistente respondia 500; agora responde 404.
+- Na demonstração pública, a API via todo visitante com o IP do proxy, e o limite de 5 cadastros por hora valia para todos juntos. Agora `docker-compose.demo.yml` e `deploy/demo/windows/iniciar-api.cmd` ligam `forward-headers-strategy=framework`, como o perfil `prod`, e o limite passa a contar por visitante.
 - Requisição com `Content-Type` não aceito pelo endpoint (ex.: `text/plain` no login) respondia 500 e era registrada como erro inesperado; agora responde 415 com o cabeçalho `Accept` listando os tipos aceitos.
 - `procedures.sql` e `triggers.sql` não rodavam sozinhos no cliente `mysql` por causa de espaços nas linhas em branco antes do `DELIMITER`.
 - Os testes que ficavam no fim de `triggers.sql` e `auditoria.sql` foram para `database/tests/`, e os arquivos de `schema/` passaram a criar só estrutura.
