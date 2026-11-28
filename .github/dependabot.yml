@@ -8,6 +8,12 @@ updates:
     groups:
       front-menores:
         update-types: [minor, patch]
+    ignore:
+      # Tailwind 4 é uma migração própria, não um bump automático: troca o plugin do
+      # PostCSS (@tailwindcss/postcss), leva a configuração para o CSS e pede ajustes
+      # nos componentes do shadcn. O bump direto quebra o build (ver #165).
+      - dependency-name: tailwindcss
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: maven
     directory: /backend
