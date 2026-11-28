@@ -118,6 +118,8 @@ Numa VM que não repassa a virtualização da CPU, o WSL2 e o Docker não sobem.
 
 As senhas ficam em `C:\trama-demo\config\segredos.cmd`, legível só por administradores. O Flyway cria a estrutura quando a API sobe; os dados de demonstração entram uma vez, na ordem do serviço `seed` do compose (`seeds/inserts.sql`, `tests/teste_triggers.sql`, `queries/transacoes.sql`, `seeds/seed_demonstracao_projetai.sql`). Logs em `C:\trama-demo\logs`.
 
+A API só escuta em `127.0.0.1` e lê o IP do visitante no `X-Forwarded-For` que o Caddy envia (`server.forward-headers-strategy=framework`, como no perfil `prod`). Se ela ficar exposta sem proxy na frente, tire essa opção, porque qualquer cliente poderia forjar o próprio IP.
+
 Para atualizar: gere o jar (`mvnw -DskipTests package`) e o build do front (`npm ci && npm run build` com `VITE_API_URL`), copie para `C:\trama-demo\api\trama.jar` e `C:\trama-demo\web` e reinicie as tarefas `TRAMA API` e `TRAMA Web`.
 
 Os usuários de demonstração têm senha pública: não cadastre dados reais nesse ambiente.

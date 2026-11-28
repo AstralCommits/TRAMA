@@ -24,6 +24,9 @@ services:
       TRAMA_CORS_ALLOWED_ORIGINS: https://${TRAMA_DOMINIO:?Defina TRAMA_DOMINIO no .env}
       TRAMA_JWT_SECRET: ${TRAMA_JWT_SECRET:?Defina TRAMA_JWT_SECRET no .env}
       JAVA_OPTS: -XX:MaxRAMPercentage=50 -XX:+ExitOnOutOfMemoryError
+      # A API só é alcançada pelo proxy, que repassa o IP real no X-Forwarded-For;
+      # sem isso o limite de cadastros por conexão vale para todos os visitantes juntos.
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
     ports: !override
       - "127.0.0.1:${DEMO_API_PORT:-18080}:8080"
 
