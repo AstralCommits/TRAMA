@@ -47,6 +47,7 @@ As mudanças do repositório TRAMA ficam registradas aqui, no formato do [Keep a
 ### Corrigido
 
 - Rota inexistente respondia 500; agora responde 404.
+- Requisição com `Content-Type` não aceito pelo endpoint (ex.: `text/plain` no login) respondia 500 e era registrada como erro inesperado; agora responde 415 com o cabeçalho `Accept` listando os tipos aceitos.
 - `procedures.sql` e `triggers.sql` não rodavam sozinhos no cliente `mysql` por causa de espaços nas linhas em branco antes do `DELIMITER`.
 - Os testes que ficavam no fim de `triggers.sql` e `auditoria.sql` foram para `database/tests/`, e os arquivos de `schema/` passaram a criar só estrutura.
 
